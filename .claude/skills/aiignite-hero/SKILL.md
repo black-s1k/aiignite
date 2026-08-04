@@ -39,25 +39,91 @@ unmounted code** (kept for the extraction methodology and in case 3D comes back)
 the live mascot is `LogoMascot.tsx`, Framer-Motion-driven, positioned in percentages
 so it tracks `SideLogo`'s image box at any size.
 
-## LogoMascot.tsx — the live 2D mascot (2026-07-09, path revised same day)
+## LogoMascot.tsx — the live 2D mascot (rewritten 2026-07-10, twice)
 Percent-space `left`/`top` keyframes (relative to the logo image's own box, not the
 viewport) animated via Framer Motion's `animate` + `times` arrays, `repeat: Infinity`.
-**Revised path** (first version slid down the "I" stroke's *inner* edge — user said
-it should be the *outer* (right) edge instead, climbing back up through the real gap
-next to "A" same as before): slide down `I_OUTER`'s top-right→bottom-right corners,
-then climb back up through the same gap waypoints as before, first/last keyframes
-identical for a seamless loop. **Mascot size bumped 5%→14% of the logo's box width**
-— deliberately wider than the real gap (~12.4%) so it visually covers/bridges the
-gap as it shuffles from the outer edge across into the climb, rather than reading as
-a tiny icon crossing a much wider empty span with a jarring lateral jump. The
-percentages were derived from the same real-image pixel analysis as
+
+**Hard constraint, settled 2026-07-10 (don't re-litigate without new user input):**
+the mascot's footprint must NEVER overlap the white glyph paint — user's reference
+was signage lettering standing on a mounting bar, not embedded in it. This directly
+reverses an earlier decision (mascot sized wider than the gap "to bridge/cover it")
+— that was wrong; the correct read was to stay clear of the white on both the slide
+edge and inside the gap. Concretely: `POINTS` are offset via the edge's own
+perpendicular (not just `+x`) during slide, and mascot width (10%) is kept narrower
+than the real gap (~12.4%) during climb, both verified by overlaying the mascot's
+actual footprint circle on the real logo image at every waypoint (PIL script — draw
+the path + a circle of the mascot's diameter at each point over `public/logo-ai.png`
+— faster and more reliable than reasoning about clearances in the abstract).
+
+**History**: v1 slid down the "I" stroke's inner edge. v2 moved the slide to the
+outer (right) edge but had the transition between slide-bottom and the climb cut
+*laterally through* the solid "I" shape (a straight-line interpolation between a
+point outside "I" and a point inside the gap necessarily crosses the solid glyph
+between them) — visible in a user-supplied video as the mascot appearing to sit
+partly inside the white stroke. v2 also glided smoothly position-wise between
+climb-bottom and climb-top while the limb articulation animated on its own
+timeline, so the "climbing" never visibly correlated with upward progress.
+
+**v3** fixed the geometry crossing: an 11-point path where the slide→climb and
+climb→slide transitions detour through the open black space below the baseline and
+above the top edge — both letters' real extents, not guessed — instead of cutting
+through solid geometry. The climb itself is broken into 4 discrete linear steps
+between the real gap-bottom/gap-top points, each step paired with an
+alternating-side `grab()` pose (contralateral: reaching arm + tucked opposite-side
+leg lift together, mirroring a real climbing/crawling gait) so the body visibly
+advances each grab rather than floating independently of the limbs. All per-limb
+rotation arrays (`TORSO_ROT`, `ARM_L`, `ARM_R`, `LEG_L`, `LEG_R`) are derived from
+one `POSES: Pose[]` array via `.map()` — never hand-type these as separate arrays,
+they *will* drift out of sync/length with `POINTS`/`TIMES` (11 entries each) if
+edited independently. v3 sized the mascot at 18% — deliberately *wider* than the
+real gap (~12.4%) to bridge/touch both edges. **v4 reversed that** — see
+the "Hard constraint" note above; mascot is 10% (narrower than the gap) and
+every `POINTS` waypoint is offset to keep the mascot's full footprint, not just its
+center, clear of the white paint.
+
+**v5 (current, 2026-07-10)**: v4 kept the body centered on the gap's midline for
+all 4 climb steps, only the limb *rotation* varied — user feedback: it read as
+"floating," reaching for support but never touching the walls. Root cause, found
+by solving the actual nested transform chain (arm rotation about the shoulder →
+torso rotation about the hip → outer percent-space translate) rather than
+eyeballing: with the body centered, even a fully-horizontal arm falls ~2pt short
+of either wall — the ~12.6pt gap (confirmed near-constant via pixel regression:
+both wall edges are straight lines, not curves, R² residual < 0.1pt) is wider
+than the reach. Fixed by making the climb an actual chimney/stem climb: each step
+now offsets the body 2.5pt off the midline *into* whichever wall that step's hand
+grabs (baked directly into `POINTS`, alternating sides — this is what makes the
+path zigzag rather than run a straight vertical line up the gap), and the
+grabbing arm's rotation in `grab()` was root-solved (not eyeballed) so the
+hand-circle's edge — not just its center — lands just inside the real wall line.
+Verified two ways: (1) numerically, a nearest-white-pixel scan around each solved
+hand position against the real alpha mask — first pass at a 0.15pt clearance
+target still overlapped by ~0.3px (the wall fit's own residual ate the margin),
+widened to 0.4pt and reverified clean with 1.2–1.7px of real clearance; (2)
+visually, the same full-path-over-the-real-image overlay technique, confirming
+the zigzag stays inside the gap the whole way and no segment cuts through solid
+geometry. Legs are geometrically too short to reach either wall from any
+achievable body offset (checked, no solution exists) — they stay a suggestive
+tucked/push gesture, only the grabbing hand is a verified contact point. One
+keyframe's y also moved (97.31 → 95.5): the original value sat past where the
+letters' pixel data actually ends (97.24), i.e. grabbing a wall that had already
+run out — caught by the same nearest-white-pixel check coming back empty.
+`components/layout/LogoMascot.tsx`'s own top-of-file comment has the full math
+writeup if this needs revisiting again.
+
+The percentages were derived from the same real-image pixel analysis as
 `lib/three/aiGlyphPaths.ts` (`col/558*100`, `row/399*100` against the actual
 558×399 `public/logo-ai.png`), not eyeballed — see the extraction method in
-"AnthropicElement rework" below. `SideLogo.tsx`'s `<img>` was switched to
-`next/image`'s `<Image>` (explicit `width={558} height={399}`) to fix an ESLint
-`no-img-element` warning introduced when the plain `<img>` was pulled out of the
-`motion.img` it used to be, wrapped in a new `relative inline-block` box so
-`LogoMascot` has a percentage frame to position against.
+"AnthropicElement rework" below. Before trusting any waypoint by eye again,
+regenerate/verify by overlaying the path on the actual logo image (a quick
+PIL script — draw the points + connecting lines over `public/logo-ai.png` — is
+faster and more reliable than reasoning about percentages in the abstract, and is
+how the v3 path was validated with no live browser access).
+
+`SideLogo.tsx`'s `<img>` was switched to `next/image`'s `<Image>` (explicit
+`width={558} height={399}`) to fix an ESLint `no-img-element` warning introduced
+when the plain `<img>` was pulled out of the `motion.img` it used to be, wrapped
+in a new `relative inline-block` box so `LogoMascot` has a percentage frame to
+position against.
 
 ## AnthropicElement rework — real logo geometry + mascot, dormant/unmounted (2026-07-09)
 `AnthropicElement.tsx` extrudes the *actual* "AI" wordmark (`public/logo-ai.png`),
