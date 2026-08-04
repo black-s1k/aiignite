@@ -1,163 +1,153 @@
 /**
- * What the press is doing at each point in the page.
+ * How each section leans on the press.
  *
- * The ink is not ambient decoration that happens to sit behind the
- * text — it is running the same argument the copy is. Read down the
- * `converge` and gain columns and you get the structure of the pitch:
- * the two tracks start fused, separate so each can be explained on its
- * own terms, and fuse again at the point where the reader is asked to
- * pick one.
+ * These are *nudges*, not states. The dispersal to the edges is handled
+ * entirely by scroll position (see `Press.tsx`), and the ink never
+ * leaves the sheet — so everything here is a bounded modulation around
+ * a floor, and every `ink` value is well clear of zero.
+ *
+ * That constraint is the point. An earlier version let each section set
+ * its own coverage outright, including near-zero for the text-heavy
+ * ones, which made the ink vanish between sections and slam back in at
+ * the next. Sections may lean the sheet left or right and thicken or
+ * thin it. They may not empty it.
+ *
+ * Read the two ink columns top to bottom and you get the argument the
+ * copy is making: even, even, both up at the fork, hard left through
+ * Forge, hard right through Spark, settle, then both at maximum with
+ * the screens converged at the one place the reader is asked to act.
  */
 
 export type Chapter = {
+  /** Coverage multiplier per drum. Never below ~0.35 — see above. */
+  forgeInk: number;
+  sparkInk: number;
   /**
-   * Coverage centre for each drum. x is a fraction of the half-width, so
-   * 0 is the middle of the sheet and ±1 is the trim edge at any viewport;
-   * values past ±1 park the drum off the sheet entirely. y is absolute,
-   * −0.5 to 0.5, bottom to top. Keeping x proportional is what stops the
-   * composition sliding off the side of a phone.
+   * Band width at the trim edge, as a fraction of viewport width.
+   *
+   * HARD RULE: `band + waveAmp` must stay under 0.118. That sum is the
+   * wave's furthest inward crest, and the content column starts at
+   * 0.122 on a 1440 sheet — so anything past it prints dots under the
+   * gutter slug and into the measure. Emphasise a section with ink
+   * density, screen ruling or converge, not by widening past this.
    */
-  forgeAt: [number, number];
-  sparkAt: [number, number];
-  /** 0 = drum lifted off the sheet, 1 = full flood. */
-  forgeGain: number;
-  sparkGain: number;
-  /** How far coverage reaches from its centre. */
-  spread: number;
-  /** Domain-warp strength — how much the ink wanders. */
-  turb: number;
+  band: number;
+  /** How far the band's inner edge travels. Bounded with `band`, above. */
+  waveAmp: number;
   /** 0 = screens at the clean 75/15 separation, 1 = converged into moiré. */
   converge: number;
-  /** 1 = hold ink out of the centre column so the type block stays clean. */
-  margin: number;
-  /** Screen ruling. Coarse reads as a poster, fine reads as a photograph. */
+  /** Screen ruling. Coarse reads as a poster, fine reads as a document. */
   freq: number;
 };
 
 export const CHAPTERS: Record<string, Chapter> = {
-  /* Both drums heavy and screens converged — the loudest the sheet ever
-     gets. Held in the upper right so the headline block prints on clean
-     stock: the ink and the type share the sheet on a diagonal rather
-     than fighting over the middle of it. */
+  /* The landing page, where the ink is still gathered. Heaviest
+     coverage and near-converged screens, so the mass carries live moiré
+     while it wobbles. */
   hero: {
-    forgeAt: [0.475, 0.02],
-    sparkAt: [0.65, 0.09],
-    forgeGain: 0.62,
-    sparkGain: 0.56,
-    spread: 0.33,
-    turb: 0.3,
+    forgeInk: 0.62,
+    sparkInk: 0.56,
+    band: 0.09,
+    waveAmp: 0.028,
     converge: 0.86,
-    margin: 0.0,
     freq: 108,
   },
 
-  /* The one section that is only an argument. Ink drops to a stain in
-     the margins and gets out of the way of the sentence. */
+  /* The one section that is only an argument. Narrowest bands and the
+     calmest wave — it gets out of the way of the sentence. */
   problem: {
-    forgeAt: [-1.187, -0.18],
-    sparkAt: [1.212, 0.22],
-    forgeGain: 0.16,
-    sparkGain: 0.14,
-    spread: 0.3,
-    turb: 0.16,
+    forgeInk: 0.44,
+    sparkInk: 0.4,
+    band: 0.06,
+    waveAmp: 0.022,
     converge: 0.0,
-    margin: 1.0,
     freq: 122,
   },
 
-  /* The fork. Both drums equal, pushed to opposite edges, screens at
-     their clean angles — this is the moment the two tracks are most
-     clearly two separate things. */
+  /* The fork. Both bands equal and thickened: this is the moment the
+     two tracks are most clearly two separate things, one down each
+     edge, in the same order as the columns between them. */
   tracks: {
-    forgeAt: [-1.05, 0.0],
-    sparkAt: [1.05, 0.0],
-    forgeGain: 0.44,
-    sparkGain: 0.4,
-    spread: 0.32,
-    turb: 0.2,
+    forgeInk: 0.6,
+    sparkInk: 0.56,
+    band: 0.085,
+    waveAmp: 0.03,
     converge: 0.0,
-    margin: 0.55,
     freq: 100,
   },
 
-  /* Forge alone. Blue only, held left against the numbered rail,
-     tight and low-turbulence — this track is a sequence and the ink
-     should feel like it knows where it's going. */
+  /* Forge. The sheet leans hard left, and the wave calms — this track
+     is a fixed sequence, so its ink should look like it knows where it
+     is going. Spark drops but stays on the sheet. */
   forge: {
-    forgeAt: [-1.1, 0.02],
-    sparkAt: [2.375, 0.0],
-    forgeGain: 0.36,
-    sparkGain: 0.0,
-    spread: 0.3,
-    turb: 0.14,
+    forgeInk: 0.68,
+    sparkInk: 0.36,
+    band: 0.082,
+    waveAmp: 0.026,
     converge: 0.0,
-    margin: 0.85,
     freq: 116,
   },
 
-  /* Spark alone. Pink only, held right, and the most turbulent state
-     on the page — these sessions are chosen by a live vote, so the
-     ink genuinely does not know where it is going either. */
+  /* Spark. Leans right, and runs the largest wave on the page — these
+     sessions are chosen by a live vote, so the ink genuinely does not
+     know where it is going either. */
   spark: {
-    forgeAt: [-2.375, 0.0],
-    sparkAt: [1.1, 0.0],
-    forgeGain: 0.0,
-    sparkGain: 0.38,
-    spread: 0.32,
-    turb: 0.46,
+    forgeInk: 0.36,
+    sparkInk: 0.7,
+    band: 0.078,
+    waveAmp: 0.038,
     converge: 0.0,
-    margin: 0.85,
     freq: 96,
   },
 
-  /* Dates and facts. Thinnest coverage on the sheet — a fine screen
-     reads as a document rather than a poster. */
+  /* Dates and facts. Thin bands and the finest screen on the page — a
+     fine halftone reads as a document, a coarse one as a poster. */
   schedule: {
-    forgeAt: [-1.15, -0.12],
-    sparkAt: [1.175, 0.14],
-    forgeGain: 0.14,
-    sparkGain: 0.12,
-    spread: 0.27,
-    turb: 0.12,
+    forgeInk: 0.4,
+    sparkInk: 0.37,
+    band: 0.055,
+    waveAmp: 0.02,
     converge: 0.12,
-    margin: 1.0,
     freq: 150,
   },
 
-  /* Everything back on the sheet at once, screens fully converged, the
-     coarsest ruling of the page — the only place the reader is asked to
-     do something, and the only place both drums run at max.
+  /* Both drums at maximum, the widest bands and the coarsest ruling of
+     the page, with the screens converged so the edges bloom back into
+     moiré. The only place the reader is asked to do something.
 
-     Set high and right, on the same diagonal as the hero, so the page
-     bookends. Centring the bloom instead puts the densest moiré on the
-     page directly under the supporting copy and the button, which is
-     the one place legibility cannot be traded for effect. The headline
-     is 15rem of graphite and can sit on the pattern quite happily; a
-     17px paragraph cannot. */
+     The bands widen rather than travelling back to the centre: the ink
+     stays where it dispersed to, which is the rule for the whole page
+     below the fold. */
   signup: {
-    forgeAt: [0.25, 0.18],
-    sparkAt: [0.425, 0.26],
-    forgeGain: 0.7,
-    sparkGain: 0.66,
-    spread: 0.42,
-    turb: 0.34,
-    converge: 1.0,
-    margin: 0.1,
+    forgeInk: 0.74,
+    sparkInk: 0.7,
+    band: 0.088,
+    waveAmp: 0.03,
+    converge: 0.85,
     freq: 88,
   },
 
-  /* Colophon. The drums come off. */
+  /* Colophon. The drums ease off, but they do not come off. */
   colophon: {
-    forgeAt: [-1.187, -0.28],
-    sparkAt: [1.212, 0.3],
-    forgeGain: 0.11,
-    sparkGain: 0.09,
-    spread: 0.26,
-    turb: 0.1,
+    forgeInk: 0.38,
+    sparkInk: 0.35,
+    band: 0.052,
+    waveAmp: 0.018,
     converge: 0.0,
-    margin: 0.9,
     freq: 132,
   },
 };
 
 export const FIRST_CHAPTER = CHAPTERS.hero;
+
+/**
+ * Where the gathered mass sits on the landing page, x as a fraction of
+ * the half-width so the composition holds on any viewport. Offset from
+ * each other so the two drums overlap without coinciding — the overlap
+ * is what produces the overprint colour and the moiré.
+ */
+export const GATHERED = {
+  forgeAt: [0.475, 0.02] as [number, number],
+  sparkAt: [0.65, 0.09] as [number, number],
+  spread: 0.33,
+};

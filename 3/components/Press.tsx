@@ -2,18 +2,32 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { CHAPTERS, FIRST_CHAPTER, type Chapter } from "@/lib/press/chapters";
+import {
+  CHAPTERS,
+  FIRST_CHAPTER,
+  GATHERED,
+  type Chapter,
+} from "@/lib/press/chapters";
 import { FRAG, VERT } from "@/lib/press/shader";
 
 /**
  * Drives the shader in lib/press/. Everything here is imperative and
- * ref-based: this runs every frame, so nothing it touches may go
- * through React state.
+ * ref-based: it runs every frame, so nothing it touches may go through
+ * React state.
  *
- * Sections opt in by carrying `data-press="<chapter>"`. Whichever one
- * owns the middle of the viewport is the target, and the uniforms damp
- * toward it — which is also what produces the crossfade between
- * chapters, so there is no separate transition system to keep in sync.
+ * Two independent inputs, and keeping them separate is what makes the
+ * press feel systematic rather than reactive:
+ *
+ *   DISPERSAL is scroll position alone. It ramps once across the
+ *   landing page and then stays at 1 for the rest of the document. It
+ *   is monotonic by construction — there is no path back to the
+ *   gathered state, so the ink cannot pop back to the middle.
+ *
+ *   EMPHASIS is whichever section owns the middle of the viewport, and
+ *   it only ever leans the sheet left or right, or thickens it. The
+ *   uniforms damp toward it, which is also what produces the crossfade
+ *   between sections, so there's no separate transition system to keep
+ *   in sync.
  */
 
 /**
@@ -22,13 +36,12 @@ import { FRAG, VERT } from "@/lib/press/shader";
  * A raw ShaderMaterial is the one material three.js does not append the
  * output-colour-space chunk to — whatever the fragment shader writes
  * goes to the sRGB framebuffer untouched. Converting these to linear
- * first therefore doesn't get converted back, and every ink prints
+ * first therefore never gets converted back, and every ink prints
  * several stops too dark (Federal Blue lands on maroon).
  *
- * Working in sRGB is also the right answer on the merits here: the
- * overprint value in globals.css was derived as an sRGB channel
- * multiply, so the shader and the palette agree only if the shader
- * multiplies in the same space.
+ * Working in sRGB is also right on the merits: the overprint value in
+ * globals.css was derived as an sRGB channel multiply, so the shader
+ * and the palette agree only if the shader multiplies in the same space.
  */
 const rgb = (hex: string) => new THREE.Color().setStyle(hex, THREE.NoColorSpace);
 
@@ -60,9 +73,9 @@ export function Press() {
       return;
     }
 
-    // The screen is a halftone: it is already a dot pattern, so paying
-    // for 2x device pixels buys almost nothing visible and costs a lot
-    // on the phones most of this audience is reading on.
+    // The image is a halftone — already a dot pattern — so paying for 2x
+    // device pixels buys almost nothing visible and costs a lot on the
+    // phones most of this audience is reading on.
     const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     renderer.setPixelRatio(dpr);
     renderer.setClearColor(INK.paper, 1);
@@ -77,14 +90,20 @@ export function Press() {
       uPaper: { value: INK.paper },
       uForge: { value: INK.forge },
       uSpark: { value: INK.spark },
-      uForgeAt: { value: new THREE.Vector2(...FIRST_CHAPTER.forgeAt) },
-      uSparkAt: { value: new THREE.Vector2(...FIRST_CHAPTER.sparkAt) },
-      uForgeGain: { value: FIRST_CHAPTER.forgeGain },
-      uSparkGain: { value: FIRST_CHAPTER.sparkGain },
-      uSpread: { value: FIRST_CHAPTER.spread },
-      uTurb: { value: FIRST_CHAPTER.turb },
+
+      uDisperse: { value: 0 },
+      uForgeAt: { value: new THREE.Vector2(...GATHERED.forgeAt) },
+      uSparkAt: { value: new THREE.Vector2(...GATHERED.sparkAt) },
+      uSpread: { value: GATHERED.spread },
+      uJelly: { value: 1 },
+
+      uBand: { value: FIRST_CHAPTER.band },
+      uWaveAmp: { value: FIRST_CHAPTER.waveAmp },
+      uWavePhase: { value: 0 },
+
+      uForgeInk: { value: FIRST_CHAPTER.forgeInk },
+      uSparkInk: { value: FIRST_CHAPTER.sparkInk },
       uConverge: { value: FIRST_CHAPTER.converge },
-      uMargin: { value: FIRST_CHAPTER.margin },
       uReg: { value: new THREE.Vector2(0, 0) },
       uFreq: { value: FIRST_CHAPTER.freq },
     };
@@ -113,7 +132,13 @@ export function Press() {
 
     // ---- reduced motion: one static pull, no loop -------------------
     if (reduced) {
+      // Held in the dispersed state with the wobble off. Gathered would
+      // put the heaviest coverage on the sheet permanently, and the
+      // landing page is the one screen guaranteed to be read.
+      uniforms.uDisperse.value = 1;
+      uniforms.uJelly.value = 0;
       renderer.render(scene, camera);
+
       const rerender = () => {
         resize();
         renderer.render(scene, camera);
@@ -129,12 +154,13 @@ export function Press() {
       };
     }
 
-    // ---- which chapter owns the viewport ----------------------------
+    // ---- which section owns the viewport ----------------------------
     const sections = Array.from(
       document.querySelectorAll<HTMLElement>("[data-press]"),
     );
+    const hero = document.querySelector<HTMLElement>('[data-press="hero"]');
 
-    const targetOf = (): Chapter => {
+    const emphasisOf = (): Chapter => {
       const mid = window.innerHeight * 0.5;
       for (const el of sections) {
         const r = el.getBoundingClientRect();
@@ -161,57 +187,63 @@ export function Press() {
     document.addEventListener("visibilitychange", onVis);
 
     const damp = THREE.MathUtils.damp;
+    const { clamp, smoothstep } = THREE.MathUtils;
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       if (!visible) return;
 
-      // Clamped so a tab that was backgrounded doesn't resume with one
-      // enormous step that snaps every uniform to its target at once.
+      // Clamped so a backgrounded tab doesn't resume with one enormous
+      // step that snaps every uniform to its target at once.
       const dt = Math.min((now - prev) / 1000, 0.05);
       prev = now;
 
       uniforms.uTime.value += dt;
 
-      const t = targetOf();
-      const L = 3.4; // ~0.8s to settle between chapters
+      const y = window.scrollY;
 
-      cur.forgeGain = damp(cur.forgeGain, t.forgeGain, L, dt);
-      cur.sparkGain = damp(cur.sparkGain, t.sparkGain, L, dt);
-      cur.spread = damp(cur.spread, t.spread, L, dt);
-      cur.turb = damp(cur.turb, t.turb, L, dt);
+      // Dispersal: complete by the time the landing page is three
+      // quarters gone, and read straight off position rather than
+      // damped toward a target, so it is exactly reversible when the
+      // reader scrolls back up and can never overshoot or settle late.
+      const runway = Math.max((hero?.offsetHeight ?? window.innerHeight) * 0.75, 1);
+      const d = smoothstep(clamp(y / runway, 0, 1), 0, 1);
+      uniforms.uDisperse.value = d;
+
+      // The wobble belongs to the gathered mass, so it fades out with it
+      // rather than running unseen for the rest of the page.
+      uniforms.uJelly.value = 1 - d;
+
+      // Scroll also pushes the travelling wave along, so the bands are
+      // not just an idle ambient loop running beside the reader.
+      uniforms.uWavePhase.value = y * 0.0016;
+
+      const t = emphasisOf();
+      const L = 3.4; // ~0.8s to settle between sections
+
+      cur.forgeInk = damp(cur.forgeInk, t.forgeInk, L, dt);
+      cur.sparkInk = damp(cur.sparkInk, t.sparkInk, L, dt);
+      cur.band = damp(cur.band, t.band, L, dt);
+      cur.waveAmp = damp(cur.waveAmp, t.waveAmp, L, dt);
       cur.converge = damp(cur.converge, t.converge, L, dt);
-      cur.margin = damp(cur.margin, t.margin, L, dt);
       cur.freq = damp(cur.freq, t.freq, L, dt);
-      cur.forgeAt = [
-        damp(cur.forgeAt[0], t.forgeAt[0], L, dt),
-        damp(cur.forgeAt[1], t.forgeAt[1], L, dt),
-      ];
-      cur.sparkAt = [
-        damp(cur.sparkAt[0], t.sparkAt[0], L, dt),
-        damp(cur.sparkAt[1], t.sparkAt[1], L, dt),
-      ];
 
-      uniforms.uForgeGain.value = cur.forgeGain;
-      uniforms.uSparkGain.value = cur.sparkGain;
-      uniforms.uSpread.value = cur.spread;
-      uniforms.uTurb.value = cur.turb;
+      uniforms.uForgeInk.value = cur.forgeInk;
+      uniforms.uSparkInk.value = cur.sparkInk;
+      uniforms.uBand.value = cur.band;
+      uniforms.uWaveAmp.value = cur.waveAmp;
       uniforms.uConverge.value = cur.converge;
-      uniforms.uMargin.value = cur.margin;
       uniforms.uFreq.value = cur.freq;
-      uniforms.uForgeAt.value.set(cur.forgeAt[0], cur.forgeAt[1]);
-      uniforms.uSparkAt.value.set(cur.sparkAt[0], cur.sparkAt[1]);
 
       // Registration drift. Scrolling is the sheet being pulled through
       // the machine, so the faster it moves the further the second pass
       // lands from the first. Measured off scrollY rather than Lenis so
-      // the press stays independent of whatever is driving the scroll.
-      const y = window.scrollY;
+      // the press stays independent of whatever drives the scroll.
       const raw = (y - lastY) / Math.max(dt, 0.001);
       lastY = y;
-      vel = damp(vel, THREE.MathUtils.clamp(raw / 2600, -1, 1), 7, dt);
+      vel = damp(vel, clamp(raw / 2600, -1, 1), 7, dt);
 
-      // Drift is in screen cells, so it stays proportional to the ruling
+      // In screen cells, so the drift stays proportional to the ruling
       // and reads the same at every screen frequency.
       uniforms.uReg.value.set(vel * 0.42, vel * -0.66);
 
