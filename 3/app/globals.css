@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+/* ===================================================================
+   AI Ignite — risograph press
+
+   The whole system is derived from one constraint: this page is a
+   two-ink risograph print on coloured stock. Riso inks are soy-based
+   and semi-transparent, so overlapping inks MULTIPLY into a genuine
+   third colour rather than covering each other. That single physical
+   fact is what the palette encodes:
+
+       Federal Blue  = Forge   (the track for students who code)
+       Fluoro Pink   = Spark   (the track for everyone else)
+       their overlap = the club
+
+   Nothing here is a "brand colour" chosen for mood. Every value is
+   either a real Riso ink, the stock it prints on, or the arithmetic
+   product of two inks.
+   =================================================================== */
+
+@theme {
+  /* ---- Stock ---------------------------------------------------
+     Not cream. Riso is usually run on coloured stock, and a pale
+     sage-grey is what makes fluorescent pink actually fluoresce —
+     pink sits opposite green on the wheel, so the stock does the
+     work an ink can't. */
+  --color-paper: #daddd3;
+
+  /* ---- Inks ----------------------------------------------------
+     Riso's own published ink values, unmodified. */
+  --color-forge: #3d5588; /* Riso Federal Blue */
+  --color-spark: #ff48b0; /* Riso Fluorescent Pink */
+
+  /* Federal Blue x Fluoro Pink, multiplied channel-wise:
+     (61,85,136) * (255,72,176) / 255 = (61,24,94).
+     Computed, not picked. If either ink changes, recompute this. */
+  --color-overprint: #3d185e;
+
+  /* Riso "black" is a warm dark, never a true black, and it picks up
+     the stock's cast. This one is graphite with the paper's green in it. */
+  --color-graphite: #1e2320;
+  /* Darker than it looks like it needs to be. Secondary text on this
+     page is frequently over a live halftone, and a value that lands
+     exactly on 4.5:1 against clean stock has no headroom left the
+     moment a single dot prints behind it. This one starts at 5.9:1 and
+     still reads as clearly secondary to graphite's 11.6:1. */
+  --color-muted: #4a514a;
+
+  /* ---- Rule: Spark is not a text colour ------------------------
+     Measured against the stock:
+
+       graphite  on paper   11.6 : 1
+       overprint on paper   10.2 : 1
+       muted     on paper    5.9 : 1   body text OK
+       forge     on paper    5.4 : 1   body text OK
+       spark     on paper    2.3 : 1   FAILS, at any size
+
+     So Fluorescent Pink is only ever a fill, a rule, or a mark, and
+     type that sits on it is graphite (5.2 : 1). This is not a
+     workaround — a fluorescent ink is a highlight ink, and no printer
+     would have set body copy in it either. The two tracks therefore
+     speak in different registers on purpose: Forge can talk in its own
+     colour, Spark can only point. */
+
+  /* ---- Type ----------------------------------------------------
+     Big Shoulders is a condensed grotesque drawn for Chicago civic
+     signage — it is a poster face, and it is the only place this
+     design raises its voice. Public Sans is the US federal body face:
+     deliberately plain, so the display face has something to be loud
+     against. Spline Sans Mono carries anything that is data — session
+     codes, dates, counts. */
+  --font-display: var(--font-big-shoulders), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-public-sans), system-ui, sans-serif;
+  --font-mono: var(--font-spline-mono), ui-monospace, monospace;
+
+  /* A poster's type scale is not a smooth ramp. It is a big voice and
+     a small voice with very little in between — that gap IS the look. */
+  --text-tag: 0.6875rem;
+  --text-tag--line-height: 1.1;
+  --text-tag--letter-spacing: 0.16em;
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.6;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.62;
+  --text-lg: clamp(1.1875rem, 1.05rem + 0.5vw, 1.4375rem);
+  --text-lg--line-height: 1.5;
+
+  /* The loud end. Condensed faces can take far more size than a
+     normal grotesque before they stop fitting, so these run hot. */
+  --text-hed: clamp(2.75rem, 1.2rem + 7vw, 6rem);
+  --text-hed--line-height: 0.86;
+  --text-hed--letter-spacing: -0.015em;
+
+  --text-mega: clamp(4.5rem, 0.5rem + 18vw, 15rem);
+  --text-mega--line-height: 0.78;
+  --text-mega--letter-spacing: -0.025em;
+
+  /* ---- Motion --------------------------------------------------
+     One easing curve for the entire site. Mixing eases is the single
+     fastest way to make a page feel assembled rather than designed. */
+  --ease-press: cubic-bezier(0.16, 0.84, 0.28, 1);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    -webkit-text-size-adjust: 100%;
+    /* Lenis drives scrolling; native smooth would fight it. */
+    scroll-behavior: auto;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    color: var(--color-graphite);
+    background-color: transparent;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  /* A printed page has no soft glows. The focus ring is a hard
+     overprint-coloured block offset like a second ink pass. */
+  :focus-visible {
+    outline: 2px solid var(--color-overprint);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-spark);
+    color: var(--color-graphite);
+  }
+}
+
+@layer components {
+  /* Metadata label. Mono, because everything it ever labels is data.
+     Set in graphite rather than muted: these sit in the outer gutter,
+     which is exactly where the press bleeds ink in, and 11px letter-
+     spaced type over a halftone needs the full contrast. It still reads
+     as secondary — that job is done by the size and the tracking, which
+     is where it should have been done in the first place. */
+  .tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-tag);
+    line-height: 1.1;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-graphite);
+  }
+
+  /* ---- Reveal --------------------------------------------------
+     Type arrives the way ink arrives: the sheet passes under the
+     drum and the image wipes on. A clip-path wipe, not an opacity
+     fade — fading is the house style of every generated page, and
+     it also isn't how anything physical ever appears. */
+  .reveal {
+    clip-path: inset(0 0 105% 0);
+    transform: translateY(0.35em);
+    transition:
+      clip-path 0.75s var(--ease-press),
+      transform 0.75s var(--ease-press);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+
+  .reveal[data-shown="true"] {
+    clip-path: inset(0 0 -10% 0);
+    transform: translateY(0);
+  }
+}
+
+/* The press is decorative and the wipes are directional; both go away
+   for anyone who has asked motion to stop. Content stays fully visible
+   — this is a visibility guard, not just a duration guard. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    clip-path: none;
+    transform: none;
+    transition: none;
+  }
+}
