@@ -10,7 +10,7 @@ export function Problem() {
   return (
     <Sheet id="why" slug="The gap" press="problem" rule={false}>
       <Reveal>
-        <h2 className="max-w-3xl font-display text-hed font-extrabold uppercase text-graphite">
+        <h2 className="max-w-3xl font-display text-hed font-extrabold uppercase text-chalk">
           Most students graduate knowing AI exists.
         </h2>
       </Reveal>

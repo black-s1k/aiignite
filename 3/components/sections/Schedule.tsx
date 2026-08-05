@@ -14,17 +14,17 @@ export function Schedule() {
   return (
     <Sheet id="details" slug="The details" press="schedule">
       <Reveal>
-        <h2 className="max-w-2xl font-display text-hed font-extrabold uppercase text-graphite">
+        <h2 className="max-w-2xl font-display text-hed font-extrabold uppercase text-chalk">
           What you are signing up for
         </h2>
       </Reveal>
 
-      <dl className="mt-14 border-t border-graphite/25">
+      <dl className="mt-14 border-t border-chalk/25">
         {FACTS.map((row, i) => (
           <Reveal
             key={row.label}
             delay={i * 55}
-            className="grid gap-1 border-b border-graphite/25 py-5 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-8"
+            className="grid gap-1 border-b border-chalk/25 py-5 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-8"
           >
             <dt className="tag sm:pt-1">{row.label}</dt>
             <dd className="text-lg text-balance">{row.value}</dd>
@@ -42,7 +42,7 @@ export function Schedule() {
             as="li"
             key={t.n}
             delay={i * 55}
-            className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-b border-graphite/15 py-4"
+            className="flex flex-wrap items-baseline gap-x-5 gap-y-1 border-b border-chalk/15 py-4"
           >
             <span className="font-mono text-xs tabular-nums text-forge">{t.n}</span>
             <span className="flex-1 text-base">{t.phase}</span>

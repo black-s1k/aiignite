@@ -18,30 +18,30 @@ const SOCIALS = [
 ];
 
 const link =
-  "underline decoration-graphite/30 underline-offset-4 transition-colors hover:decoration-graphite";
+  "underline decoration-chalk/30 underline-offset-4 transition-colors hover:decoration-chalk";
 
 export function Colophon() {
   return (
     <footer
       data-press="colophon"
-      className="mx-auto w-full max-w-6xl border-t border-graphite/25 px-5 py-16 sm:px-8 sm:py-20"
+      className="mx-auto w-full max-w-6xl border-t border-chalk/25 px-5 py-16 sm:px-8 sm:py-20"
     >
       <div className="grid gap-12 md:grid-cols-[7rem_minmax(0,1fr)] md:gap-x-10">
         <p className="tag md:pt-2">Colophon</p>
 
         <div className="grid gap-10 sm:grid-cols-2">
           <div>
-            <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight text-graphite">
+            <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight text-chalk">
               {CLUB.name}
             </p>
             <p className="mt-3 max-w-xs text-sm text-muted">{CLUB.tagline}</p>
 
             {/* One-ink institutional lockups go here. */}
             <div className="mt-8 flex items-center gap-5 text-xs text-muted">
-              <span className="border border-graphite/30 px-3 py-2 font-mono uppercase tracking-wider">
+              <span className="border border-chalk/30 px-3 py-2 font-mono uppercase tracking-wider">
                 York U mark
               </span>
-              <span className="border border-graphite/30 px-3 py-2 font-mono uppercase tracking-wider">
+              <span className="border border-chalk/30 px-3 py-2 font-mono uppercase tracking-wider">
                 Lassonde mark
               </span>
             </div>
@@ -81,8 +81,8 @@ export function Colophon() {
         </div>
       </div>
 
-      <p className="tag mt-16 border-t border-graphite/25 pt-5">
-        Printed in two inks · Indigo and Flame Green
+      <p className="tag mt-16 border-t border-chalk/25 pt-5">
+        Screenprinted in two inks · Flame Green and Ice Blue
       </p>
     </footer>
   );

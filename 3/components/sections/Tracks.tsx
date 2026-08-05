@@ -14,7 +14,7 @@ export function Tracks() {
   return (
     <Sheet id="tracks" slug="Two tracks" press="tracks">
       <Reveal>
-        <h2 className="max-w-2xl font-display text-hed font-extrabold uppercase text-balance text-graphite">
+        <h2 className="max-w-2xl font-display text-hed font-extrabold uppercase text-balance text-chalk">
           Pick the one that fits
         </h2>
       </Reveal>
@@ -35,7 +35,7 @@ export function Tracks() {
                 "flex h-full flex-col",
                 i === 0
                   ? "sm:pr-10"
-                  : "mt-14 sm:mt-0 sm:border-l sm:border-graphite/25 sm:pl-10",
+                  : "mt-14 sm:mt-0 sm:border-l sm:border-chalk/25 sm:pl-10",
               ].join(" ")}
             >
               {/* Same rule device the Forge and Spark sections open with,
@@ -49,7 +49,7 @@ export function Tracks() {
                 ].join(" ")}
               />
 
-              <h3 className="font-display text-hed font-extrabold uppercase leading-none text-graphite">
+              <h3 className="font-display text-hed font-extrabold uppercase leading-none text-chalk">
                 {t.name}
               </h3>
 
@@ -60,14 +60,14 @@ export function Tracks() {
               {/* Two facts per track, in mono, in the same order for
                   both — the whole point of this section is that the
                   reader can compare them at a glance. */}
-              <dl className="mt-8 flex gap-10 border-t border-graphite/25 pt-4 font-mono text-xs uppercase tracking-wider sm:mt-auto">
+              <dl className="mt-8 flex gap-10 border-t border-chalk/25 pt-4 font-mono text-xs uppercase tracking-wider sm:mt-auto">
                 <div>
                   <dt className="text-muted">Length</dt>
-                  <dd className="mt-1 text-graphite">{t.count}</dd>
+                  <dd className="mt-1 text-chalk">{t.count}</dd>
                 </div>
                 <div>
                   <dt className="text-muted">Shape</dt>
-                  <dd className="mt-1 text-graphite">{t.shape}</dd>
+                  <dd className="mt-1 text-chalk">{t.shape}</dd>
                 </div>
               </dl>
             </div>

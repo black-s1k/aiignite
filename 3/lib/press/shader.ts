@@ -343,16 +343,27 @@ export const FRAG = /* glsl */ `
     float dotF = screenDot(uv, angF, covF,  uReg);
     float dotS = screenDot(uv, angS, covS, -uReg * 1.35);
 
-    // Stock. Uncoated paper is never flat — the fibre showing through is
+    // Stock. Uncoated board is never flat — the tooth showing through is
     // what makes this read as printed rather than rendered.
+    //
+    // ADDED, not multiplied. A proportional variation on a near-black
+    // stock is arithmetically invisible: 4.5% of #16141b is under one
+    // 8-bit step. On black the tooth is grain catching the light, so it
+    // has to be an offset.
     float fibre = fbm(uv * vec2(aspect, 1.0) * 420.0) - 0.5;
-    vec3 col = uPaper * (1.0 + fibre * 0.045);
+    vec3 col = uPaper + fibre * 0.030;
 
-    // Multiply, one drum at a time, in pass order. Where both dots land
-    // you get the overprint for free — the black field the club's logo
-    // sits on is never specified here, it just happens.
-    col *= mix(vec3(1.0), uForge, dotF);
-    col *= mix(vec3(1.0), uSpark, dotS);
+    // Screen, one drum at a time, in pass order.
+    //
+    // This is the one line that makes it a screenprint rather than a
+    // duplicator. Translucent ink on light stock filters what passes
+    // through it, so it multiplies and overlaps go dark. Ink on black
+    // stock has nothing to filter — it only adds — so it screens and
+    // overlaps go hot. Where both dots land you get the club's colour
+    // for free, exactly as before; it is simply the flame's white core
+    // now instead of the black field it sat on.
+    col = 1.0 - (1.0 - col) * (1.0 - uForge * dotF);
+    col = 1.0 - (1.0 - col) * (1.0 - uSpark * dotS);
 
     gl_FragColor = vec4(col, 1.0);
   }

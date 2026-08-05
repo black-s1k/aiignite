@@ -47,7 +47,7 @@ export function Mark() {
           // The lockup is struck a little above centre. It is relatively
           // shorter on a phone — it is sized off width, and a phone is
           // narrow and tall — so the clearance it needs is smaller there.
-          className="mt-[30vh] text-center font-mono text-xs tracking-[0.14em] text-graphite sm:mt-[46vh] sm:text-sm"
+          className="mt-[30vh] text-center font-mono text-xs tracking-[0.14em] text-chalk sm:mt-[46vh] sm:text-sm"
           style={{
             // Deliberately not opacity: var(--form). Tracking the ink
             // one-to-one puts the tagline at half opacity while strips

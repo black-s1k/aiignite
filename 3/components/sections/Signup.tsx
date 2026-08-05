@@ -17,7 +17,7 @@ export function Signup() {
   return (
     <Sheet id="signup" slug="Sign up" press="signup">
       <Reveal>
-        <h2 className="max-w-3xl font-display text-mega font-extrabold uppercase leading-[0.82] text-graphite">
+        <h2 className="max-w-3xl font-display text-mega font-extrabold uppercase leading-[0.82] text-chalk">
           Pick a track
         </h2>
         {/* Graphite, not muted. This is the only paragraph on the page

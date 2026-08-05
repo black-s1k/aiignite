@@ -31,7 +31,7 @@ export function Sheet({
       data-press={press}
       className={[
         "mx-auto w-full max-w-6xl px-5 py-24 sm:px-8 sm:py-32",
-        rule ? "border-t border-graphite/25" : "",
+        rule ? "border-t border-chalk/25" : "",
         className ?? "",
       ].join(" ")}
     >

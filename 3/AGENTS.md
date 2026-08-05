@@ -4,7 +4,7 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# AI Ignite — the risograph press build
+# AI Ignite — the press build
 
 Third build of the AI Ignite site, started 2026-08-04. `../2` is the
 previous one and is being left alone, not migrated.
@@ -18,39 +18,60 @@ combination is a recognised AI-design default, not a decision. Its hero
 was also a 5.8MB scroll-scrubbed video across 420vh in which over half
 the frame-to-frame motion happened in one fifth of the clip.
 
-**Do not reintroduce either.** No near-black-plus-neon palette. No
-pre-rendered video for the hero.
+**Do not reintroduce the video.** No pre-rendered scroll-scrubbed hero.
+
+The palette question is subtler, because this build now *is* on black —
+see "On being on black" below. That was a deliberate call by the client
+(2026-08-05), and the defence is execution, not avoidance. Read that
+section before touching a colour.
 
 ## The one idea
 
-The page is a two-ink risograph print, simulated live in WebGL, and the
-inks carry the argument:
+The page is a two-ink print, simulated live in WebGL, and the inks carry
+the argument:
 
-- **Flame Green `#b5da47` = Spark**, the track for everyone else
-- **Indigo `#26356b` = Forge**, the track for students who code
-- **their overprint `#1b2d1e` = the club**
+- **Flame Green `#bee449` = Spark**, the track for everyone else
+- **Ice Blue `#7ea8ff` = Forge**, the track for students who code
+- **their overlap `#def6ff` = the club**
 
-Riso inks are semi-transparent, so overlaps multiply into a genuine third
-colour. `--color-overprint` is the arithmetic product of the two inks,
-not a picked value — recompute it if either ink changes.
+The stock is matte black `#16141b`, so the process is a **screenprint,
+not a risograph**, and that inverts the arithmetic. Translucent ink on
+light stock filters what passes through it, so inks MULTIPLY and overlaps
+go dark. Ink on black stock has nothing to filter — it only adds — so
+inks SCREEN and overlaps go hot. `--color-overprint` is the screen blend
+of the two inks, not a picked value; recompute it if either ink changes.
 
 The palette comes from the club's logo, read the way a printer reads a
 job. The logo is one green flame on a black field. **Spark is measured**
-— the mean of the logo's green pixels. **Forge was solved for**: given
-Spark, it is the partner ink whose product lands on a green-black rather
-than the olive mud a violet partner makes. **The overprint is that
-product**, which is the black field the flame sits on — so the club's
-colour is what happens when the two tracks meet, not a third value
-someone chose.
+— the median of the logo's green pixels, quoted unchanged, because the
+logo is already artwork on black. **Forge is the cold counterpart**: on
+black both inks are bright, so the pair separates by temperature rather
+than by weight. **The overlap is the flame's white-hot core** — the dual
+of the dark overprint a light stock produces, and the same discipline.
 
-**The stock stays light — `#d9d4dc`, a pale lilac.** Two reasons, and
-both are load-bearing. A duplicator cannot print a black field; black is
-what two translucent inks make, so a dark page is physically backwards
-here. And near-black plus one acid-green accent is precisely the
-generated-design default listed below that this build exists to escape —
-the logo's own colours land on it, which is exactly why they had to be
-translated rather than copied. Lilac also sits opposite chartreuse on
-the wheel, so the stock is what makes the flame fluoresce.
+## On being on black
+
+This build spent its first two days explicitly avoiding a near-black
+page, because near-black plus one acid accent is the generated-design
+default in the list above and the club's own colours land straight on
+it. The client asked for black stock anyway. That is their call, and the
+job is to make it not read as the default. These are load-bearing:
+
+- **Two inks, not one accent on a void.** The green never appears alone.
+- **`#16141b`, not `#0a0a0a`.** A real black pigment is never neutral;
+  this one keeps the violet cast the light stock had.
+- **Visible tooth.** The fibre pass is ADDED on this stock, not
+  multiplied — 4.5% of `#16141b` is under one 8-bit step, so the
+  multiplicative version was arithmetically invisible.
+- **Type is bone `#e8e6f0`, never `#ffffff`.** Pure white on black
+  halates and closes the counters of a condensed face.
+- **No glow, no gradient bloom.** The only light on the page is where
+  two halftone screens overlap, and that is arithmetic.
+
+The light-stock version is not lost — it is commit `85912ff` on
+`demo-waving-dots`, pale lilac with an indigo/flame pair, and the ink
+model there is a multiply. If the stock ever goes back, that commit is
+the reference and every ratio in `chapters.ts` inverts with it.
 
 The signature is **moiré**. Each ink is screened at its own halftone
 angle. Apart, they sit at the textbook 75°/15° separation that printers
@@ -100,7 +121,7 @@ complaint this system was built to fix.
 ## Where things are
 
 - `lib/press/shader.ts` — the press. Coverage field → per-ink halftone
-  screen → registration offset → multiply composite. Commented in order.
+  screen → registration offset → screen composite. Commented in order.
 - `lib/press/chapters.ts` — what the press does per section. Read the
   gain and `converge` columns top to bottom and you get the structure of
   the pitch. Sections opt in via `data-press="<key>"`.
@@ -115,20 +136,28 @@ complaint this system was built to fix.
   `ShaderMaterial` is the one material three.js does not append the
   output-colour-space chunk to, so linear values reach the sRGB
   framebuffer unconverted and every ink prints several stops dark (the
-  indigo lands on near-black). The palette was also derived as an sRGB
-  multiply, so the shader has to multiply in the same space.
+  ice blue lands on navy). The palette was also derived as an sRGB screen
+  blend, so the shader has to blend in the same space.
 - **Nothing may be opaque except type.** An opaque background on any
   element punches a card-shaped hole through the ink behind it. Use
   borders for dividers, never a filled cell over a gap.
-- **Spark is not a text colour** — 1.1:1 on this stock, fails at any
-  size, and fails harder than the pink it replaced because the flame is
-  a light green on light stock. It is a fill, a rule, or a mark. Type
-  that sits on it is graphite. See the measured table in `globals.css`.
-- **The two ink columns in `chapters.ts` are not comparable numbers.**
-  Spark runs roughly 1.6x Forge everywhere because a light ink needs
-  several times the dot area to weigh the same on the sheet. Leaning a
-  section toward Forge means raising Forge against its own column, not
-  past Spark's.
+- **Balanced drums bleach the sheet.** Screening two bright inks at
+  equal coverage drives the result toward white, so anywhere the two
+  drums are level the colour is destroyed rather than mixed. This is the
+  single biggest behavioural difference from the multiply version, where
+  balance produced the richest colour. It is why the `mark` chapter runs
+  0.22/0.80: at equal coverage the club's green flame printed as a white
+  smudge.
+- **The two ink columns in `chapters.ts` are not comparable numbers, and
+  the ratio is the opposite of what it was on light stock.** Spark leads
+  everywhere except the Forge section, because the flame is the club's
+  colour and the sheet reads green-forward. On light stock Spark led for
+  a different reason — it was the weaker ink and needed the area. If the
+  stock ever changes, work out which reason applies before copying either
+  set of numbers.
+- **Every coverage value is about half its light-stock equivalent.** Ink
+  on black only adds, so a dot that was a tint on paper is a light source
+  here and the same numbers flood the sheet.
 - **`chapters.ts` x coordinates are fractions of the half-width**, not
   absolute units: ±1 is the trim edge at any viewport. Absolute values
   look right on the display they were tuned on and then slide off the
@@ -155,9 +184,10 @@ complaint this system was built to fix.
 
 - Institutional lockups. `Colophon.tsx` has placeholder boxes for the
   York and Lassonde marks. Get the **one-colour** versions from the
-  brand kits and render them in graphite — a real two-ink job would not
-  fire a third drum for a logo, and York red between an indigo and an
-  acid green is a genuine clash.
+  brand kits and render them in chalk — a real two-ink job would not fire
+  a third drum for a logo, and York red between an ice blue and an acid
+  green is a genuine clash. On black stock the **white/reversed** version
+  is the one to ask for, not the mono-dark one.
 - `NEXT_PUBLIC_SIGNUP_URL` is unset, so the sign-up button falls back to
   `#`. It is inlined at build time, so it must be set before building.
 - Social links in `Colophon.tsx` point at `#`.

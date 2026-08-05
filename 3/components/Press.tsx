@@ -40,15 +40,16 @@ import { FRAG, VERT } from "@/lib/press/shader";
  * several stops too dark (the indigo lands on near-black).
  *
  * Working in sRGB is also right on the merits: the overprint value in
- * globals.css was derived as an sRGB channel multiply, so the shader
- * and the palette agree only if the shader multiplies in the same space.
+ * globals.css was derived as an sRGB channel screen blend, so the
+ * shader and the palette agree only if the shader blends in the same
+ * space.
  */
 const rgb = (hex: string) => new THREE.Color().setStyle(hex, THREE.NoColorSpace);
 
 const INK = {
-  paper: rgb("#d9d4dc"),
-  forge: rgb("#26356b"),
-  spark: rgb("#b5da47"),
+  paper: rgb("#16141b"),
+  forge: rgb("#7ea8ff"),
+  spark: rgb("#bee449"),
 };
 
 /**

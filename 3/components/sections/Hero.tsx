@@ -17,8 +17,8 @@ export function Hero() {
     >
       {/* Slug line — the strip of set-in-lead facts along the head of
           a printed sheet. */}
-      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-graphite/30 pb-3">
-        <p className="tag text-graphite">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-b border-chalk/30 pb-3">
+        <p className="tag text-chalk">
           {CLUB.name} · {CLUB.at}
         </p>
         <p className="tag">{CLUB.home}</p>
@@ -26,9 +26,17 @@ export function Hero() {
       </div>
 
       <div className="py-14">
-        <h1 className="text-mega font-display font-extrabold uppercase text-graphite">
+        {/* Three lines, three inks, in the order the page introduces
+            them: the stock's white, the flame, the cold counterpart.
+            On light stock the second line took the overprint, because
+            there the overprint was the darkest thing available. On black
+            it is the near-white hot core, which would have made two
+            near-identical white lines — so the flame takes the line that
+            is literally about the spark, which is also the one move the
+            club's own logo makes. */}
+        <h1 className="text-mega font-display font-extrabold uppercase text-chalk">
           <span className="block">Ignite</span>
-          <span className="block text-overprint">the spark</span>
+          <span className="block text-spark">the spark</span>
         </h1>
 
         <p className="mt-7 max-w-xl font-display text-hed font-medium uppercase leading-none tracking-tight text-forge">
@@ -46,19 +54,19 @@ export function Hero() {
               <span
                 className={[
                   "px-3 py-1.5 font-display text-lg font-extrabold uppercase leading-none tracking-tight",
-                  t.key === "forge" ? "bg-forge text-paper" : "bg-spark text-graphite",
+                  t.key === "forge" ? "bg-forge text-paper" : "bg-spark text-paper",
                 ].join(" ")}
               >
                 {t.name}
               </span>
-              <span className="border border-l-0 border-graphite/30 px-3 py-1.5 text-xs text-muted">
+              <span className="border border-l-0 border-chalk/30 px-3 py-1.5 text-xs text-muted">
                 {t.who}
               </span>
             </li>
           ))}
         </ul>
 
-        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-graphite/30 pt-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-chalk/30 pt-3">
           <p className="tag">First sessions {CLUB.launch}</p>
           <p className="tag" aria-hidden>
             Scroll ↓

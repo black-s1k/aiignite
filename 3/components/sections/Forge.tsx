@@ -43,7 +43,7 @@ export function Forge() {
             </div>
 
             <div className="min-w-0 pb-14">
-              <h3 className="-mt-1 font-display text-2xl font-extrabold uppercase leading-none tracking-tight text-graphite sm:text-3xl">
+              <h3 className="-mt-1 font-display text-2xl font-extrabold uppercase leading-none tracking-tight text-chalk sm:text-3xl">
                 {w.title}
               </h3>
               <p className="mt-4 max-w-xl text-base text-muted">{w.body}</p>

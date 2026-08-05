@@ -1,96 +1,104 @@
 @import "tailwindcss";
 
 /* ===================================================================
-   AI Ignite — risograph press
+   AI Ignite — the press
 
-   The whole system is derived from one constraint: this page is a
-   two-ink risograph print on coloured stock. Riso inks are soy-based
-   and semi-transparent, so overlapping inks MULTIPLY into a genuine
-   third colour rather than covering each other. That single physical
-   fact is what lets the club's own logo drive the palette.
+   One constraint drives everything: this page is a two-ink print, and
+   the ink physics decide the palette rather than taste doing it.
 
-   The logo is one green flame on a black field. A duplicator cannot
-   print a black field — black is what you GET when two inks land on
-   the same spot. So the logo is read the way a printer would read it:
+   The stock is matte black, so the process is a SCREENPRINT, not the
+   risograph this build started as. That is not a relabel — it inverts
+   the arithmetic. A duplicator lays translucent ink on light stock, so
+   inks MULTIPLY and overlaps go dark. Ink on black stock behaves like
+   light instead: it can only add, so inks SCREEN and overlaps go hot.
+   The shader composites accordingly, and the third colour still falls
+   out of the other two rather than being chosen.
 
-       the flame       = Spark  (the track for everyone else)
-       a deep indigo   = Forge  (the track for students who code)
-       their overlap   = the black the flame sits on = the club
+   The club's logo is one green flame on a black field, which is what
+   makes black stock the literal reading of it:
 
-   The stock stays light. A near-black page with one acid-green accent
-   is exactly the generated-design default this build exists to avoid,
-   and it is also physically backwards — translucent inks have nothing
-   to print on. Keeping the field light and letting the two drums make
-   the black is both the honest translation and the un-generic one.
+       the flame     = Spark  (the track for everyone else)
+       an ice blue   = Forge  (the track for students who code)
+       their overlap = the flame's white-hot core = the club
 
-   Nothing here is a "brand colour" chosen for mood. Every value is
-   measured off the logo, chosen as stock, or the arithmetic product of
-   two inks.
+   Nothing here is a "brand colour" picked for mood. Every value is
+   measured off the logo, chosen as stock, or the screen blend of two
+   inks.
+
+   ---- On the obvious risk ----
+   Near-black plus one acid accent is a generated-design default, and
+   this palette sits on top of it. What keeps it off that pattern is
+   execution, and these are load-bearing, not decoration:
+
+     - two inks, not one accent on a void
+     - the black is #16141b, not #0a0a0a: a pigment black with a violet
+       cast and visible tooth in the shader's fibre pass
+     - type is bone, never #ffffff, because pure white on black halates
+     - no glow, no gradient bloom. The only light on the page is where
+       two halftone screens overlap, and that is arithmetic
    =================================================================== */
 
 @theme {
   /* ---- Stock ---------------------------------------------------
-     Not cream, and deliberately not a green-grey any more. Chartreuse
-     sits opposite violet on the wheel, so a pale lilac is what makes
-     the flame ink fluoresce — the stock does the work the ink can't.
-     It is also the same hue family as Forge, which gives the page one
-     cool axis running pale-to-near-black with the flame as its single
-     warm interruption. */
-  --color-paper: #d9d4dc;
+     Matte black board. Not #0a0a0a — a real black pigment is never
+     neutral, and this one keeps the violet cast the previous stock
+     had, which is what stops the acid green from reading as pure
+     signal green against a dead field. */
+  --color-paper: #16141b;
 
   /* ---- Inks ----------------------------------------------------
-     Spark is measured, not chosen: the mean of every green pixel in
+     Spark is measured, not chosen: the median of every green pixel in
      the club's logo (the flame runs #657d2e in shadow to #d0f450 on
-     its hot edge; this is its middle). */
-  --color-spark: #b5da47;
+     its hot edge; this is its body). It is quoted unchanged because
+     the logo is itself artwork on black — this is already what the
+     flame looks like on this stock. */
+  --color-spark: #bee449;
 
-  /* Forge was solved for rather than picked. Given Spark, this is the
-     partner ink whose product lands on a green-black — the flame's own
-     colour driven to full density — instead of the olive mud a violet
-     partner would make. It is also dark enough to set body copy in,
-     which Riso's own Federal Blue (5.3 : 1) never quite was. */
-  --color-forge: #26356b;
+  /* Forge is the cold counterpart. On black the two inks are both
+     bright, so the pair is separated by TEMPERATURE rather than by
+     weight: the flame is warm, this is not. Bright enough to set body
+     copy in at 7.8 : 1, which the ink it replaces never was on light
+     stock. */
+  --color-forge: #7ea8ff;
 
-  /* Forge x Spark, multiplied channel-wise:
-     (38,53,107) * (181,218,71) / 255 = (27,45,30).
-     This is the black field the logo sits on, arrived at rather than
-     specified. Computed, not picked — if either ink changes,
-     recompute it. */
-  --color-overprint: #1b2d1e;
+  /* Forge screened with Spark, channel-wise 255-(255-a)(255-b)/255:
+     (126,168,255) + (190,228,73) = (222,246,255).
+     The white-hot core, arrived at rather than specified — this is the
+     dual of the dark overprint the light stock produced, and it is the
+     same discipline: computed, not picked. Recompute if either ink
+     changes. */
+  --color-overprint: #def6ff;
 
-  /* Riso "black" is a warm dark, never a true black, and it picks up
-     the stock's cast. This one is graphite with the paper's violet in
-     it, which is also what keeps it distinguishable from the overprint
-     — near-identical in weight, opposite in hue. */
-  --color-graphite: #201c29;
-  /* Darker than it looks like it needs to be. Secondary text on this
-     page is frequently over a live halftone, and a value that lands
+  /* Screenprint white, which is what type on black stock actually is —
+     an ink, not an absence. Bone rather than #ffffff: pure white on a
+     black field halates and the counters of a condensed face close up. */
+  --color-chalk: #e8e6f0;
+  /* Secondary text. Lighter than it looks like it needs to be, for the
+     same reason it was darker than it needed to be on light stock:
+     this type frequently sits over a live halftone, and a value landing
      exactly on 4.5:1 against clean stock has no headroom left the
-     moment a single dot prints behind it. This one starts at 5.9:1 and
-     still reads as clearly secondary to graphite's 11.4:1. */
-  --color-muted: #4e4a5c;
+     moment a single dot prints behind it. Starts at 6.7:1 and still
+     reads as clearly secondary to chalk's 14.8:1. */
+  --color-muted: #9d9aab;
 
-  /* ---- Rule: Spark is not a text colour ------------------------
-     Measured against the stock:
+  /* ---- Contrast, measured against the stock --------------------
 
-       graphite  on paper   11.4 : 1
-       overprint on paper   10.0 : 1
-       forge     on paper    8.0 : 1   body text OK
-       muted     on paper    5.9 : 1   body text OK
-       spark     on paper    1.1 : 1   FAILS, at any size
+       overprint on paper   17.6 : 1
+       chalk     on paper   14.8 : 1
+       spark     on paper   12.5 : 1
+       forge     on paper    7.8 : 1   body text OK
+       muted     on paper    6.7 : 1   body text OK
 
-     Spark fails harder here than the pink it replaces did, because the
-     flame is a light green and the stock is light. That is not a
-     regression to work around — it is what a fluorescent ink IS, and
-     no printer would have set body copy in one either. Spark is only
-     ever a fill, a rule, or a mark, and type that sits on it is
-     graphite (10.4 : 1). The two tracks therefore speak in different
-     registers on purpose: Forge can talk in its own colour, Spark can
-     only point.
+     Note what inverted. On light stock Spark was the one colour that
+     could never carry text (1.1 : 1) because a fluorescent ink is a
+     highlight ink. On black it is the second brightest thing on the
+     page. The rule it forced is gone, and type that sits on a Spark
+     fill is now the stock itself (12.5 : 1), not a dark grey.
 
-     The same lightness is why Spark carries far more dot area than
-     Forge in `chapters.ts` — a light ink needs more of the sheet to
-     weigh the same. See the note on the ink columns there. */
+     The other inversion is dot area: on light stock Spark needed far
+     MORE coverage than Forge to weigh the same, and here it needs
+     less, because it is now the brighter ink. See the note on the ink
+     columns in `chapters.ts`. */
 
   /* ---- Type ----------------------------------------------------
      Big Shoulders is a condensed grotesque drawn for Chicago civic
@@ -145,7 +153,7 @@
   body {
     font-family: var(--font-sans);
     font-size: var(--text-base);
-    color: var(--color-graphite);
+    color: var(--color-chalk);
     background-color: transparent;
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
@@ -166,15 +174,17 @@
     outline-offset: 3px;
   }
 
+  /* Selection is a Spark fill, so the type on it is the stock — the
+     same pairing every other Spark fill on the page uses. */
   ::selection {
     background: var(--color-spark);
-    color: var(--color-graphite);
+    color: var(--color-paper);
   }
 }
 
 @layer components {
   /* Metadata label. Mono, because everything it ever labels is data.
-     Set in graphite rather than muted: these sit in the outer gutter,
+     Set in chalk rather than muted: these sit in the outer gutter,
      which is exactly where the press bleeds ink in, and 11px letter-
      spaced type over a halftone needs the full contrast. It still reads
      as secondary — that job is done by the size and the tracking, which
@@ -185,7 +195,7 @@
     line-height: 1.1;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--color-graphite);
+    color: var(--color-chalk);
   }
 
   /* ---- Reveal --------------------------------------------------

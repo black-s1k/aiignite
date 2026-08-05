@@ -17,21 +17,31 @@
  * Forge, hard right through Spark, settle, then both at maximum with
  * the screens converged at the one place the reader is asked to act.
  *
- * READ THE COLUMNS AS A PAIR, NOT AS ABSOLUTE WEIGHTS. Spark runs far
- * higher than Forge everywhere, and that is not an emphasis decision —
- * it is compensation. Spark is the club's flame, a light green that
- * prints at 1.6:1 against the stock; Forge is a deep indigo at 8:1. A
- * light ink needs several times the dot area to weigh the same on the
- * sheet, which is exactly what a printer would do with it. "Leaning
- * left" therefore means Forge rising relative to its own column, not
- * overtaking Spark's number.
+ * SPARK LEADS EVERYWHERE EXCEPT ITS OWN SECTION'S OPPOSITE. On light
+ * stock the ratio between the two columns was compensation — the pale
+ * ink needed more area to weigh the same. Here the two inks are close
+ * enough in weight (12.5:1 and 7.8:1 on black) that compensation barely
+ * applies, so the ratio is doing something else: the flame is the
+ * club's colour and the sheet should read green-forward, with the cold
+ * ink as counterpoint rather than as an equal.
+ *
+ * That matters more on black than it did on paper because of how the
+ * inks composite. Screening two bright inks together drives the result
+ * toward white, so anywhere the drums are balanced the colour is
+ * destroyed rather than mixed. Keeping one drum clearly ahead is what
+ * stops the page bleaching out — see `mark` below, where it is the
+ * whole difference between a green flame and a white smudge.
+ *
+ * Every number here is also roughly half what it was on light stock.
+ * Ink on black only adds, so a dot that was a tint on paper is a light
+ * source here; the same coverage floods.
  */
 
 export type Chapter = {
   /**
    * Coverage multiplier per drum. Never near zero — see above. The
-   * usable floors differ because the inks do: Forge stays above ~0.25,
-   * Spark above ~0.45, and both are still clearly on the sheet there.
+   * usable floors differ because the inks do: Forge stays above ~0.22,
+   * Spark above ~0.17, and both are still clearly on the sheet there.
    */
   forgeInk: number;
   sparkInk: number;
@@ -63,8 +73,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      coverage and near-converged screens, so the mass carries live moiré
      while it wobbles. */
   hero: {
-    forgeInk: 0.48,
-    sparkInk: 0.77,
+    forgeInk: 0.3,
+    sparkInk: 0.46,
     band: 0.09,
     waveAmp: 0.028,
     converge: 0.86,
@@ -74,8 +84,8 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* The one section that is only an argument. Narrowest bands and the
      calmest wave — it gets out of the way of the sentence. */
   problem: {
-    forgeInk: 0.34,
-    sparkInk: 0.55,
+    forgeInk: 0.2,
+    sparkInk: 0.28,
     band: 0.06,
     waveAmp: 0.022,
     converge: 0.0,
@@ -87,14 +97,21 @@ export const CHAPTERS: Record<string, Chapter> = {
      strips, strikes the club's lockup, and comes apart again, all
      within this one section.
 
-     Both drums up and the finest ruling on the page: a mark struck in a
-     coarse screen loses its corners, and this is the only moment that
-     asks the halftone to render something with actual edges. Screens
+     The finest ruling on the page: a mark struck in a coarse screen
+     loses its corners, and this is the only moment that asks the
+     halftone to render something with actual edges. Screens
      part-converged so the letterforms carry a little interference
-     without it eating the shape. */
+     without it eating the shape.
+
+     The widest gap between the two drums anywhere on the page, and it
+     is not emphasis — it is the only thing keeping the logo green. Both
+     drums strike the plate, and screening two bright inks at equal
+     coverage bleaches the result to white; at 0.22 the cold drum lands
+     as a sparse offset ghost against the flame instead, which is also
+     what a second plate does on a real two-colour print. */
   mark: {
-    forgeInk: 0.56,
-    sparkInk: 0.91,
+    forgeInk: 0.22,
+    sparkInk: 0.8,
     band: 0.07,
     waveAmp: 0.024,
     converge: 0.35,
@@ -105,8 +122,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      two tracks are most clearly two separate things, one down each
      edge, in the same order as the columns between them. */
   tracks: {
-    forgeInk: 0.47,
-    sparkInk: 0.77,
+    forgeInk: 0.32,
+    sparkInk: 0.44,
     band: 0.085,
     waveAmp: 0.03,
     converge: 0.0,
@@ -117,8 +134,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      is a fixed sequence, so its ink should look like it knows where it
      is going. Spark drops but stays on the sheet. */
   forge: {
-    forgeInk: 0.53,
-    sparkInk: 0.5,
+    forgeInk: 0.48,
+    sparkInk: 0.22,
     band: 0.082,
     waveAmp: 0.026,
     converge: 0.0,
@@ -129,14 +146,14 @@ export const CHAPTERS: Record<string, Chapter> = {
      sessions are chosen by a live vote, so the ink genuinely does not
      know where it is going either.
 
-     The band is pulled in tighter than the 0.118 ceiling because this is
-     the one section running Spark at full coverage AND right-aligning
-     labels to the edge of the measure. The ceiling assumes moderate
-     coverage; at 0.96 the crest is dense enough to read as ink rather
-     than tint, and it was landing on the tools labels. */
+     The band is pulled in tighter than the 0.118 ceiling because this
+     is the one section that runs its heavy drum AND right-aligns labels
+     to the edge of the measure. The ceiling assumes the crest arrives
+     as a scatter; here it arrives as ink, and it was landing on the
+     tools labels. */
   spark: {
-    forgeInk: 0.28,
-    sparkInk: 0.96,
+    forgeInk: 0.2,
+    sparkInk: 0.56,
     band: 0.068,
     waveAmp: 0.034,
     converge: 0.0,
@@ -146,8 +163,8 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* Dates and facts. Thin bands and the finest screen on the page — a
      fine halftone reads as a document, a coarse one as a poster. */
   schedule: {
-    forgeInk: 0.31,
-    sparkInk: 0.51,
+    forgeInk: 0.19,
+    sparkInk: 0.26,
     band: 0.055,
     waveAmp: 0.02,
     converge: 0.12,
@@ -162,8 +179,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      stays where it dispersed to, which is the rule for the whole page
      below the fold. */
   signup: {
-    forgeInk: 0.58,
-    sparkInk: 0.96,
+    forgeInk: 0.42,
+    sparkInk: 0.56,
     band: 0.088,
     waveAmp: 0.03,
     converge: 0.85,
@@ -172,8 +189,8 @@ export const CHAPTERS: Record<string, Chapter> = {
 
   /* Colophon. The drums ease off, but they do not come off. */
   colophon: {
-    forgeInk: 0.3,
-    sparkInk: 0.48,
+    forgeInk: 0.17,
+    sparkInk: 0.24,
     band: 0.052,
     waveAmp: 0.018,
     converge: 0.0,
@@ -188,9 +205,15 @@ export const FIRST_CHAPTER = CHAPTERS.hero;
  * the half-width so the composition holds on any viewport. Offset from
  * each other so the two drums overlap without coinciding — the overlap
  * is what produces the overprint colour and the moiré.
+ *
+ * The y values sit low enough that the mass clears the header slug at
+ * the top trim. It used to ride higher and bleed over "Fall 2026",
+ * which was survivable when the dots were dark on light stock and the
+ * type was dark too — on black the dots are the bright thing and they
+ * were landing on 11px letter-spaced mono at about 1.7:1.
  */
 export const GATHERED = {
-  forgeAt: [0.475, 0.02] as [number, number],
-  sparkAt: [0.65, 0.09] as [number, number],
+  forgeAt: [0.475, -0.04] as [number, number],
+  sparkAt: [0.65, 0.0] as [number, number],
   spread: 0.33,
 };
