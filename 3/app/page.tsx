@@ -1,5 +1,6 @@
 import { Hero } from "@/components/sections/Hero";
 import { Problem } from "@/components/sections/Problem";
+import { Mark } from "@/components/sections/Mark";
 import { Tracks } from "@/components/sections/Tracks";
 import { Forge } from "@/components/sections/Forge";
 import { Spark } from "@/components/sections/Spark";
@@ -21,6 +22,7 @@ export default function Home() {
 
       <main>
         <Problem />
+        <Mark />
         <Tracks />
         <Forge />
         <Spark />

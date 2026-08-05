@@ -64,6 +64,24 @@ export const CHAPTERS: Record<string, Chapter> = {
     freq: 122,
   },
 
+  /* The mark. The one place on the page below the fold where the ink
+     leaves the edges — it spirals in off both sides, strikes the club's
+     AI mark, and lets go again, all within this one section.
+
+     Both drums up and the finest ruling on the page: a mark struck in a
+     coarse screen loses its corners, and this is the only moment that
+     asks the halftone to render something with actual edges. Screens
+     part-converged so the letterforms carry a little interference
+     without it eating the shape. */
+  mark: {
+    forgeInk: 0.72,
+    sparkInk: 0.66,
+    band: 0.07,
+    waveAmp: 0.024,
+    converge: 0.35,
+    freq: 168,
+  },
+
   /* The fork. Both bands equal and thickened: this is the moment the
      two tracks are most clearly two separate things, one down each
      edge, in the same order as the columns between them. */

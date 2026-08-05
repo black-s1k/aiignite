@@ -51,6 +51,28 @@ const INK = {
   spark: rgb("#ff48b0"),
 };
 
+/**
+ * Transparent 1x1, so the sampler is always valid before the plate
+ * loads. Returned as the base Texture type on purpose — it seeds the
+ * uniform, and the loaded plate that later replaces it is a plain
+ * Texture, not a DataTexture.
+ */
+function blankPlate(): THREE.Texture {
+  const t = new THREE.DataTexture(new Uint8Array([0, 0, 0, 0]), 1, 1);
+  t.needsUpdate = true;
+  return t;
+}
+
+/**
+ * Rise, hold, release across the mark section's own scroll progress.
+ * The hold in the middle is the point — without it the mark is only
+ * ever correct at a single scroll position and nobody sees it land.
+ */
+function formCurve(t: number) {
+  const { smoothstep } = THREE.MathUtils;
+  return Math.min(smoothstep(t, 0.06, 0.4), 1 - smoothstep(t, 0.66, 0.96));
+}
+
 export function Press() {
   const hostRef = useRef<HTMLDivElement>(null);
 
@@ -101,6 +123,15 @@ export function Press() {
       uWaveAmp: { value: FIRST_CHAPTER.waveAmp },
       uWavePhase: { value: 0 },
 
+      // A 1x1 fully transparent stand-in until the real plate loads, so
+      // the first frames sample something valid rather than a null
+      // sampler. `formed()` reads alpha, so transparent means "no mark"
+      // and the page simply shows bands until it arrives.
+      uMark: { value: blankPlate() },
+      uMarkAspect: { value: 1 },
+      uForm: { value: 0 },
+      uMarkH: { value: 0.38 },
+
       uForgeInk: { value: FIRST_CHAPTER.forgeInk },
       uSparkInk: { value: FIRST_CHAPTER.sparkInk },
       uConverge: { value: FIRST_CHAPTER.converge },
@@ -129,6 +160,34 @@ export function Press() {
 
     const ro = new ResizeObserver(resize);
     ro.observe(host);
+
+    // ---- the plate ---------------------------------------------------
+    // The club's real mark. Only its alpha is used — `formed()` reads
+    // the channel directly, so no colour management applies and it must
+    // not be decoded as sRGB.
+    let plate: THREE.Texture | null = null;
+    new THREE.TextureLoader().load(
+      "/logo-ai.png",
+      (tex) => {
+        tex.colorSpace = THREE.NoColorSpace;
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        // Clamped, because the sample coordinates run outside 0..1 for
+        // most of the transition and repeating would tile the mark
+        // across the whole sheet.
+        tex.wrapS = THREE.ClampToEdgeWrapping;
+        tex.wrapT = THREE.ClampToEdgeWrapping;
+        plate = tex;
+        uniforms.uMark.value = tex;
+        uniforms.uMarkAspect.value = tex.image.width / tex.image.height;
+      },
+      undefined,
+      () => {
+        // Missing plate is survivable: uForm still animates, the mark
+        // just never appears and the bands carry the section.
+      },
+    );
 
     // ---- reduced motion: one static pull, no loop -------------------
     if (reduced) {
@@ -159,6 +218,7 @@ export function Press() {
       document.querySelectorAll<HTMLElement>("[data-press]"),
     );
     const hero = document.querySelector<HTMLElement>('[data-press="hero"]');
+    const markEl = document.querySelector<HTMLElement>("[data-press-form]");
 
     const emphasisOf = (): Chapter => {
       const mid = window.innerHeight * 0.5;
@@ -218,6 +278,21 @@ export function Press() {
       // not just an idle ambient loop running beside the reader.
       uniforms.uWavePhase.value = y * 0.0016;
 
+      // The mark, driven by progress through its own section rather
+      // than by the page, so its length is set by that section's height
+      // and nothing else has to be retuned when the page grows.
+      if (markEl) {
+        const r = markEl.getBoundingClientRect();
+        // 0 when the section's top reaches the top of the viewport,
+        // 1 when its bottom does.
+        const travel = Math.max(r.height - window.innerHeight, 1);
+        const form = formCurve(clamp(-r.top / travel, 0, 1));
+        uniforms.uForm.value = form;
+        // Hand it back to the DOM so the type under the mark arrives
+        // with it instead of on a timer that would drift out of step.
+        markEl.style.setProperty("--form", form.toFixed(3));
+      }
+
       const t = emphasisOf();
       const L = 3.4; // ~0.8s to settle between sections
 
@@ -255,6 +330,7 @@ export function Press() {
       cancelAnimationFrame(raf);
       document.removeEventListener("visibilitychange", onVis);
       ro.disconnect();
+      plate?.dispose();
       renderer.dispose();
       material.dispose();
       quad.geometry.dispose();

@@ -41,6 +41,28 @@ signup) the angles converge too and the sheet blooms into live moiré.
 Registration drift is driven by scroll velocity, so scrolling literally
 pulls the sheet through the press.
 
+## The three states
+
+The coverage field has exactly three states, and the whole behavioural
+system is which one is active:
+
+- **Gathered** (`uDisperse` 0) — the landing page. One mass, wobbling
+  like set jelly: a volume-preserving squash plus a radial displacement
+  that varies with *angle*, so the rim leads and lags itself. That phase
+  difference is the difference between jelly and a pulsing circle.
+- **Dispersed** (`uDisperse` 1) — everywhere else. Bands at both trim
+  edges, Forge left and Spark right, inner edges running a travelling
+  wave that scroll pushes along.
+- **Formed** (`uForm` 0→1→0) — the `Mark` section only. Ink leaves the
+  edges, spirals in, strikes the club's real AI mark, and releases.
+
+`uDisperse` is read straight off scroll position, never damped toward a
+target, so it is exactly reversible on the way back up and cannot
+overshoot. It only ever increases. **Do not reintroduce per-section
+coverage that can reach zero** — that is what made the ink vanish
+between sections and slam back at the next one, and it is the specific
+complaint this system was built to fix.
+
 ## Where things are
 
 - `lib/press/shader.ts` — the press. Coverage field → per-ink halftone
@@ -71,6 +93,15 @@ pulls the sheet through the press.
   absolute units: ±1 is the trim edge at any viewport. Absolute values
   look right on the display they were tuned on and then slide off the
   side of a phone, taking the signature with them.
+- **The mark plate is sampled with `v` as-is.** three.js applies `flipY`
+  when it uploads the image, so inverting `v` in the shader as well
+  strikes the logo upside down.
+- **`band + waveAmp` must stay under 0.118** — that sum is the wave's
+  inward crest and the text column starts at 0.122. Emphasise a section
+  with ink density, ruling or converge, never by widening past it.
+- **`--form` falls back to 1, not 0.** The Mark section's IGNITE lockup
+  is real copy whose opacity is driven by the press; if it defaulted to
+  0 it would stay invisible whenever WebGL or JS didn't run.
 - **`Reveal` must never hide content it cannot guarantee it will show.**
   It only arms elements genuinely below the fold. An earlier version
   hid everything on mount and waited for the observer to undo it, which

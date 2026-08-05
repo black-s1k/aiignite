@@ -64,6 +64,11 @@ export const FRAG = /* glsl */ `
   uniform float uWaveAmp;     // how far the band's inner edge travels
   uniform float uWavePhase;   // scroll-driven, so scrolling pushes the wave along
 
+  uniform sampler2D uMark;    // the club's AI mark, alpha channel is the artwork
+  uniform float uMarkAspect;  // its own width/height
+  uniform float uForm;        // 0 = bands, 1 = the mark fully struck
+  uniform float uMarkH;       // struck height, as a fraction of sheet height
+
   uniform float uForgeInk;    // final coverage multiplier per drum
   uniform float uSparkInk;
   uniform float uConverge;    // 0 = screens at 75/15, 1 = converged into moiré
@@ -180,6 +185,57 @@ export const FRAG = /* glsl */ `
   }
 
   /**
+   * FORMED state: the ink gathers back off both edges and strikes the
+   * club's AI mark, then lets go again.
+   *
+   * The mark is sampled from its real alpha channel rather than
+   * redrawn, so what the halftone renders is the actual logo.
+   *
+   * Two warps do the travelling, and they are applied to the mark's own
+   * sample coordinates rather than to the ink — so this is one field
+   * resolving, not two fields crossfading:
+   *
+   *   the STRETCH starts the mark smeared ~7x across the sheet, which
+   *   puts its only visible parts out at the two trim edges where the
+   *   bands already are. It contracts to true size as the mark forms,
+   *   so the ink reads as flowing inward off both sides.
+   *
+   *   the SWIRL rotates by an amount that falls off with radius, so the
+   *   middle turns further than the rim. That differential is what
+   *   makes it a spiral rather than a spin, and it unwinds to exactly
+   *   zero at full form so the mark lands square.
+   */
+  float formed(vec2 uv, float aspect, float seed) {
+    if (uForm <= 0.002) return 0.0;
+
+    vec2 q = vec2((uv.x - 0.5) * aspect, uv.y - 0.5);
+
+    float r = length(q);
+    // +0.22 keeps the rotation finite at the centre; without it the
+    // middle of the sheet spins arbitrarily fast and tears.
+    q = rot((1.0 - uForm) * 2.2 / (r + 0.22)) * q;
+
+    q.x /= mix(5.0, 1.0, uForm);
+
+    // Struck above centre, to leave the lower third of the sheet for the
+    // IGNITE lockup and tagline that sit under it in the DOM.
+    q.y -= 0.10;
+
+    // Into the mark's own 0..1 box.
+    vec2 m = q / vec2(uMarkH * uMarkAspect, uMarkH) + 0.5;
+    if (m.x < 0.0 || m.x > 1.0 || m.y < 0.0 || m.y > 1.0) return 0.0;
+
+    // Sampled with v as-is. three.js already applies flipY when it
+    // uploads the image, so inverting here as well flips it back and
+    // the mark strikes upside down.
+    float a = texture2D(uMark, m).a;
+
+    // Same fbm break-up as the other states, so the mark is struck in
+    // the same ink and doesn't read as a pasted-in graphic.
+    return clamp(a * (0.68 + 0.5 * fbm(vec2(uv.x * aspect, uv.y) * 2.6 + seed * 3.1)), 0.0, 1.0);
+  }
+
+  /**
    * One halftone screen. Rotates into the screen's own frame, finds the
    * cell, and grows a dot whose AREA tracks coverage — hence the sqrt,
    * since area goes as r^2. Without it the midtones print far too dark.
@@ -224,13 +280,22 @@ export const FRAG = /* glsl */ `
       gathered(p, uForgeAt, aspect, 0.0),
       dispersed(uv, -1.0, aspect, narrow, 0.0),
       uDisperse
-    ) * uForgeInk;
-
+    );
     float covS = mix(
       gathered(p, uSparkAt, aspect, 11.3),
       dispersed(uv, 1.0, aspect, narrow, 11.3),
       uDisperse
-    ) * uSparkInk;
+    );
+
+    // The mark is struck over whatever state is underneath and then
+    // released, so the page returns to exactly the bands it left.
+    // Both drums strike it, offset only by their seeds — two passes of
+    // the same plate, which is what puts the overprint colour through
+    // the middle of the letterforms.
+    float mark = formed(uv, aspect, 0.0);
+    float markS = formed(uv, aspect, 11.3);
+    covF = mix(covF, mark, uForm) * uForgeInk;
+    covS = mix(covS, markS, uForm) * uSparkInk;
 
     float tint = mix(1.0, 0.42, narrow);
     covF *= tint;
