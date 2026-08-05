@@ -321,7 +321,13 @@ export const FRAG = /* glsl */ `
     covF = mix(covF, mark, uForm) * uForgeInk;
     covS = mix(covS, markS, uForm) * uSparkInk;
 
-    float tint = mix(1.0, 0.42, narrow);
+    // The narrow-viewport tint is a margin guard: on a phone the bands
+    // sit almost against the measure, so they drop to a tint rather than
+    // printing beside the type. It is released as the mark forms, because
+    // the mark is struck in the middle of an otherwise empty sheet and
+    // has no measure to crowd — without this the lockup arrives at 42%
+    // on exactly the screens where it is the only thing on the page.
+    float tint = mix(mix(1.0, 0.42, narrow), 1.0, uForm);
     covF *= tint;
     covS *= tint;
 
@@ -343,8 +349,8 @@ export const FRAG = /* glsl */ `
     vec3 col = uPaper * (1.0 + fibre * 0.045);
 
     // Multiply, one drum at a time, in pass order. Where both dots land
-    // you get Federal Blue x Fluoro Pink for free — the overprint colour
-    // is never specified here, it just happens.
+    // you get the overprint for free — the black field the club's logo
+    // sits on is never specified here, it just happens.
     col *= mix(vec3(1.0), uForge, dotF);
     col *= mix(vec3(1.0), uSpark, dotS);
 

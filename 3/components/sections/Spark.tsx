@@ -43,8 +43,8 @@ export function Spark() {
             </div>
 
             <p className="mt-4 flex items-baseline gap-3 font-mono text-xs text-muted">
-              {/* The mark, not the word — pink can't carry text on this
-                  stock, so it points instead. */}
+              {/* The mark, not the word — the flame ink can't carry text
+                  on this stock, so it points instead. */}
               <span aria-hidden className="mt-1 h-2 w-2 shrink-0 bg-spark" />
               <span>
                 <span className="sr-only">The room votes on: </span>

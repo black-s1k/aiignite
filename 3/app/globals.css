@@ -7,60 +7,90 @@
    two-ink risograph print on coloured stock. Riso inks are soy-based
    and semi-transparent, so overlapping inks MULTIPLY into a genuine
    third colour rather than covering each other. That single physical
-   fact is what the palette encodes:
+   fact is what lets the club's own logo drive the palette.
 
-       Federal Blue  = Forge   (the track for students who code)
-       Fluoro Pink   = Spark   (the track for everyone else)
-       their overlap = the club
+   The logo is one green flame on a black field. A duplicator cannot
+   print a black field — black is what you GET when two inks land on
+   the same spot. So the logo is read the way a printer would read it:
+
+       the flame       = Spark  (the track for everyone else)
+       a deep indigo   = Forge  (the track for students who code)
+       their overlap   = the black the flame sits on = the club
+
+   The stock stays light. A near-black page with one acid-green accent
+   is exactly the generated-design default this build exists to avoid,
+   and it is also physically backwards — translucent inks have nothing
+   to print on. Keeping the field light and letting the two drums make
+   the black is both the honest translation and the un-generic one.
 
    Nothing here is a "brand colour" chosen for mood. Every value is
-   either a real Riso ink, the stock it prints on, or the arithmetic
-   product of two inks.
+   measured off the logo, chosen as stock, or the arithmetic product of
+   two inks.
    =================================================================== */
 
 @theme {
   /* ---- Stock ---------------------------------------------------
-     Not cream. Riso is usually run on coloured stock, and a pale
-     sage-grey is what makes fluorescent pink actually fluoresce —
-     pink sits opposite green on the wheel, so the stock does the
-     work an ink can't. */
-  --color-paper: #daddd3;
+     Not cream, and deliberately not a green-grey any more. Chartreuse
+     sits opposite violet on the wheel, so a pale lilac is what makes
+     the flame ink fluoresce — the stock does the work the ink can't.
+     It is also the same hue family as Forge, which gives the page one
+     cool axis running pale-to-near-black with the flame as its single
+     warm interruption. */
+  --color-paper: #d9d4dc;
 
   /* ---- Inks ----------------------------------------------------
-     Riso's own published ink values, unmodified. */
-  --color-forge: #3d5588; /* Riso Federal Blue */
-  --color-spark: #ff48b0; /* Riso Fluorescent Pink */
+     Spark is measured, not chosen: the mean of every green pixel in
+     the club's logo (the flame runs #657d2e in shadow to #d0f450 on
+     its hot edge; this is its middle). */
+  --color-spark: #b5da47;
 
-  /* Federal Blue x Fluoro Pink, multiplied channel-wise:
-     (61,85,136) * (255,72,176) / 255 = (61,24,94).
-     Computed, not picked. If either ink changes, recompute this. */
-  --color-overprint: #3d185e;
+  /* Forge was solved for rather than picked. Given Spark, this is the
+     partner ink whose product lands on a green-black — the flame's own
+     colour driven to full density — instead of the olive mud a violet
+     partner would make. It is also dark enough to set body copy in,
+     which Riso's own Federal Blue (5.3 : 1) never quite was. */
+  --color-forge: #26356b;
+
+  /* Forge x Spark, multiplied channel-wise:
+     (38,53,107) * (181,218,71) / 255 = (27,45,30).
+     This is the black field the logo sits on, arrived at rather than
+     specified. Computed, not picked — if either ink changes,
+     recompute it. */
+  --color-overprint: #1b2d1e;
 
   /* Riso "black" is a warm dark, never a true black, and it picks up
-     the stock's cast. This one is graphite with the paper's green in it. */
-  --color-graphite: #1e2320;
+     the stock's cast. This one is graphite with the paper's violet in
+     it, which is also what keeps it distinguishable from the overprint
+     — near-identical in weight, opposite in hue. */
+  --color-graphite: #201c29;
   /* Darker than it looks like it needs to be. Secondary text on this
      page is frequently over a live halftone, and a value that lands
      exactly on 4.5:1 against clean stock has no headroom left the
      moment a single dot prints behind it. This one starts at 5.9:1 and
-     still reads as clearly secondary to graphite's 11.6:1. */
-  --color-muted: #4a514a;
+     still reads as clearly secondary to graphite's 11.4:1. */
+  --color-muted: #4e4a5c;
 
   /* ---- Rule: Spark is not a text colour ------------------------
      Measured against the stock:
 
-       graphite  on paper   11.6 : 1
-       overprint on paper   10.2 : 1
+       graphite  on paper   11.4 : 1
+       overprint on paper   10.0 : 1
+       forge     on paper    8.0 : 1   body text OK
        muted     on paper    5.9 : 1   body text OK
-       forge     on paper    5.4 : 1   body text OK
-       spark     on paper    2.3 : 1   FAILS, at any size
+       spark     on paper    1.1 : 1   FAILS, at any size
 
-     So Fluorescent Pink is only ever a fill, a rule, or a mark, and
-     type that sits on it is graphite (5.2 : 1). This is not a
-     workaround — a fluorescent ink is a highlight ink, and no printer
-     would have set body copy in it either. The two tracks therefore
-     speak in different registers on purpose: Forge can talk in its own
-     colour, Spark can only point. */
+     Spark fails harder here than the pink it replaces did, because the
+     flame is a light green and the stock is light. That is not a
+     regression to work around — it is what a fluorescent ink IS, and
+     no printer would have set body copy in one either. Spark is only
+     ever a fill, a rule, or a mark, and type that sits on it is
+     graphite (10.4 : 1). The two tracks therefore speak in different
+     registers on purpose: Forge can talk in its own colour, Spark can
+     only point.
+
+     The same lightness is why Spark carries far more dot area than
+     Forge in `chapters.ts` — a light ink needs more of the sheet to
+     weigh the same. See the note on the ink columns there. */
 
   /* ---- Type ----------------------------------------------------
      Big Shoulders is a condensed grotesque drawn for Chicago civic

@@ -16,10 +16,23 @@
  * copy is making: even, even, both up at the fork, hard left through
  * Forge, hard right through Spark, settle, then both at maximum with
  * the screens converged at the one place the reader is asked to act.
+ *
+ * READ THE COLUMNS AS A PAIR, NOT AS ABSOLUTE WEIGHTS. Spark runs far
+ * higher than Forge everywhere, and that is not an emphasis decision —
+ * it is compensation. Spark is the club's flame, a light green that
+ * prints at 1.6:1 against the stock; Forge is a deep indigo at 8:1. A
+ * light ink needs several times the dot area to weigh the same on the
+ * sheet, which is exactly what a printer would do with it. "Leaning
+ * left" therefore means Forge rising relative to its own column, not
+ * overtaking Spark's number.
  */
 
 export type Chapter = {
-  /** Coverage multiplier per drum. Never below ~0.35 — see above. */
+  /**
+   * Coverage multiplier per drum. Never near zero — see above. The
+   * usable floors differ because the inks do: Forge stays above ~0.25,
+   * Spark above ~0.45, and both are still clearly on the sheet there.
+   */
   forgeInk: number;
   sparkInk: number;
   /**
@@ -30,6 +43,11 @@ export type Chapter = {
    * 0.122 on a 1440 sheet — so anything past it prints dots under the
    * gutter slug and into the measure. Emphasise a section with ink
    * density, screen ruling or converge, not by widening past this.
+   *
+   * 0.118 assumes moderate coverage. A drum near 1.0 puts real ink at
+   * the crest rather than a scatter, so a section that also runs type
+   * to the edge of the measure needs more clearance than the ceiling
+   * gives — see `spark` below.
    */
   band: number;
   /** How far the band's inner edge travels. Bounded with `band`, above. */
@@ -45,8 +63,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      coverage and near-converged screens, so the mass carries live moiré
      while it wobbles. */
   hero: {
-    forgeInk: 0.62,
-    sparkInk: 0.56,
+    forgeInk: 0.48,
+    sparkInk: 0.77,
     band: 0.09,
     waveAmp: 0.028,
     converge: 0.86,
@@ -56,8 +74,8 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* The one section that is only an argument. Narrowest bands and the
      calmest wave — it gets out of the way of the sentence. */
   problem: {
-    forgeInk: 0.44,
-    sparkInk: 0.4,
+    forgeInk: 0.34,
+    sparkInk: 0.55,
     band: 0.06,
     waveAmp: 0.022,
     converge: 0.0,
@@ -75,8 +93,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      part-converged so the letterforms carry a little interference
      without it eating the shape. */
   mark: {
-    forgeInk: 0.72,
-    sparkInk: 0.66,
+    forgeInk: 0.56,
+    sparkInk: 0.91,
     band: 0.07,
     waveAmp: 0.024,
     converge: 0.35,
@@ -87,8 +105,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      two tracks are most clearly two separate things, one down each
      edge, in the same order as the columns between them. */
   tracks: {
-    forgeInk: 0.6,
-    sparkInk: 0.56,
+    forgeInk: 0.47,
+    sparkInk: 0.77,
     band: 0.085,
     waveAmp: 0.03,
     converge: 0.0,
@@ -99,8 +117,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      is a fixed sequence, so its ink should look like it knows where it
      is going. Spark drops but stays on the sheet. */
   forge: {
-    forgeInk: 0.68,
-    sparkInk: 0.36,
+    forgeInk: 0.53,
+    sparkInk: 0.5,
     band: 0.082,
     waveAmp: 0.026,
     converge: 0.0,
@@ -109,12 +127,18 @@ export const CHAPTERS: Record<string, Chapter> = {
 
   /* Spark. Leans right, and runs the largest wave on the page — these
      sessions are chosen by a live vote, so the ink genuinely does not
-     know where it is going either. */
+     know where it is going either.
+
+     The band is pulled in tighter than the 0.118 ceiling because this is
+     the one section running Spark at full coverage AND right-aligning
+     labels to the edge of the measure. The ceiling assumes moderate
+     coverage; at 0.96 the crest is dense enough to read as ink rather
+     than tint, and it was landing on the tools labels. */
   spark: {
-    forgeInk: 0.36,
-    sparkInk: 0.7,
-    band: 0.078,
-    waveAmp: 0.038,
+    forgeInk: 0.28,
+    sparkInk: 0.96,
+    band: 0.068,
+    waveAmp: 0.034,
     converge: 0.0,
     freq: 96,
   },
@@ -122,8 +146,8 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* Dates and facts. Thin bands and the finest screen on the page — a
      fine halftone reads as a document, a coarse one as a poster. */
   schedule: {
-    forgeInk: 0.4,
-    sparkInk: 0.37,
+    forgeInk: 0.31,
+    sparkInk: 0.51,
     band: 0.055,
     waveAmp: 0.02,
     converge: 0.12,
@@ -138,8 +162,8 @@ export const CHAPTERS: Record<string, Chapter> = {
      stays where it dispersed to, which is the rule for the whole page
      below the fold. */
   signup: {
-    forgeInk: 0.74,
-    sparkInk: 0.7,
+    forgeInk: 0.58,
+    sparkInk: 0.96,
     band: 0.088,
     waveAmp: 0.03,
     converge: 0.85,
@@ -148,8 +172,8 @@ export const CHAPTERS: Record<string, Chapter> = {
 
   /* Colophon. The drums ease off, but they do not come off. */
   colophon: {
-    forgeInk: 0.38,
-    sparkInk: 0.35,
+    forgeInk: 0.3,
+    sparkInk: 0.48,
     band: 0.052,
     waveAmp: 0.018,
     converge: 0.0,

@@ -26,13 +26,31 @@ pre-rendered video for the hero.
 The page is a two-ink risograph print, simulated live in WebGL, and the
 inks carry the argument:
 
-- **Federal Blue `#3d5588` = Forge**, the track for students who code
-- **Fluorescent Pink `#ff48b0` = Spark**, the track for everyone else
-- **their overprint `#3d185e` = the club**
+- **Flame Green `#b5da47` = Spark**, the track for everyone else
+- **Indigo `#26356b` = Forge**, the track for students who code
+- **their overprint `#1b2d1e` = the club**
 
 Riso inks are semi-transparent, so overlaps multiply into a genuine third
 colour. `--color-overprint` is the arithmetic product of the two inks,
 not a picked value — recompute it if either ink changes.
+
+The palette comes from the club's logo, read the way a printer reads a
+job. The logo is one green flame on a black field. **Spark is measured**
+— the mean of the logo's green pixels. **Forge was solved for**: given
+Spark, it is the partner ink whose product lands on a green-black rather
+than the olive mud a violet partner makes. **The overprint is that
+product**, which is the black field the flame sits on — so the club's
+colour is what happens when the two tracks meet, not a third value
+someone chose.
+
+**The stock stays light — `#d9d4dc`, a pale lilac.** Two reasons, and
+both are load-bearing. A duplicator cannot print a black field; black is
+what two translucent inks make, so a dark page is physically backwards
+here. And near-black plus one acid-green accent is precisely the
+generated-design default listed below that this build exists to escape —
+the logo's own colours land on it, which is exactly why they had to be
+translated rather than copied. Lilac also sits opposite chartreuse on
+the wheel, so the stock is what makes the flame fluoresce.
 
 The signature is **moiré**. Each ink is screened at its own halftone
 angle. Apart, they sit at the textbook 75°/15° separation that printers
@@ -96,15 +114,21 @@ complaint this system was built to fix.
 - **Never `convertSRGBToLinear()` the ink colours.** A raw
   `ShaderMaterial` is the one material three.js does not append the
   output-colour-space chunk to, so linear values reach the sRGB
-  framebuffer unconverted and every ink prints several stops dark
-  (Federal Blue lands on maroon). The palette was also derived as an
-  sRGB multiply, so the shader has to multiply in the same space.
+  framebuffer unconverted and every ink prints several stops dark (the
+  indigo lands on near-black). The palette was also derived as an sRGB
+  multiply, so the shader has to multiply in the same space.
 - **Nothing may be opaque except type.** An opaque background on any
   element punches a card-shaped hole through the ink behind it. Use
   borders for dividers, never a filled cell over a gap.
-- **Fluorescent Pink is not a text colour** — 2.3:1 on this stock, fails
-  at any size. It is a fill, a rule, or a mark. Type that sits on it is
-  graphite. See the measured table in `globals.css`.
+- **Spark is not a text colour** — 1.1:1 on this stock, fails at any
+  size, and fails harder than the pink it replaced because the flame is
+  a light green on light stock. It is a fill, a rule, or a mark. Type
+  that sits on it is graphite. See the measured table in `globals.css`.
+- **The two ink columns in `chapters.ts` are not comparable numbers.**
+  Spark runs roughly 1.6x Forge everywhere because a light ink needs
+  several times the dot area to weigh the same on the sheet. Leaning a
+  section toward Forge means raising Forge against its own column, not
+  past Spark's.
 - **`chapters.ts` x coordinates are fractions of the half-width**, not
   absolute units: ±1 is the trim edge at any viewport. Absolute values
   look right on the display they were tuned on and then slide off the
@@ -132,8 +156,8 @@ complaint this system was built to fix.
 - Institutional lockups. `Colophon.tsx` has placeholder boxes for the
   York and Lassonde marks. Get the **one-colour** versions from the
   brand kits and render them in graphite — a real two-ink job would not
-  fire a third drum for a logo, and York red beside Fluorescent Pink is
-  a genuine clash.
+  fire a third drum for a logo, and York red between an indigo and an
+  acid green is a genuine clash.
 - `NEXT_PUBLIC_SIGNUP_URL` is unset, so the sign-up button falls back to
   `#`. It is inlined at build time, so it must be set before building.
 - Social links in `Colophon.tsx` point at `#`.

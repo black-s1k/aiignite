@@ -7,10 +7,10 @@ import { CLUB } from "@/lib/content";
  *
  * Those lockups go in one ink. A real two-colour job would not fire up
  * a third drum just for a logo, and it is also the practical answer —
- * York red sitting next to Fluorescent Pink is a genuine clash, and
- * every university brand kit ships a one-colour version for exactly
- * this situation. Drop the mono/white SVGs into public/marks/ and swap
- * the placeholders below.
+ * York red sitting between an indigo and an acid green is a genuine
+ * clash, and every university brand kit ships a one-colour version for
+ * exactly this situation. Drop the mono/white SVGs into public/marks/
+ * and swap the placeholders below.
  */
 const SOCIALS = [
   { label: "Instagram", href: "#" },
@@ -82,7 +82,7 @@ export function Colophon() {
       </div>
 
       <p className="tag mt-16 border-t border-graphite/25 pt-5">
-        Printed in two inks · Federal Blue and Fluorescent Pink
+        Printed in two inks · Indigo and Flame Green
       </p>
     </footer>
   );
