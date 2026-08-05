@@ -20,7 +20,7 @@
  * SPARK LEADS EVERYWHERE EXCEPT ITS OWN SECTION'S OPPOSITE. On light
  * stock the ratio between the two columns was compensation — the pale
  * ink needed more area to weigh the same. Here the two inks are close
- * enough in weight (12.5:1 and 7.8:1 on black) that compensation barely
+ * enough in weight (14.4:1 and 8.9:1 on black) that compensation barely
  * applies, so the ratio is doing something else: the flame is the
  * club's colour and the sheet should read green-forward, with the cold
  * ink as counterpoint rather than as an equal.

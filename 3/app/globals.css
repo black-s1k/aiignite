@@ -31,8 +31,9 @@
    execution, and these are load-bearing, not decoration:
 
      - two inks, not one accent on a void
-     - the black is #16141b, not #0a0a0a: a pigment black with a violet
-       cast and visible tooth in the shader's fibre pass
+     - visible tooth: the shader's fibre pass is the only thing on the
+       sheet that is neither ink nor void, and it is what keeps this
+       from being a flat fill
      - type is bone, never #ffffff, because pure white on black halates
      - no glow, no gradient bloom. The only light on the page is where
        two halftone screens overlap, and that is arithmetic
@@ -40,11 +41,17 @@
 
 @theme {
   /* ---- Stock ---------------------------------------------------
-     Matte black board. Not #0a0a0a — a real black pigment is never
-     neutral, and this one keeps the violet cast the previous stock
-     had, which is what stops the acid green from reading as pure
-     signal green against a dead field. */
-  --color-paper: #16141b;
+     True black, at the client's direction (2026-08-05). It was #16141b,
+     a pigment black carrying the violet cast of the stock before it,
+     on the argument that a real black ink is never neutral. Overruled,
+     and that is a fair call: on an OLED panel #000 is the emitter
+     switched off, which is a blacker black than any board.
+
+     Consequence to know: this is now the one value in the palette with
+     no headroom underneath it. Nothing can be darker, so any future
+     "make it recede" has to be solved with ink coverage or type
+     weight — there is no darker background left to reach for. */
+  --color-paper: #000000;
 
   /* ---- Inks ----------------------------------------------------
      Spark is measured, not chosen: the median of every green pixel in
@@ -57,7 +64,7 @@
   /* Forge is the cold counterpart. On black the two inks are both
      bright, so the pair is separated by TEMPERATURE rather than by
      weight: the flame is warm, this is not. Bright enough to set body
-     copy in at 7.8 : 1, which the ink it replaces never was on light
+     copy in at 8.9 : 1, which the ink it replaces never was on light
      stock. */
   --color-forge: #7ea8ff;
 
@@ -77,23 +84,23 @@
      same reason it was darker than it needed to be on light stock:
      this type frequently sits over a live halftone, and a value landing
      exactly on 4.5:1 against clean stock has no headroom left the
-     moment a single dot prints behind it. Starts at 6.7:1 and still
-     reads as clearly secondary to chalk's 14.8:1. */
+     moment a single dot prints behind it. Starts at 7.6:1 and still
+     reads as clearly secondary to chalk's 17.0:1. */
   --color-muted: #9d9aab;
 
   /* ---- Contrast, measured against the stock --------------------
 
-       overprint on paper   17.6 : 1
-       chalk     on paper   14.8 : 1
-       spark     on paper   12.5 : 1
-       forge     on paper    7.8 : 1   body text OK
-       muted     on paper    6.7 : 1   body text OK
+       overprint on paper   18.7 : 1
+       chalk     on paper   17.0 : 1
+       spark     on paper   14.4 : 1
+       forge     on paper    8.9 : 1   body text OK
+       muted     on paper    7.6 : 1   body text OK
 
      Note what inverted. On light stock Spark was the one colour that
      could never carry text (1.1 : 1) because a fluorescent ink is a
      highlight ink. On black it is the second brightest thing on the
      page. The rule it forced is gone, and type that sits on a Spark
-     fill is now the stock itself (12.5 : 1), not a dark grey.
+     fill is now the stock itself (14.4 : 1), not a dark grey.
 
      The other inversion is dot area: on light stock Spark needed far
      MORE coverage than Forge to weigh the same, and here it needs

@@ -47,7 +47,7 @@ import { FRAG, VERT } from "@/lib/press/shader";
 const rgb = (hex: string) => new THREE.Color().setStyle(hex, THREE.NoColorSpace);
 
 const INK = {
-  paper: rgb("#16141b"),
+  paper: rgb("#000000"),
   forge: rgb("#7ea8ff"),
   spark: rgb("#bee449"),
 };

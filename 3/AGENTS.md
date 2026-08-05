@@ -21,9 +21,9 @@ the frame-to-frame motion happened in one fifth of the clip.
 **Do not reintroduce the video.** No pre-rendered scroll-scrubbed hero.
 
 The palette question is subtler, because this build now *is* on black —
-see "On being on black" below. That was a deliberate call by the client
-(2026-08-05), and the defence is execution, not avoidance. Read that
-section before touching a colour.
+`#000000`, at that. See "On being on black" below. That was a deliberate
+call by the client (2026-08-05), and the defence is execution, not
+avoidance. Read that section before touching a colour.
 
 ## The one idea
 
@@ -34,7 +34,7 @@ the argument:
 - **Ice Blue `#7ea8ff` = Forge**, the track for students who code
 - **their overlap `#def6ff` = the club**
 
-The stock is matte black `#16141b`, so the process is a **screenprint,
+The stock is matte black `#000000`, so the process is a **screenprint,
 not a risograph**, and that inverts the arithmetic. Translucent ink on
 light stock filters what passes through it, so inks MULTIPLY and overlaps
 go dark. Ink on black stock has nothing to filter — it only adds — so
@@ -58,11 +58,11 @@ it. The client asked for black stock anyway. That is their call, and the
 job is to make it not read as the default. These are load-bearing:
 
 - **Two inks, not one accent on a void.** The green never appears alone.
-- **`#16141b`, not `#0a0a0a`.** A real black pigment is never neutral;
-  this one keeps the violet cast the light stock had.
-- **Visible tooth.** The fibre pass is ADDED on this stock, not
-  multiplied — 4.5% of `#16141b` is under one 8-bit step, so the
-  multiplicative version was arithmetically invisible.
+- **Visible tooth.** The fibre pass is the only thing on the sheet that
+  is neither ink nor void. It is ADDED on this stock, not multiplied —
+  any percentage of `#000` is `#000` — and it is one-sided, because
+  black is the floor and a symmetric offset would clamp its lower half
+  away and quietly raise the mean.
 - **Type is bone `#e8e6f0`, never `#ffffff`.** Pure white on black
   halates and closes the counters of a condensed face.
 - **No glow, no gradient bloom.** The only light on the page is where

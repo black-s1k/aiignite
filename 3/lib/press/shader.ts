@@ -346,12 +346,18 @@ export const FRAG = /* glsl */ `
     // Stock. Uncoated board is never flat — the tooth showing through is
     // what makes this read as printed rather than rendered.
     //
-    // ADDED, not multiplied. A proportional variation on a near-black
-    // stock is arithmetically invisible: 4.5% of #16141b is under one
-    // 8-bit step. On black the tooth is grain catching the light, so it
-    // has to be an offset.
-    float fibre = fbm(uv * vec2(aspect, 1.0) * 420.0) - 0.5;
-    vec3 col = uPaper + fibre * 0.030;
+    // ADDED, not multiplied. A proportional variation on black is
+    // arithmetically nothing — any percentage of #000 is #000 — so on
+    // this stock the tooth has to be an offset.
+    //
+    // And ONE-SIDED. The stock is true black, which is the floor: there
+    // is nothing below it for the troughs to fall into, so a symmetric
+    // offset would just clamp its lower half away and quietly raise the
+    // mean. Tooth is grain catching the light, which only ever adds, so
+    // the negative half is dropped on purpose rather than by clipping.
+    // The result is a sheet that sits at exactly #000 between specks.
+    float fibre = max(fbm(uv * vec2(aspect, 1.0) * 420.0) - 0.5, 0.0);
+    vec3 col = uPaper + fibre * 0.055;
 
     // Screen, one drum at a time, in pass order.
     //
