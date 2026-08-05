@@ -65,8 +65,9 @@ export const CHAPTERS: Record<string, Chapter> = {
   },
 
   /* The mark. The one place on the page below the fold where the ink
-     leaves the edges — it spirals in off both sides, strikes the club's
-     AI mark, and lets go again, all within this one section.
+     leaves the edges — it reassembles off both sides as horizontal
+     strips, strikes the club's lockup, and comes apart again, all
+     within this one section.
 
      Both drums up and the finest ruling on the page: a mark struck in a
      coarse screen loses its corners, and this is the only moment that
@@ -79,7 +80,7 @@ export const CHAPTERS: Record<string, Chapter> = {
     band: 0.07,
     waveAmp: 0.024,
     converge: 0.35,
-    freq: 168,
+    freq: 270,
   },
 
   /* The fork. Both bands equal and thickened: this is the moment the

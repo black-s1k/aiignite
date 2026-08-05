@@ -130,7 +130,6 @@ export function Press() {
       uMark: { value: blankPlate() },
       uMarkAspect: { value: 1 },
       uForm: { value: 0 },
-      uMarkH: { value: 0.38 },
 
       uForgeInk: { value: FIRST_CHAPTER.forgeInk },
       uSparkInk: { value: FIRST_CHAPTER.sparkInk },
@@ -167,7 +166,7 @@ export function Press() {
     // not be decoded as sRGB.
     let plate: THREE.Texture | null = null;
     new THREE.TextureLoader().load(
-      "/logo-ai.png",
+      "/logo-lockup.png",
       (tex) => {
         tex.colorSpace = THREE.NoColorSpace;
         tex.minFilter = THREE.LinearFilter;

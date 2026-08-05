@@ -54,7 +54,23 @@ system is which one is active:
   edges, Forge left and Spark right, inner edges running a travelling
   wave that scroll pushes along.
 - **Formed** (`uForm` 0→1→0) — the `Mark` section only. Ink leaves the
-  edges, spirals in, strikes the club's real AI mark, and releases.
+  edges and reassembles into the club's lockup as horizontal strips
+  sliding in from alternating sides, holds, then comes apart again.
+
+  Strips because the transform must be exactly invertible: a fragment
+  shader can only ask "what belongs at this pixel", so freely scattered
+  pieces have no closed-form answer. A strip never moves vertically, so
+  its row is a function of screen y alone and its source is `x` minus
+  travel — one sample per pixel, and the bounds test is on the SOURCE
+  coordinate, which is what lets a strip be drawn far outside the mark's
+  final box while it is still flying.
+
+  The plate is `public/logo-lockup.png`, an alpha mask extracted from
+  the real logo (flame + AI IGNITE + AT YORK). The script tagline is
+  deliberately NOT in it — its strokes are about one screen cell wide at
+  any sane ruling, so a halftone turns them into specks. It is set as
+  real text in `Mark.tsx` instead. **If a proper vector logo turns up,
+  replace the plate** — the current one is keyed out of a screenshot.
 
 `uDisperse` is read straight off scroll position, never damped toward a
 target, so it is exactly reversible on the way back up and cannot
