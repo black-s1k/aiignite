@@ -85,10 +85,30 @@ pulls the sheet through the press.
 The coverage field has exactly three states, and the whole behavioural
 system is which one is active:
 
-- **Gathered** (`uDisperse` 0) — the landing page. One mass, wobbling
-  like set jelly: a volume-preserving squash plus a radial displacement
-  that varies with *angle*, so the rim leads and lags itself. That phase
-  difference is the difference between jelly and a pulsing circle.
+- **Gathered** (`uDisperse` 0) — the landing page. The club's flame,
+  struck from the real logo artwork (`public/logo-flame.png`) by both
+  drums a few thousandths out of register, and burning.
+
+  It used to be an abstract mass wobbling like set jelly. Right motion,
+  wrong shape — the club's mark *is* a flame, so there was no reason to
+  approximate a shape the logo already provides.
+
+  The deformation is applied to the SAMPLE COORDINATE, not to a distance
+  field. That is what lets real artwork move like fire: the plate stays
+  fixed and the sheet warps under it, so every lick and every gap
+  between licks deforms correctly without any of them being modelled.
+
+  The weighting is the whole trick. A flame is anchored at its base and
+  free at its tips, so the lateral lick is scaled by `h*h` — quadratic in
+  height up the plate. An unweighted displacement just slides the whole
+  flame sideways, which reads as a logo on a wobble rather than as
+  something burning. Measured: ~13% of the flame's own pixels change per
+  1.4s with no scrolling, and it is all in the top half.
+
+  No bounds test on the sample. The plate carries a transparent border
+  and is sampled ClampToEdge, so off-artwork returns alpha 0 by itself;
+  a hard test would put a straight cut across the licks at exactly the
+  moment they swing furthest.
 - **Dispersed** (`uDisperse` 1) — everywhere else. Bands at both trim
   edges, Forge left and Spark right, inner edges running a travelling
   wave that scroll pushes along.
@@ -108,8 +128,14 @@ system is which one is active:
   the real logo (flame + AI IGNITE + AT YORK). The script tagline is
   deliberately NOT in it — its strokes are about one screen cell wide at
   any sane ruling, so a halftone turns them into specks. It is set as
-  real text in `Mark.tsx` instead. **If a proper vector logo turns up,
-  replace the plate** — the current one is keyed out of a screenshot.
+  real text in `Mark.tsx` instead.
+
+**Both plates are keyed out of a screenshot** (`logo-lockup.png` at
+617x276, `logo-flame.png` at 236x341, the flame keyed on green-ness
+because it is the only green thing in the artwork). **If a proper vector
+logo turns up, replace both** — they are the lowest-fidelity assets in
+the build. Aspect ratios are read off the images at load, so a
+replacement only has to be the same artwork, not the same size.
 
 `uDisperse` is read straight off scroll position, never damped toward a
 target, so it is exactly reversible on the way back up and cannot

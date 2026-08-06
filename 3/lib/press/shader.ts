@@ -15,11 +15,10 @@
  * The coverage field has exactly two states and one monotonic journey
  * between them, which is the whole behavioural system:
  *
- *   GATHERED (uDisperse = 0) — the landing page. Both drums lay down
- *   one converged mass. It is never static: a volume-preserving squash
- *   and an angular surface wobble give it the soft-body wobble of set
- *   jelly. Screens are converged here too, so the mass carries live
- *   moiré.
+ *   GATHERED (uDisperse = 0) — the landing page. Both drums strike the
+ *   club's flame, from the real logo artwork, one drum slightly off
+ *   register from the other. It is never static: the sample coordinate
+ *   is warped so the tips lick and the body draws up and settles.
  *
  *   DISPERSED (uDisperse = 1) — everywhere after. The ink has split to
  *   the two trim edges: Forge left, Spark right, matching the column
@@ -64,8 +63,10 @@ export const FRAG = /* glsl */ `
   uniform float uWaveAmp;     // how far the band's inner edge travels
   uniform float uWavePhase;   // scroll-driven, so scrolling pushes the wave along
 
-  uniform sampler2D uMark;    // the club's AI mark, alpha channel is the artwork
+  uniform sampler2D uMark;    // the club's lockup, alpha channel is the artwork
   uniform float uMarkAspect;  // its own width/height
+  uniform sampler2D uFlame;   // the flame alone, same deal
+  uniform float uFlameAspect;
   uniform float uForm;        // 0 = bands, 1 = the mark fully struck
 
   uniform float uForgeInk;    // final coverage multiplier per drum
@@ -111,43 +112,78 @@ export const FRAG = /* glsl */ `
   }
 
   /**
-   * GATHERED state: the landing-page mass, wobbling like a soft solid.
+   * GATHERED state: the club's flame, struck from the real logo and
+   * burning.
    *
-   * Two deformations, because either alone reads wrong. The squash is
-   * volume-preserving — as x swells y pinches — which is what stops it
-   * looking like something simply scaling up and down. The wobble is a
-   * radial displacement that varies with ANGLE, so different parts of
-   * the rim lead and lag each other; that phase difference around the
-   * edge is the whole difference between jelly and a pulsing circle.
+   * This used to be an abstract mass wobbling like set jelly. The
+   * motion was right and the shape was wrong — the club's mark IS a
+   * flame, so that is what the landing page should be holding before it
+   * disperses, and there is no reason to approximate a shape the logo
+   * already provides.
+   *
+   * The deformation is applied to the SAMPLE COORDINATE, not to a
+   * distance field. That is what lets real artwork move like fire: the
+   * plate stays fixed and the sheet warps underneath it, so every lick
+   * and every gap between licks deforms correctly without any of them
+   * being modelled.
+   *
+   * Two motions, and the weighting is the whole trick. A flame is
+   * anchored at its base and free at its tips, so the lateral lick is
+   * scaled by h*h — quadratic in height up the plate — which pins the
+   * bottom and lets the tips swing. An unweighted displacement just
+   * slides the whole flame sideways, which reads as a logo on a wobble
+   * rather than as something burning.
+   *
+   * No bounds test: the plate carries a transparent border and is
+   * sampled ClampToEdge, so anywhere off the artwork returns alpha 0 on
+   * its own. A hard test would put a straight cut across the licks at
+   * exactly the moment they swing furthest.
    */
-  float gathered(vec2 p, vec2 centre, float aspect, float seed) {
-    vec2 q = p - vec2(centre.x * aspect * 0.5, centre.y);
+  float gathered(vec2 p, vec2 centre, float aspect, float narrow, float seed) {
+    // A phone is narrow and tall, and the flame is sized off height, so
+    // the same numbers that stand it beside the headline on a laptop
+    // make it wider than the whole sheet on a handset. It shrinks AND
+    // walks back toward the middle — shrinking alone leaves it pinned to
+    // a trim edge it no longer reaches.
+    float scale = mix(1.0, 0.66, narrow);
+    float cx = centre.x * mix(1.0, 0.35, narrow);
+
+    vec2 q = p - vec2(cx * aspect * 0.5, centre.y);
 
     float t = uTime * 0.75 + seed;
 
+    // Volume-preserving breath: as it widens it shortens. Kept from the
+    // mass, and gentler than it was — on a shape this recognisable a
+    // big squash reads as the logo being stretched.
     float s = sin(t * 0.9);
-    q.x *= 1.0 + 0.17 * s * uJelly;
-    q.y *= 1.0 - 0.14 * s * uJelly;
+    q.x *= 1.0 + 0.10 * s * uJelly;
+    q.y *= 1.0 - 0.08 * s * uJelly;
 
-    // Ink climbs, and this also keeps the mass off the horizontal
-    // centre line where the type sits.
-    q.y *= 0.82;
+    // Plate space. Sized off HEIGHT, because a flame is a tall shape and
+    // its width should follow from the artwork rather than be set.
+    float sp = uSpread * scale;
+    vec2 box = vec2(sp * 2.0 * uFlameAspect, sp * 2.0);
+    vec2 m = q / box + 0.5;
 
-    float r = length(q);
-    float a = atan(q.y, q.x);
+    float h = clamp(m.y, 0.0, 1.0);
+    float taper = h * h;
 
-    // Three harmonics at unrelated speeds. Related speeds resynchronise
-    // on a visible cycle and the wobble starts to look like a loop.
-    r -= (0.034 * sin(a * 3.0 + t * 1.60)
-        + 0.021 * sin(a * 5.0 - t * 1.15)
-        + 0.013 * sin(a * 8.0 + t * 2.10)) * uJelly;
+    // The lick. Three harmonics at unrelated speeds — related speeds
+    // resynchronise on a visible cycle and it starts to look like a loop.
+    m.x -= (0.085 * sin(h * 4.6 + t * 2.10)
+          + 0.048 * sin(h * 7.9 - t * 1.45)
+          + 0.026 * sin(h * 12.3 + t * 3.05)) * taper * uJelly;
 
-    float body = 1.0 - smoothstep(uSpread * 0.25, uSpread, r);
+    // Fire rises. The body draws up and settles back, again strongest at
+    // the tips, so the flame gains and loses height instead of bobbing.
+    m.y -= 0.045 * sin(t * 1.70 + 1.1) * taper * uJelly;
 
-    // Break the outer edge so the mass never terminates on a clean
-    // circle — real flood coverage feathers out unevenly.
-    body *= 0.55 + 0.62 * fbm(p * 2.4 + seed * 3.1);
-    return clamp(body, 0.0, 1.0);
+    float a = texture2D(uFlame, m).a;
+
+    // Same break-up as every other state, so the flame is struck in the
+    // same ink and does not read as a pasted-in graphic.
+    a *= 0.62 + 0.55 * fbm(p * 2.4 + seed * 3.1);
+    return clamp(a, 0.0, 1.0);
   }
 
   /**
@@ -301,12 +337,12 @@ export const FRAG = /* glsl */ `
     // side and the bands sit at both edges, this reads as the mass
     // splitting and travelling outward rather than as a crossfade.
     float covF = mix(
-      gathered(p, uForgeAt, aspect, 0.0),
+      gathered(p, uForgeAt, aspect, narrow, 0.0),
       dispersed(uv, -1.0, aspect, narrow, 0.0),
       uDisperse
     );
     float covS = mix(
-      gathered(p, uSparkAt, aspect, 11.3),
+      gathered(p, uSparkAt, aspect, narrow, 11.3),
       dispersed(uv, 1.0, aspect, narrow, 11.3),
       uDisperse
     );

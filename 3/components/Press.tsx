@@ -130,6 +130,8 @@ export function Press() {
       // and the page simply shows bands until it arrives.
       uMark: { value: blankPlate() },
       uMarkAspect: { value: 1 },
+      uFlame: { value: blankPlate() },
+      uFlameAspect: { value: 0.692 },
       uForm: { value: 0 },
 
       uForgeInk: { value: FIRST_CHAPTER.forgeInk },
@@ -161,33 +163,47 @@ export function Press() {
     const ro = new ResizeObserver(resize);
     ro.observe(host);
 
-    // ---- the plate ---------------------------------------------------
-    // The club's real mark. Only its alpha is used — `formed()` reads
-    // the channel directly, so no colour management applies and it must
-    // not be decoded as sRGB.
-    let plate: THREE.Texture | null = null;
-    new THREE.TextureLoader().load(
-      "/logo-lockup.png",
-      (tex) => {
-        tex.colorSpace = THREE.NoColorSpace;
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
-        // Clamped, because the sample coordinates run outside 0..1 for
-        // most of the transition and repeating would tile the mark
-        // across the whole sheet.
-        tex.wrapS = THREE.ClampToEdgeWrapping;
-        tex.wrapT = THREE.ClampToEdgeWrapping;
-        plate = tex;
-        uniforms.uMark.value = tex;
-        uniforms.uMarkAspect.value = tex.image.width / tex.image.height;
-      },
-      undefined,
-      () => {
-        // Missing plate is survivable: uForm still animates, the mark
-        // just never appears and the bands carry the section.
-      },
-    );
+    // ---- the plates ---------------------------------------------------
+    // Two pieces of the club's real artwork: the full lockup that the
+    // Mark section assembles, and the flame alone that the landing page
+    // holds. Only alpha is used — the shader reads the channel directly,
+    // so no colour management applies and they must not be decoded as
+    // sRGB.
+    //
+    // ClampToEdge on both, because the sample coordinates run outside
+    // 0..1 (far outside, for the strip assembly) and repeating would
+    // tile the artwork across the whole sheet. Both plates carry a
+    // transparent border, so clamping off the edge returns nothing.
+    const plates: THREE.Texture[] = [];
+    const loadPlate = (
+      url: string,
+      tex: { value: THREE.Texture },
+      ratio: { value: number },
+    ) => {
+      new THREE.TextureLoader().load(
+        url,
+        (t) => {
+          t.colorSpace = THREE.NoColorSpace;
+          t.minFilter = THREE.LinearFilter;
+          t.magFilter = THREE.LinearFilter;
+          t.generateMipmaps = false;
+          t.wrapS = THREE.ClampToEdgeWrapping;
+          t.wrapT = THREE.ClampToEdgeWrapping;
+          plates.push(t);
+          tex.value = t;
+          ratio.value = t.image.width / t.image.height;
+        },
+        undefined,
+        () => {
+          // A missing plate is survivable. The mark section still
+          // animates and simply shows bands; the hero shows bare stock
+          // until dispersal, which is a quiet failure rather than a
+          // broken one.
+        },
+      );
+    };
+    loadPlate("/logo-lockup.png", uniforms.uMark, uniforms.uMarkAspect);
+    loadPlate("/logo-flame.png", uniforms.uFlame, uniforms.uFlameAspect);
 
     // ---- reduced motion: one static pull, no loop -------------------
     if (reduced) {
@@ -330,7 +346,7 @@ export function Press() {
       cancelAnimationFrame(raf);
       document.removeEventListener("visibilitychange", onVis);
       ro.disconnect();
-      plate?.dispose();
+      plates.forEach((t) => t.dispose());
       renderer.dispose();
       material.dispose();
       quad.geometry.dispose();

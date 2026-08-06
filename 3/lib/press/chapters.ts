@@ -69,16 +69,25 @@ export type Chapter = {
 };
 
 export const CHAPTERS: Record<string, Chapter> = {
-  /* The landing page, where the ink is still gathered. Heaviest
-     coverage and near-converged screens, so the mass carries live moiré
-     while it wobbles. */
+  /* The landing page, where the ink is still gathered into the flame.
+
+     The widest coverage gap on the page apart from the mark, and for
+     the same reason: both drums strike the same artwork almost in
+     register, so balanced drums would bleach it. Held apart, the cold
+     ink reads as a fringe along one edge of a green flame.
+
+     Finer ruling than it used to run, and the screens pulled back from
+     full convergence. Both were tuned for an abstract mass, where a
+     coarse screen and heavy moiré were the only texture it had. The
+     flame has its own structure — narrow licks and the gaps between
+     them — and a coarse screen eats it. */
   hero: {
-    forgeInk: 0.3,
-    sparkInk: 0.46,
+    forgeInk: 0.2,
+    sparkInk: 0.62,
     band: 0.09,
     waveAmp: 0.028,
-    converge: 0.86,
-    freq: 108,
+    converge: 0.5,
+    freq: 150,
   },
 
   /* The one section that is only an argument. Narrowest bands and the
@@ -201,19 +210,32 @@ export const CHAPTERS: Record<string, Chapter> = {
 export const FIRST_CHAPTER = CHAPTERS.hero;
 
 /**
- * Where the gathered mass sits on the landing page, x as a fraction of
- * the half-width so the composition holds on any viewport. Offset from
- * each other so the two drums overlap without coinciding — the overlap
- * is what produces the overprint colour and the moiré.
+ * Where the flame stands on the landing page. x is a fraction of the
+ * half-width, so the composition holds at any viewport; `spread` is its
+ * HALF-HEIGHT, and the width follows from the plate's own aspect rather
+ * than being set here.
  *
- * The y values sit low enough that the mass clears the header slug at
+ * The two centres are nearly identical on purpose. They used to be far
+ * apart, back when each drum laid down its own abstract mass and the
+ * point was to make the two masses partially overlap. Both drums now
+ * strike the same artwork, so a wide separation would simply print two
+ * flames — these sit a few thousandths apart, which is one flame
+ * slightly out of register, exactly what a second pass on a real press
+ * gives you.
+ *
+ * That near-coincidence is also why the hero runs its two drums so far
+ * apart in coverage. Screening two bright inks bleaches toward white,
+ * and here they overlap nearly everywhere; the cold drum is held right
+ * down so the flame stays green with a fringe instead of going pale.
+ *
+ * The y values sit low enough that the flame clears the header slug at
  * the top trim. It used to ride higher and bleed over "Fall 2026",
  * which was survivable when the dots were dark on light stock and the
  * type was dark too — on black the dots are the bright thing and they
  * were landing on 11px letter-spaced mono at about 1.7:1.
  */
 export const GATHERED = {
-  forgeAt: [0.475, -0.04] as [number, number],
-  sparkAt: [0.65, 0.0] as [number, number],
-  spread: 0.33,
+  forgeAt: [0.575, -0.015] as [number, number],
+  sparkAt: [0.605, 0.0] as [number, number],
+  spread: 0.31,
 };
