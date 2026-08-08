@@ -139,7 +139,7 @@ export const FRAG = /* glsl */ `
    * its own. A hard test would put a straight cut across the licks at
    * exactly the moment they swing furthest.
    */
-  float gathered(vec2 p, vec2 centre, float aspect, float narrow, float seed) {
+  float gathered(vec2 p, vec2 centre, float aspect, float narrow, float side, float seed) {
     // A phone is narrow and tall, and the flame is sized off height, so
     // the same numbers that stand it beside the headline on a laptop
     // make it wider than the whole sheet on a handset. It shrinks AND
@@ -148,7 +148,29 @@ export const FRAG = /* glsl */ `
     float scale = mix(1.0, 0.66, narrow);
     float cx = centre.x * mix(1.0, 0.35, narrow);
 
-    vec2 q = p - vec2(cx * aspect * 0.5, centre.y);
+    // ---- the exit ------------------------------------------------
+    // Dispersal is a JOURNEY, not a crossfade. This drum's flame is
+    // dragged off toward its own trim edge, and everything below is
+    // shaped so that what arrives there is already band-like: the ink
+    // in the band is visibly the ink that was in the flame.
+    //
+    // Eased, so it lets go slowly and then runs — a linear exit reads as
+    // the flame being slid across by a hand. The exponent is 1.5 rather
+    // than 2: squared looked better in isolation but left the flame only
+    // half way across at the point the bands had to start arriving, and
+    // getting there first is what makes the handoff read as one motion.
+    float go = pow(uDisperse, 1.5);
+
+    // Forge starts beside Spark on the right, so it crosses the whole
+    // sheet — straight through the headline — while Spark only has to
+    // reach the near edge. That asymmetry is the composition: one ink
+    // travels through the word THE SPARK to get where it is going.
+    float from = cx * aspect * 0.5;
+    float to   = side * aspect * 0.5 * 1.04;
+
+    // Drawn to the vertical middle as it goes, because a band is
+    // centred on the sheet and the flame is not.
+    vec2 q = p - vec2(mix(from, to, go), centre.y * (1.0 - go));
 
     float t = uTime * 0.75 + seed;
 
@@ -161,8 +183,16 @@ export const FRAG = /* glsl */ `
 
     // Plate space. Sized off HEIGHT, because a flame is a tall shape and
     // its width should follow from the artwork rather than be set.
+    //
+    // The box also MORPHS as the flame travels: squeezed in x and drawn
+    // out in y, so a compact flame becomes a tall thin column by the
+    // time it reaches the trim. Squeezing the box squeezes the artwork
+    // inside it, which is what turns the licks into speed lines. This is
+    // the whole reason the handoff to the band is invisible — the two
+    // shapes agree at the moment they swap.
     float sp = uSpread * scale;
-    vec2 box = vec2(sp * 2.0 * uFlameAspect, sp * 2.0);
+    vec2 box = vec2(sp * 2.0 * uFlameAspect * mix(1.0, 0.30, go),
+                    sp * 2.0 * mix(1.0, 2.75, go));
     vec2 m = q / box + 0.5;
 
     float h = clamp(m.y, 0.0, 1.0);
@@ -198,6 +228,16 @@ export const FRAG = /* glsl */ `
     // Same break-up as every other state, so the flame is struck in the
     // same ink and does not read as a pasted-in graphic.
     a *= 0.62 + 0.55 * fbm(p * 2.4 + seed * 3.1);
+
+    // Ink is conserved, so a shape drawn out over more sheet has to get
+    // thinner. Without this the flame arrives at the trim heavier than
+    // it left, which is the one thing that would give the trick away.
+    //
+    // Taken further than conservation alone needs, because the cold
+    // drum's route to its edge runs straight across the measure. A dense
+    // column parked over body copy mid-scroll is a legibility problem
+    // however briefly it is there, and a light one reads as speed.
+    a *= mix(1.0, 0.40, go);
     return clamp(a, 0.0, 1.0);
   }
 
@@ -231,6 +271,16 @@ export const FRAG = /* glsl */ `
     float body = 1.0 - smoothstep(inner - feather, inner + feather, dx);
 
     body *= 0.60 + 0.58 * fbm(vec2(uv.x * aspect, uv.y) * 2.6 + seed * 3.1);
+
+    // The bands print as a TINT, not as a solid. Deliberately applied
+    // here rather than by lowering the chapter ink columns, because
+    // those same columns drive the flame and the mark — and those are
+    // objects, where the bands are atmosphere running down the margin
+    // beside 900px of body copy. Thinning the waves must not thin the
+    // logo. Keeping it here also leaves the ink columns comparable
+    // across all three states, which is what makes them readable as the
+    // argument the page is making.
+    body *= 0.56;
     return clamp(body, 0.0, 1.0);
   }
 
@@ -348,18 +398,33 @@ export const FRAG = /* glsl */ `
     // into a tint at the trim rather than a composition beside the type.
     float narrow = smoothstep(1.05, 0.70, aspect);
 
-    // Blend the two states. Because the gathered centres sit off to one
-    // side and the bands sit at both edges, this reads as the mass
-    // splitting and travelling outward rather than as a crossfade.
-    float covF = mix(
-      gathered(p, uForgeAt, aspect, narrow, 0.0),
-      dispersed(uv, -1.0, aspect, narrow, 0.0),
-      uDisperse
+    // Hand the sheet over from the flame to the bands.
+    //
+    // NOT a mix(). A mix between two coverage fields is a crossfade by
+    // construction: the bands are already fading up while the flame is
+    // still fading out, so both are on screen at once and nothing ever
+    // appears to have MOVED. That is the difference between an
+    // animation and two things taking turns.
+    //
+    // Instead each state gets its own envelope and they are combined
+    // with max(). The windows still overlap — they have to, or there is
+    // a hole — but the ORDER is what matters: the band does not start
+    // until 0.58, by which point the flame is already two thirds of the
+    // way to that same edge and squeezed into a column. So the overlap
+    // happens in the SAME PLACE, late, and reads as a handoff rather
+    // than as two things at opposite sides of the sheet taking turns.
+    // max() rather than a sum, so the shared region does not print
+    // double where they agree.
+    float leaving  = 1.0 - smoothstep(0.74, 1.0, uDisperse);
+    float arriving = smoothstep(0.58, 0.98, uDisperse);
+
+    float covF = max(
+      gathered(p, uForgeAt, aspect, narrow, -1.0, 0.0) * leaving,
+      dispersed(uv, -1.0, aspect, narrow, 0.0) * arriving
     );
-    float covS = mix(
-      gathered(p, uSparkAt, aspect, narrow, 11.3),
-      dispersed(uv, 1.0, aspect, narrow, 11.3),
-      uDisperse
+    float covS = max(
+      gathered(p, uSparkAt, aspect, narrow, 1.0, 11.3) * leaving,
+      dispersed(uv, 1.0, aspect, narrow, 11.3) * arriving
     );
 
     // The mark is struck over whatever state is underneath and then

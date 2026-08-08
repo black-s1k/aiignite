@@ -127,7 +127,40 @@ system is which one is active:
   moment they swing furthest.
 - **Dispersed** (`uDisperse` 1) — everywhere else. Bands at both trim
   edges, Forge left and Spark right, inner edges running a travelling
-  wave that scroll pushes along.
+  wave that scroll pushes along. They print as a **tint**: `dispersed()`
+  ends with a flat `0.56` reduction, applied there rather than in the
+  chapter ink columns so that thinning the waves does not also thin the
+  flame and the mark. Those are objects; the bands are atmosphere
+  running down the margin beside 900px of body copy.
+
+- **The handoff between the first two is a JOURNEY, not a crossfade**,
+  and this is the part most likely to get broken by a well-meaning
+  simplification back to `mix()`.
+
+  A `mix(gathered, dispersed, uDisperse)` is a crossfade by
+  construction: the bands fade up at the trim while the flame is still
+  fading out on the right, both are on screen at once, and nothing ever
+  appears to have moved. That is two things taking turns, not an
+  animation, and it was the specific complaint this was built to fix.
+
+  Instead the flame is physically dragged off. Each drum's copy travels
+  to its OWN trim edge — Forge crosses the entire sheet, straight
+  through the word THE SPARK, because it starts beside Spark on the
+  right — while the sample box is squeezed in x and drawn out in y, so
+  a compact flame arrives at the trim already shaped like a band. Ink
+  thins as it stretches, further than conservation alone requires,
+  because Forge's route runs across the measure.
+
+  Then each state gets its own envelope and they combine with `max()`,
+  not `mix()`. The windows overlap — they have to, or there is a hole —
+  but **the order is the whole point**: the band does not start until
+  `uDisperse` 0.58, by which time the flame is already two thirds of the
+  way to that same edge. The overlap happens in one place, late.
+  `max()` rather than a sum so the shared region does not print double.
+
+  `go = pow(uDisperse, 1.5)`, not squared. Squared looked better on its
+  own but left the flame only half way across when the bands had to
+  start arriving, and arriving first is what sells it as one motion.
 - **Formed** (`uForm` 0→1→0) — the `Mark` section only. Ink leaves the
   edges and reassembles into the club's lockup as horizontal strips
   sliding in from alternating sides, holds, then comes apart again.
