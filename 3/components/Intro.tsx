@@ -107,14 +107,17 @@ export function Intro() {
     };
 
     const clear = (e?: Event) => {
-      // The fade is started from the video's own position rather than on
-      // `ended`, so the last half second of the clip plays THROUGH the
-      // crossfade and dissolves into the live hero. Waiting for `ended`
+      // Started from the video's own position rather than on `ended`, so
+      // the clip is still running as it dips away. Waiting for `ended`
       // holds the final frame still and then fades a freeze-frame, which
       // is the difference between a handoff and a cut.
+      //
+      // 0.9s, which is the dip's own length. Under it, the clip finishes
+      // and sits frozen while the dip catches up; over it, the dip eats
+      // motion that is still worth seeing.
       if (e?.type === "timeupdate") {
         if (!video || !Number.isFinite(video.duration)) return;
-        if (video.duration - video.currentTime > 0.55) return;
+        if (video.duration - video.currentTime > 0.9) return;
       }
       if (done) return;
       done = true;

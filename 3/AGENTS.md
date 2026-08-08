@@ -249,9 +249,19 @@ simplified away:
   fails to hydrate. So it fires early enough to rescue that quickly, and
   real playback cancels it — after which the deadline is re-armed from
   the clip's own remaining duration.
-- **Dismissal fires ~0.5s BEFORE the end**, off `timeupdate`, so the last
-  half second plays through the crossfade. Waiting for `ended` fades a
-  freeze-frame, which is a cut rather than a handoff.
+- **Dismissal fires ~0.9s BEFORE the end**, off `timeupdate`, so the clip
+  is still running as it dips. Waiting for `ended` fades a freeze-frame,
+  which is a cut rather than a handoff.
+- **The handoff is a DIP TO BLACK, in two phases — not a crossfade.**
+  Fading the overlay out directly puts two different hero layouts on
+  screen at once: the clip's, at whatever scale `cover` cropped it to,
+  ghosting through the real one at its own size, two sets of headline
+  type dissolving through each other. It is the mismatch that gets
+  noticed, not the fade. Phase one takes the video to nothing while the
+  overlay stays opaque and its field settles to true black; phase two
+  lifts that black off, so the hero comes up out of black. The video's
+  fade is the one `linear` on the site — `--ease-press` is an entrance
+  curve and dumps the brightness too early, so a dip on it blinks.
 - **`contain` on phones, `cover` above.** A portrait viewport crops a
   16:9 frame so hard that the clip's own headline came out as "RK",
   which reads as a broken image. The overlay's background is `#101010`

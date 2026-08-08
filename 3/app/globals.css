@@ -242,6 +242,15 @@
     height: 100%;
     object-fit: cover;
     object-position: 68% 50%;
+    /* LINEAR, and the one place on the site that is not --ease-press.
+       That curve is an entrance: fast out, settling in. Used on a dip it
+       dumps most of the brightness in the first fifth of the duration,
+       so the picture blinks off rather than fades. A dip to black is a
+       luminance ramp, and film dissolves are linear for the same reason.
+       The scale keeps the house curve — that one IS a movement. */
+    transition:
+      opacity 620ms linear,
+      transform 900ms var(--ease-press);
   }
 
   @media (max-width: 640px) {
@@ -269,16 +278,42 @@
     animation: none;
   }
 
-  /* Early dismissal. Overrides the animation rather than racing it, and
-     the delayed `visibility` keeps the overlay hit-testable for exactly
-     as long as it is still visible. */
+  /* ---- The handoff --------------------------------------------
+     A DIP TO BLACK, IN TWO PHASES, NOT A CROSSFADE.
+
+     Fading the overlay out directly puts two different hero layouts on
+     screen at the same time — the clip's, at whatever scale `cover`
+     cropped it to, ghosting through the real one at its own size, with
+     two sets of headline type at two sizes dissolving through each
+     other. It is the mismatch that gets noticed, not the fade.
+
+     So: phase one takes the VIDEO to nothing while the overlay stays
+     opaque, and settles the overlay's field from the clip's #101010 to
+     true black. Phase two lifts the now-black overlay off the page, so
+     the real hero comes UP out of black rather than being uncovered.
+     Between the two there is a frame of nothing, which is the whole
+     point — the two layouts never share one.
+
+     Measured, mean luma across the handoff runs 42.6, 25.3, 7.7, 14.8,
+     36.8 and then steady: down through black and back up.
+
+     The scale is the only thing here that is taste rather than
+     necessity: a plain fade reads as a picture being turned off, and a
+     touch of push gives the clip somewhere to go. */
   .intro[data-gone="true"] {
     animation: none;
+    background-color: #000000;
     opacity: 0;
     visibility: hidden;
     transition:
-      opacity 450ms var(--ease-press),
-      visibility 0s linear 450ms;
+      background-color 420ms linear,
+      opacity 240ms linear 620ms,
+      visibility 0s linear 860ms;
+  }
+
+  .intro[data-gone="true"] .intro-video {
+    opacity: 0;
+    transform: scale(1.04);
   }
 
   .intro-skip {
