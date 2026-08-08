@@ -226,8 +226,20 @@ exactly that reason. The client's call (2026-08-08) is to run the full
 misspellings later and assumes they were missed. **The fix is a
 corrected clip, not code.** To re-cut, re-encode with `-t 4.5`; nothing
 in the code depends on the length, because every timing is measured
-against `video.duration` at runtime. Master is `do_the_second.mp4`,
-untracked in the repo root.
+against `video.duration` at runtime.
+
+Master is `assets/do_the_second.mp4` — 1280x720, 10s, with an audio
+track. It lives outside `public/` deliberately: only `public/` is
+served, so the 2.4MB master can be versioned without any chance of a
+visitor downloading it instead of the 870KB encode. Regenerate that
+encode with:
+
+    ffmpeg -i assets/do_the_second.mp4 -an -c:v libx264 -crf 28 \
+      -preset veryslow -pix_fmt yuv420p -profile:v main \
+      -movflags +faststart public/intro.mp4
+
+`-an` is not optional — autoplay requires muted, so the audio track can
+never play and is pure weight.
 
 Five things here are load-bearing and all five look like they could be
 simplified away:
