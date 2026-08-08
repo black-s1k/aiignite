@@ -102,8 +102,24 @@ system is which one is active:
   free at its tips, so the lateral lick is scaled by `h*h` — quadratic in
   height up the plate. An unweighted displacement just slides the whole
   flame sideways, which reads as a logo on a wobble rather than as
-  something burning. Measured: ~13% of the flame's own pixels change per
+  something burning. Measured: ~15% of the flame's own pixels change per
   1.4s with no scrolling, and it is all in the top half.
+
+  **The lick's SPATIAL frequencies are load-bearing — keep them all
+  above ~9.0 radians across the height.** They are what decides whether
+  the deformation is a lick or a lean. At 1.5+ cycles from base to tip,
+  the upper flame leans one way while the part below it leans the other
+  and it reads as a ripple travelling up. An earlier version used 4.6,
+  which is under one cycle, so across the whole upper flame it acted as
+  a constant offset — and with `h*h` on top, the entire top translated
+  sideways as a slab. That measured 44px of drift on a 440px-wide flame
+  and read as the logo falling over. Amplitude controls how far it
+  moves; spatial frequency controls whether the movement is fire.
+
+  Measure a change here in the FLAME's own frame, not a fixed window.
+  The flame gains and loses about 76px of height as it breathes, which
+  drags artwork through any fixed crop and shows up as lean that is not
+  there. Tracked properly, the residual lean is 14px, about 3%.
 
   No bounds test on the sample. The plate carries a transparent border
   and is sampled ClampToEdge, so off-artwork returns alpha 0 by itself;

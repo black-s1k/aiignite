@@ -170,9 +170,24 @@ export const FRAG = /* glsl */ `
 
     // The lick. Three harmonics at unrelated speeds — related speeds
     // resynchronise on a visible cycle and it starts to look like a loop.
-    m.x -= (0.085 * sin(h * 4.6 + t * 2.10)
-          + 0.048 * sin(h * 7.9 - t * 1.45)
-          + 0.026 * sin(h * 12.3 + t * 3.05)) * taper * uJelly;
+    //
+    // The SPATIAL frequencies are the load-bearing part, not the
+    // amplitudes. These are in radians across the full height, so the
+    // slowest term still runs 1.5 cycles from base to tip: at any
+    // instant the upper flame leans one way and the part below it leans
+    // the other, which is a ripple travelling up. An earlier version
+    // used 4.6 — under one cycle — so across the whole upper flame it
+    // was effectively a constant offset, and with the h*h weighting on
+    // top of it the entire top translated sideways as a slab. Measured
+    // 44px of centroid drift on a 440px-wide flame, which read as the
+    // logo leaning over rather than as fire.
+    //
+    // Keep every one of these above ~9.0. Amplitude controls how much
+    // it moves; spatial frequency controls whether that movement is a
+    // lick or a lean.
+    m.x -= (0.020 * sin(h * 9.4 + t * 2.10)
+          + 0.013 * sin(h * 15.1 - t * 1.45)
+          + 0.008 * sin(h * 23.3 + t * 3.05)) * taper * uJelly;
 
     // Fire rises. The body draws up and settles back, again strongest at
     // the tips, so the flame gains and loses height instead of bobbing.
