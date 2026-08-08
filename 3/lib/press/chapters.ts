@@ -215,27 +215,39 @@ export const FIRST_CHAPTER = CHAPTERS.hero;
  * HALF-HEIGHT, and the width follows from the plate's own aspect rather
  * than being set here.
  *
- * The two centres are nearly identical on purpose. They used to be far
- * apart, back when each drum laid down its own abstract mass and the
- * point was to make the two masses partially overlap. Both drums now
- * strike the same artwork, so a wide separation would simply print two
- * flames — these sit a few thousandths apart, which is one flame
- * slightly out of register, exactly what a second pass on a real press
- * gives you.
+ * ONE centre for both drums. They used to sit a few thousandths apart,
+ * which was meant to read as a second pass landing slightly out of
+ * register — but an offset puts the entire fringe on one side, so it
+ * read as a drop shadow instead. Registration is now exact and the
+ * second ink is separated by `trap` below.
  *
- * That near-coincidence is also why the hero runs its two drums so far
- * apart in coverage. Screening two bright inks bleaches toward white,
- * and here they overlap nearly everywhere; the cold drum is held right
- * down so the flame stays green with a fringe instead of going pale.
- *
- * The y values sit low enough that the flame clears the header slug at
- * the top trim. It used to ride higher and bleed over "Fall 2026",
- * which was survivable when the dots were dark on light stock and the
- * type was dark too — on black the dots are the bright thing and they
- * were landing on 11px letter-spaced mono at about 1.7:1.
+ * `y` sits low enough that the flame clears the header slug at the top
+ * trim. It used to ride higher and bleed over "Fall 2026", which was
+ * survivable when the dots were dark on light stock and the type was
+ * dark too — on black the dots are the bright thing and they were
+ * landing on 11px letter-spaced mono at about 1.7:1.
  */
 export const GATHERED = {
-  forgeAt: [0.575, -0.015] as [number, number],
-  sparkAt: [0.605, 0.0] as [number, number],
+  at: [0.605, 0.0] as [number, number],
   spread: 0.31,
+
+  /**
+   * How much larger the cold plate is struck, as a fraction. A SPREAD,
+   * in the printer's sense: the under-colour is deliberately fattened
+   * so no hairline of stock can show at a colour boundary. Here it is
+   * what turns the second ink into an even rim around the whole flame
+   * rather than a shadow along one edge.
+   *
+   * It is applied to the cold drum only — spreading both would just
+   * make one larger flame with no rim at all — and the rim it produces
+   * grows with distance from the centre, so it is finest where the
+   * artwork is dense and widest at the tips. That is how a spread
+   * behaves on a press too.
+   *
+   * Sharing one centre is also why the hero runs its drums so far apart
+   * in coverage. Screening two bright inks bleaches toward white, and
+   * these now overlap everywhere; the cold drum is held right down so
+   * the flame stays green with an edge instead of going pale.
+   */
+  trap: 0.05,
 };

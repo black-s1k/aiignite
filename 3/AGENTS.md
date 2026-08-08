@@ -87,7 +87,17 @@ system is which one is active:
 
 - **Gathered** (`uDisperse` 0) — the landing page. The club's flame,
   struck from the real logo artwork (`public/logo-flame.png`) by both
-  drums a few thousandths out of register, and burning.
+  drums on one centre, and burning.
+
+  The two inks are separated by a **spread**, not an offset: the cold
+  plate is struck ~5% larger (`GATHERED.trap`), which is what a press
+  does so no hairline of stock shows at a colour boundary. Offsetting
+  the drums instead — which is what this did first — puts the entire
+  fringe on one side and reads as a drop shadow. The rim a spread
+  produces grows with distance from the centre, so it is finest where
+  the artwork is dense and widest at the tips, which is also how it
+  behaves on press. Only the cold drum is spread; spreading both just
+  makes one larger flame with no rim at all.
 
   It used to be an abstract mass wobbling like set jelly. Right motion,
   wrong shape — the club's mark *is* a flame, so there was no reason to

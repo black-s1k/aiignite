@@ -115,9 +115,9 @@ export function Press() {
       uSpark: { value: INK.spark },
 
       uDisperse: { value: 0 },
-      uForgeAt: { value: new THREE.Vector2(...GATHERED.forgeAt) },
-      uSparkAt: { value: new THREE.Vector2(...GATHERED.sparkAt) },
+      uGatherAt: { value: new THREE.Vector2(...GATHERED.at) },
       uSpread: { value: GATHERED.spread },
+      uTrap: { value: GATHERED.trap },
       uJelly: { value: 1 },
 
       uBand: { value: FIRST_CHAPTER.band },

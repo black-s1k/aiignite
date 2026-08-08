@@ -54,9 +54,9 @@ export const FRAG = /* glsl */ `
   uniform vec3  uSpark;
 
   uniform float uDisperse;    // 0 = gathered on the landing page, 1 = at the edges
-  uniform vec2  uForgeAt;     // gathered-state centre, x as a fraction of half-width
-  uniform vec2  uSparkAt;
-  uniform float uSpread;      // gathered-state radius
+  uniform vec2  uGatherAt;    // where the flame stands, x as a fraction of half-width
+  uniform float uSpread;      // the flame's half-height
+  uniform float uTrap;        // how much larger the cold plate is struck
   uniform float uJelly;       // soft-body wobble depth
 
   uniform float uBand;        // dispersed band width, fraction of viewport width
@@ -139,14 +139,14 @@ export const FRAG = /* glsl */ `
    * its own. A hard test would put a straight cut across the licks at
    * exactly the moment they swing furthest.
    */
-  float gathered(vec2 p, vec2 centre, float aspect, float narrow, float side, float seed) {
+  float gathered(vec2 p, float aspect, float narrow, float side, float trap, float seed) {
     // A phone is narrow and tall, and the flame is sized off height, so
     // the same numbers that stand it beside the headline on a laptop
     // make it wider than the whole sheet on a handset. It shrinks AND
     // walks back toward the middle — shrinking alone leaves it pinned to
     // a trim edge it no longer reaches.
     float scale = mix(1.0, 0.66, narrow);
-    float cx = centre.x * mix(1.0, 0.35, narrow);
+    float cx = uGatherAt.x * mix(1.0, 0.35, narrow);
 
     // ---- the exit ------------------------------------------------
     // Dispersal is a JOURNEY, not a crossfade. This drum's flame is
@@ -170,7 +170,7 @@ export const FRAG = /* glsl */ `
 
     // Drawn to the vertical middle as it goes, because a band is
     // centred on the sheet and the flame is not.
-    vec2 q = p - vec2(mix(from, to, go), centre.y * (1.0 - go));
+    vec2 q = p - vec2(mix(from, to, go), uGatherAt.y * (1.0 - go));
 
     float t = uTime * 0.75 + seed;
 
@@ -190,7 +190,15 @@ export const FRAG = /* glsl */ `
     // inside it, which is what turns the licks into speed lines. This is
     // the whole reason the handoff to the band is invisible — the two
     // shapes agree at the moment they swap.
-    float sp = uSpread * scale;
+    //
+    // The trap is a SPREAD: the cold plate is struck fractionally larger
+    // than the warm one, both on the same centre. That is how a press
+    // stops a hairline of stock showing at a colour boundary, and here
+    // it is what makes the second ink read as an even rim around the
+    // whole flame. The drums used to be offset from each other instead,
+    // which put the whole fringe on one side — it looked like a drop
+    // shadow, not like registration.
+    float sp = uSpread * scale * (1.0 + trap);
     vec2 box = vec2(sp * 2.0 * uFlameAspect * mix(1.0, 0.30, go),
                     sp * 2.0 * mix(1.0, 2.75, go));
     vec2 m = q / box + 0.5;
@@ -418,12 +426,14 @@ export const FRAG = /* glsl */ `
     float leaving  = 1.0 - smoothstep(0.74, 1.0, uDisperse);
     float arriving = smoothstep(0.58, 0.98, uDisperse);
 
+    // Only the cold drum carries the trap. Spreading both would just
+    // make one bigger flame with no rim at all.
     float covF = max(
-      gathered(p, uForgeAt, aspect, narrow, -1.0, 0.0) * leaving,
+      gathered(p, aspect, narrow, -1.0, uTrap, 0.0) * leaving,
       dispersed(uv, -1.0, aspect, narrow, 0.0) * arriving
     );
     float covS = max(
-      gathered(p, uSparkAt, aspect, narrow, 1.0, 11.3) * leaving,
+      gathered(p, aspect, narrow, 1.0, 0.0, 11.3) * leaving,
       dispersed(uv, 1.0, aspect, narrow, 11.3) * arriving
     );
 
