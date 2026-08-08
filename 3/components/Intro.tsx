@@ -7,14 +7,19 @@ import { useEffect, useRef } from "react";
  * resolving into a halftone — then it clears and hands the sheet to the
  * live hero underneath.
  *
- * WHY IT STOPS WHERE IT STOPS. The supplied clip runs 10s and carries on
- * into a full hero layout, but that layout's lettering is generated and
- * wrong: "AI ZONITE", "FALL 2826", "LASSONDE SCHOOL OF EN6INEERING", and
- * two track chips of pure gibberish. None of it can ship on a club's own
- * site. The cut at 4.5s is the last frame before any type appears, which
- * turns the problem into a feature: the video does the cinematic build,
- * and the real DOM hero does the typography — sharp, selectable,
- * translatable, and actually spelled correctly.
+ * KNOWN AND ACCEPTED: THE CLIP CONTAINS MISSPELLED TYPE. It is generated
+ * video, so its lettering is hallucinated rather than typeset. From
+ * roughly 5s it reads "AI ZONITE · YORK UNIVERSITY", "FALL 2826",
+ * "LASSONDE SCHOOL OF EN6INEERING", and both track chips are gibberish.
+ *
+ * It ran cut at 4.5s for exactly that reason. The client's call
+ * (2026-08-08) is to ship the full 10s regardless, as an MVP. That is a
+ * reasonable trade and this comment exists so nobody "discovers" the
+ * misspellings later and assumes they were missed.
+ *
+ * The fix, when it comes, is a corrected clip — not code. Two lines to
+ * re-cut if it is ever wanted back: encode with `-t 4.5`, and see the
+ * note on timings below. Nothing else in this file depends on the length.
  *
  * ---- The one rule ----
  * NOTHING HERE MAY MAKE THE CLIP FETCHABLE UNLESS IT IS GOING TO PLAY.
@@ -37,12 +42,20 @@ import { useEffect, useRef } from "react";
  * animation hides the overlay anyway, so no failure here can leave the
  * page covered.
  *
- * That animation is a BACKSTOP and its delay is longer than the clip.
- * Normal dismissal is driven from the video's own playback position
- * below, because the CSS timeline starts when the stylesheet applies
- * while playback cannot start until hydration and cannot finish until
- * the clip has buffered. Driving it from CSS meant the overlay faded out
- * mid-clip on any slow load.
+ * That animation is a BACKSTOP, and it is CANCELLED the moment playback
+ * actually begins. It cannot simply be set longer than the clip: at 10s
+ * that would mean a dead poster frame held for twelve seconds whenever
+ * the script arms the overlay and React then fails to hydrate. So it
+ * fires early enough to rescue that case quickly, and playback disarms
+ * it — after which the deadline is re-armed from the clip's own
+ * remaining duration.
+ *
+ * This is also why dismissal is driven from playback position rather
+ * than a timer: the CSS timeline starts when the stylesheet applies, but
+ * playback cannot begin until hydration nor finish until the clip has
+ * buffered. Timing it from CSS faded the overlay out mid-clip on slow
+ * loads. Because everything is measured against `video.duration`,
+ * changing the clip's length needs no code change at all.
  *
  * The markup is server-rendered on purpose. Mounting after hydration
  * would paint the hero first and then cover it, which is the one
@@ -81,7 +94,17 @@ export function Intro() {
       ["wheel", window],
       ["touchmove", window],
     ];
-    if (video) listeners.push(["ended", video], ["error", video], ["timeupdate", video]);
+    if (video) {
+      listeners.push(["ended", video], ["error", video], ["timeupdate", video]);
+    }
+
+    // Re-armable, because the right deadline changes once we know
+    // playback has actually started and how long is left to run.
+    let bail = 0;
+    const deadline = (ms: number) => {
+      window.clearTimeout(bail);
+      bail = window.setTimeout(() => clear(), ms);
+    };
 
     const clear = (e?: Event) => {
       // The fade is started from the video's own position rather than on
@@ -111,22 +134,35 @@ export function Intro() {
       target.addEventListener(type, clear, { passive: true });
     }
 
+    // Once frames are genuinely running, the CSS backstop is wrong — it
+    // was sized to rescue a page where nothing ever started, and would
+    // now cut the clip off partway. Disarm it, and set a deadline from
+    // what is actually left to play plus slack for buffering.
+    const onPlaying = () => {
+      el.dataset.playing = "true";
+      const left = Number.isFinite(video?.duration ?? NaN)
+        ? (video!.duration - video!.currentTime) * 1000
+        : 12000;
+      deadline(left + 4000);
+    };
+    video?.addEventListener("playing", onPlaying);
+
     // play() is a promise, and it rejects when a browser declines to
     // autoplay. Clearing on that rejection is the difference between a
     // held poster frame and simply getting on with the page.
     if (video) {
       video.preload = "auto";
-      video.play().catch(clear);
+      video.play().catch(() => clear());
     } else {
       clear();
     }
 
-    // Backstop, slightly past where the CSS animation finishes, for the
-    // case where playback stalls and `ended` never arrives.
-    const bail = window.setTimeout(clear, 8000);
+    // Until playback proves otherwise, assume it is never going to start.
+    deadline(8000);
 
     return () => {
       window.clearTimeout(bail);
+      video?.removeEventListener("playing", onPlaying);
       for (const [type, target] of listeners) {
         target.removeEventListener(type, clear);
       }
@@ -136,11 +172,7 @@ export function Intro() {
   return (
     <div ref={ref} className="intro" aria-hidden>
       <video
-        className="h-full w-full object-cover"
-        // Biased right of centre so the flame — the only thing that has
-        // to survive — stays in frame when a 16:9 clip is cropped to a
-        // phone. At laptop proportions this crops almost nothing.
-        style={{ objectPosition: "68% 50%" }}
+        className="intro-video"
         src="/intro.mp4"
         poster="/intro-poster.jpg"
         // No autoPlay, and preload="none". See the note above: these two

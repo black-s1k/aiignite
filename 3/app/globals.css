@@ -200,14 +200,15 @@
      fails to hydrate — in that case nothing ever calls play(), so the
      poster would otherwise sit there for good.
 
-     Its delay is deliberately LONGER than the clip. The animation
-     timeline starts when the stylesheet applies, but playback cannot
-     start until hydration and cannot finish until the video has
-     buffered, so a 4s delay meant the overlay faded out mid-clip on any
-     slow load — measured, and it was fading before the flame had even
-     formed. Normal dismissal is driven from the video's own playback
-     position in Intro.tsx, which is the only clock that knows where the
-     clip actually is. This is the backstop for when that never happens.
+     It is DISARMED by `data-playing` as soon as frames are running, and
+     that is what lets the delay stay short. Setting it longer than the
+     clip instead would mean a dead poster frame held for the length of
+     the whole video in that failure case. Normal dismissal is driven
+     from the video's own playback position in Intro.tsx, which is the
+     only clock that knows where the clip really is — the animation
+     timeline starts when this stylesheet applies, but playback cannot
+     begin until hydration nor finish until the clip has buffered, so
+     timing it from here faded the overlay out mid-clip on slow loads.
 
      HIDDEN BY DEFAULT, SHOWN ONLY WHEN ARMED. The inverted default is
      the other half of the failsafe: `intro-armed` is added by the
@@ -220,12 +221,39 @@
     position: fixed;
     inset: 0;
     z-index: 60;
-    background-color: var(--color-paper);
+    /* The clip's own field, not --color-paper. It is #101010 rather than
+       true black, so letterboxing it against the page's #000 would draw a
+       visible rectangle around the frame. Matching it here makes the bars
+       disappear instead, and the whole overlay fades out anyway, so this
+       never has to agree with the stock. */
+    background-color: #101010;
+  }
+
+  /* Filled on a laptop, where a 16:9 clip in a ~16:10 viewport loses
+     almost nothing — and biased right so the flame survives the trim.
+
+     Fitted whole on a phone. A portrait viewport crops a landscape frame
+     so hard that the clip's own headline came out as "RK", which reads
+     as a broken image rather than a title sequence. Whole-and-small beats
+     huge-and-unreadable, and the letterbox is invisible against the
+     matched background above. */
+  .intro-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 68% 50%;
+  }
+
+  @media (max-width: 640px) {
+    .intro-video {
+      object-fit: contain;
+      object-position: center;
+    }
   }
 
   .intro-armed .intro {
     display: block;
-    animation: intro-clear 800ms var(--ease-press) 6200ms forwards;
+    animation: intro-clear 800ms var(--ease-press) 5000ms forwards;
   }
 
   @keyframes intro-clear {
@@ -233,6 +261,12 @@
       opacity: 0;
       visibility: hidden;
     }
+  }
+
+  /* Playback started, so the backstop above is no longer the right
+     deadline and JS owns dismissal from here. */
+  .intro[data-playing="true"] {
+    animation: none;
   }
 
   /* Early dismissal. Overrides the animation rather than racing it, and

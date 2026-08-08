@@ -212,19 +212,24 @@ complaint this system was built to fix.
 
 ## The title sequence
 
-`components/Intro.tsx` + the `.intro` rules in `globals.css`. A 4.5s clip
+`components/Intro.tsx` + the `.intro` rules in `globals.css`. A 10s clip
 plays once over the page, then dissolves into the live hero underneath.
 
-**It is cut from a 10s original on purpose.** The supplied clip carries
-on into a full hero layout whose lettering is generated and wrong: "AI
-ZONITE", "FALL 2826", "LASSONDE SCHOOL OF EN6INEERING", and two track
-chips of pure gibberish. The cut at 4.5s is the last frame before any
-type appears. The video does the cinematic build; the real DOM hero does
-the typography. **If a corrected clip ever arrives, re-cut to the same
-rule** — the moment type appears in the video is the moment to stop.
-Master is `do_the_second.mp4`, untracked in the repo root.
+**KNOWN AND ACCEPTED: THE CLIP CONTAINS MISSPELLED TYPE.** It is
+generated video, so its lettering is hallucinated rather than typeset.
+From roughly 5s it reads "AI ZONITE · YORK UNIVERSITY", "FALL 2826",
+"LASSONDE SCHOOL OF EN6INEERING", and both track chips are gibberish.
 
-Four things here are load-bearing and all four look like they could be
+It shipped cut at 4.5s — the last frame before any type appears — for
+exactly that reason. The client's call (2026-08-08) is to run the full
+10s regardless, as an MVP. This is recorded so nobody rediscovers the
+misspellings later and assumes they were missed. **The fix is a
+corrected clip, not code.** To re-cut, re-encode with `-t 4.5`; nothing
+in the code depends on the length, because every timing is measured
+against `video.duration` at runtime. Master is `do_the_second.mp4`,
+untracked in the repo root.
+
+Five things here are load-bearing and all five look like they could be
 simplified away:
 
 - **No `autoPlay` attribute, and `preload="none"`.** The obvious build —
@@ -237,14 +242,21 @@ simplified away:
   script in `layout.tsx` adds `intro-armed`. Inverted on purpose: with no
   scripting the class never lands, nothing displays, and the reader gets
   the hero at once instead of a dead poster frame.
-- **The CSS animation is a backstop, not the clock**, and its delay is
-  deliberately longer than the clip. Its timeline starts when the
-  stylesheet applies, but playback cannot begin until hydration nor
-  finish until the clip buffers — driving dismissal from CSS faded the
-  overlay out mid-clip on any slow load.
+- **The CSS animation is a backstop, not the clock**, and it is
+  DISARMED by `data-playing` as soon as frames run. It cannot just be
+  set longer than the clip: at 10s that would hold a dead poster frame
+  for twelve seconds whenever the script arms the overlay and React then
+  fails to hydrate. So it fires early enough to rescue that quickly, and
+  real playback cancels it — after which the deadline is re-armed from
+  the clip's own remaining duration.
 - **Dismissal fires ~0.5s BEFORE the end**, off `timeupdate`, so the last
   half second plays through the crossfade. Waiting for `ended` fades a
   freeze-frame, which is a cut rather than a handoff.
+- **`contain` on phones, `cover` above.** A portrait viewport crops a
+  16:9 frame so hard that the clip's own headline came out as "RK",
+  which reads as a broken image. The overlay's background is `#101010`
+  to match the clip's own field rather than the page's true black, so
+  the letterbox that makes possible is invisible.
 
 Verified: covers the viewport while playing and releases it after; the
 sign-up CTA is hit-testable once clear; a second view in the same session
