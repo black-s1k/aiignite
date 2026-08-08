@@ -190,6 +190,80 @@
 }
 
 @layer components {
+  /* ---- Title sequence ------------------------------------------
+     See components/Intro.tsx for what the clip is and why it is cut
+     where it is.
+
+     THE ANIMATION IS A FAILSAFE, NOT THE CLOCK. It ends at
+     `visibility: hidden`, which is what guarantees the page is
+     reachable if the script arms the overlay and the React bundle then
+     fails to hydrate — in that case nothing ever calls play(), so the
+     poster would otherwise sit there for good.
+
+     Its delay is deliberately LONGER than the clip. The animation
+     timeline starts when the stylesheet applies, but playback cannot
+     start until hydration and cannot finish until the video has
+     buffered, so a 4s delay meant the overlay faded out mid-clip on any
+     slow load — measured, and it was fading before the flame had even
+     formed. Normal dismissal is driven from the video's own playback
+     position in Intro.tsx, which is the only clock that knows where the
+     clip actually is. This is the backstop for when that never happens.
+
+     HIDDEN BY DEFAULT, SHOWN ONLY WHEN ARMED. The inverted default is
+     the other half of the failsafe: `intro-armed` is added by the
+     inline script in layout.tsx, so if scripting is unavailable the
+     overlay never displays and the reader gets the hero at once —
+     rather than a poster frame held for four seconds waiting on a video
+     that has nothing to start it. */
+  .intro {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background-color: var(--color-paper);
+  }
+
+  .intro-armed .intro {
+    display: block;
+    animation: intro-clear 800ms var(--ease-press) 6200ms forwards;
+  }
+
+  @keyframes intro-clear {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+
+  /* Early dismissal. Overrides the animation rather than racing it, and
+     the delayed `visibility` keeps the overlay hit-testable for exactly
+     as long as it is still visible. */
+  .intro[data-gone="true"] {
+    animation: none;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 450ms var(--ease-press),
+      visibility 0s linear 450ms;
+  }
+
+  .intro-skip {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--color-chalk);
+    color: var(--color-chalk);
+    background-color: transparent;
+    cursor: pointer;
+  }
+
+  @media (min-width: 640px) {
+    .intro-skip {
+      right: 2rem;
+      bottom: 2rem;
+    }
+  }
   /* Metadata label. Mono, because everything it ever labels is data.
      Set in chalk rather than muted: these sit in the outer gutter,
      which is exactly where the press bleeds ink in, and 11px letter-
@@ -233,5 +307,14 @@
     clip-path: none;
     transform: none;
     transition: none;
+  }
+
+  /* Not "paused" or "faded faster" — gone. A title sequence is pure
+     motion with no content of its own, so the honest response to that
+     preference is to skip it entirely and land on the hero. `display:
+     none` also stops the browser fetching the clip at all, which saves
+     someone half a megabyte they explicitly did not ask for. */
+  .intro-armed .intro {
+    display: none;
   }
 }

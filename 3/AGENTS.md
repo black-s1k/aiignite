@@ -18,7 +18,14 @@ combination is a recognised AI-design default, not a decision. Its hero
 was also a 5.8MB scroll-scrubbed video across 420vh in which over half
 the frame-to-frame motion happened in one fifth of the clip.
 
-**Do not reintroduce the video.** No pre-rendered scroll-scrubbed hero.
+**Do not reintroduce the scroll-scrubbed video.** Tying a video's
+playhead to scroll position is the specific thing that was wrong — it
+makes scrolling feel like dragging, and it hides most of a clip's motion
+in a fraction of its length.
+
+There IS a video now, added 2026-08-08, but it is the opposite
+arrangement: a 4.5s title sequence that plays once at its own speed and
+then gets out of the way. See "The title sequence" below.
 
 The palette question is subtler, because this build now *is* on black —
 `#000000`, at that. See "On being on black" below. That was a deliberate
@@ -202,6 +209,46 @@ overshoot. It only ever increases. **Do not reintroduce per-section
 coverage that can reach zero** — that is what made the ink vanish
 between sections and slam back at the next one, and it is the specific
 complaint this system was built to fix.
+
+## The title sequence
+
+`components/Intro.tsx` + the `.intro` rules in `globals.css`. A 4.5s clip
+plays once over the page, then dissolves into the live hero underneath.
+
+**It is cut from a 10s original on purpose.** The supplied clip carries
+on into a full hero layout whose lettering is generated and wrong: "AI
+ZONITE", "FALL 2826", "LASSONDE SCHOOL OF EN6INEERING", and two track
+chips of pure gibberish. The cut at 4.5s is the last frame before any
+type appears. The video does the cinematic build; the real DOM hero does
+the typography. **If a corrected clip ever arrives, re-cut to the same
+rule** — the moment type appears in the video is the moment to stop.
+Master is `do_the_second.mp4`, untracked in the repo root.
+
+Four things here are load-bearing and all four look like they could be
+simplified away:
+
+- **No `autoPlay` attribute, and `preload="none"`.** The obvious build —
+  autoplay plus preload, hidden with CSS when unwanted — does not work:
+  `display: none` does not stop a download, and removing the src on
+  mount does not abort one in flight. Measured, a repeat view pulled the
+  entire 502KB for a video it never showed. Playback is started from JS,
+  so no play call means no bytes.
+- **The overlay is hidden by DEFAULT** and shown only when the inline
+  script in `layout.tsx` adds `intro-armed`. Inverted on purpose: with no
+  scripting the class never lands, nothing displays, and the reader gets
+  the hero at once instead of a dead poster frame.
+- **The CSS animation is a backstop, not the clock**, and its delay is
+  deliberately longer than the clip. Its timeline starts when the
+  stylesheet applies, but playback cannot begin until hydration nor
+  finish until the clip buffers — driving dismissal from CSS faded the
+  overlay out mid-clip on any slow load.
+- **Dismissal fires ~0.5s BEFORE the end**, off `timeupdate`, so the last
+  half second plays through the crossfade. Waiting for `ended` fades a
+  freeze-frame, which is a cut rather than a handoff.
+
+Verified: covers the viewport while playing and releases it after; the
+sign-up CTA is hit-testable once clear; a second view in the same session
+renders nothing and fetches nothing; reduced motion fetches nothing.
 
 ## Where things are
 

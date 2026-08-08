@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Big_Shoulders, Public_Sans, Spline_Sans_Mono } from "next/font/google";
+import { Intro } from "@/components/Intro";
 import { Press } from "@/components/Press";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { CLUB } from "@/lib/content";
@@ -55,7 +56,7 @@ export const metadata: Metadata = {
 
 // The stock colour, so the browser chrome and the overscroll gutter are
 // the same sheet the page is printed on.
-export const viewport = { themeColor: "#daddd3" };
+export const viewport = { themeColor: "#000000" };
 
 export default function RootLayout({
   children,
@@ -66,10 +67,32 @@ export default function RootLayout({
       className={`${bigShoulders.variable} ${publicSans.variable} ${splineMono.variable} antialiased`}
     >
       <body>
+        {/* Runs before the rest of the body is parsed, which is the only
+            place it can run and still beat the first paint. A second
+            page view in the same session must not flash the title
+            sequence, and finding that out after hydration would be too
+            late — the overlay would already have been on screen.
+
+            It ARMS rather than disarms, so the failure mode is right in
+            both directions: with no scripting the class never lands, the
+            overlay stays hidden, and the reader gets the hero at once.
+            sessionStorage throws outright in some privacy modes rather
+            than returning null, so the catch arms it too — replaying the
+            sequence is the better error than never showing it. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{if(!sessionStorage.getItem('ignite-intro'))document.documentElement.classList.add('intro-armed')}catch(e){document.documentElement.classList.add('intro-armed')}",
+          }}
+        />
         <SmoothScroll />
         <Press />
         {/* Above the press. Everything printed sits on top of the ink. */}
         <div className="relative z-10">{children}</div>
+        {/* Last, and above everything. The hero underneath is fully
+            rendered and interactive the whole time this is up, so the
+            sequence is never load-bearing for content. */}
+        <Intro />
       </body>
     </html>
   );
