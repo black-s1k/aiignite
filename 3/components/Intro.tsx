@@ -21,16 +21,24 @@ import { useEffect, useRef } from "react";
  * re-cut if it is ever wanted back: encode with `-t 4.5`, and see the
  * note on timings below. Nothing else in this file depends on the length.
  *
+ * IT PLAYS ON EVERY LOAD, INCLUDING REFRESHES. Client's call
+ * (2026-08-09). It previously ran once per browser session, which is the
+ * usual courtesy for a 10s sequence — that guard is gone, deliberately,
+ * not lost. Repeat plays come from the HTTP cache rather than the
+ * network, so the cost is time rather than bandwidth, and the Skip
+ * control is the escape hatch for anyone who does not want it.
+ *
  * ---- The one rule ----
  * NOTHING HERE MAY MAKE THE CLIP FETCHABLE UNLESS IT IS GOING TO PLAY.
  *
  * The obvious build — `autoPlay` plus `preload="auto"` in the markup,
  * and hide it with CSS when it is not wanted — looks correct and is not.
  * `display: none` does not stop a download, and tearing the src out on
- * mount does not abort one already in flight: measured, a repeat view
- * still pulled the entire 502KB for a video it never showed. So the
- * element ships with `preload="none"` and NO autoplay attribute, and
- * playback is started from here. No play call, no bytes.
+ * mount does not abort one already in flight: measured, a view that
+ * showed nothing still pulled the entire clip. So the element ships with
+ * `preload="none"` and NO autoplay attribute, and playback is started
+ * from here. No play call, no bytes — which is what still keeps the
+ * download off anyone who has asked motion to stop.
  *
  * ---- The failsafe ----
  * The overlay is hidden by default and only shown when the inline script
@@ -68,22 +76,14 @@ export function Intro() {
     const el = ref.current;
     if (!el) return;
 
-    // Armed by the inline script, which has already checked the session.
-    // Reduced motion is handled in CSS as well, but it is checked here
-    // too so that preference also means "download nothing".
+    // Armed by the inline script in layout.tsx, which is really just a
+    // test that scripting is available. Reduced motion is handled in CSS
+    // as well, but it is checked here too so that preference also means
+    // "download nothing".
     const armed =
       document.documentElement.classList.contains("intro-armed") &&
       !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!armed) return;
-
-    // Marked as seen immediately rather than on completion. Someone who
-    // navigates away two seconds in has decided; making them sit through
-    // it again on the way back would be the wrong reading of that.
-    try {
-      sessionStorage.setItem("ignite-intro", "1");
-    } catch {
-      // Private mode, or storage disabled. The sequence simply replays.
-    }
 
     const video = el.querySelector("video");
 

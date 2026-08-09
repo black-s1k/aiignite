@@ -241,19 +241,27 @@ encode with:
 `-an` is not optional — autoplay requires muted, so the audio track can
 never play and is pure weight.
 
+**It plays on EVERY load, including refreshes** — client's call
+(2026-08-09). It previously ran once per browser session, which is the
+usual courtesy for a 10s sequence; that guard was removed deliberately,
+not lost, so do not "fix" it back. Repeat plays come from the HTTP cache
+rather than the network, so the cost is time rather than bandwidth, and
+Skip is the escape hatch.
+
 Five things here are load-bearing and all five look like they could be
 simplified away:
 
 - **No `autoPlay` attribute, and `preload="none"`.** The obvious build —
   autoplay plus preload, hidden with CSS when unwanted — does not work:
   `display: none` does not stop a download, and removing the src on
-  mount does not abort one in flight. Measured, a repeat view pulled the
-  entire 502KB for a video it never showed. Playback is started from JS,
-  so no play call means no bytes.
+  mount does not abort one in flight. Measured, a view that showed
+  nothing still pulled the entire clip. Playback is started from JS, so
+  no play call means no bytes — which is what keeps the download off
+  anyone who has asked motion to stop.
 - **The overlay is hidden by DEFAULT** and shown only when the inline
-  script in `layout.tsx` adds `intro-armed`. Inverted on purpose: with no
-  scripting the class never lands, nothing displays, and the reader gets
-  the hero at once instead of a dead poster frame.
+  script in `layout.tsx` adds `intro-armed`. That script is really a
+  scripting test: with JS off the class never lands, nothing displays,
+  and the reader gets the hero at once instead of a dead poster frame.
 - **The CSS animation is a backstop, not the clock**, and it is
   DISARMED by `data-playing` as soon as frames run. It cannot just be
   set longer than the clip: at 10s that would hold a dead poster frame
@@ -281,8 +289,8 @@ simplified away:
   the letterbox that makes possible is invisible.
 
 Verified: covers the viewport while playing and releases it after; the
-sign-up CTA is hit-testable once clear; a second view in the same session
-renders nothing and fetches nothing; reduced motion fetches nothing.
+sign-up CTA is hit-testable once clear; it replays on refresh; reduced
+motion displays nothing and fetches nothing.
 
 ## Where things are
 

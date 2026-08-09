@@ -67,22 +67,21 @@ export default function RootLayout({
       className={`${bigShoulders.variable} ${publicSans.variable} ${splineMono.variable} antialiased`}
     >
       <body>
-        {/* Runs before the rest of the body is parsed, which is the only
-            place it can run and still beat the first paint. A second
-            page view in the same session must not flash the title
-            sequence, and finding that out after hydration would be too
-            late — the overlay would already have been on screen.
+        {/* One line, and it looks like it does nothing. It is a
+            SCRIPTING TEST, not a condition: the class only ever lands in
+            a browser that runs JS, and the overlay is hidden until it
+            does. Without it, a reader with scripting off or a bundle
+            that fails to load would sit staring at a poster frame with
+            nothing able to start the video or clear the overlay.
 
-            It ARMS rather than disarms, so the failure mode is right in
-            both directions: with no scripting the class never lands, the
-            overlay stays hidden, and the reader gets the hero at once.
-            sessionStorage throws outright in some privacy modes rather
-            than returning null, so the catch arms it too — replaying the
-            sequence is the better error than never showing it. */}
+            It has to be inline and here, before the rest of the body is
+            parsed, because it must beat the first paint. Doing this
+            after hydration would mean a flash of hero, then a cover, and
+            then the sequence — which is the one order that looks
+            broken. */}
         <script
           dangerouslySetInnerHTML={{
-            __html:
-              "try{if(!sessionStorage.getItem('ignite-intro'))document.documentElement.classList.add('intro-armed')}catch(e){document.documentElement.classList.add('intro-armed')}",
+            __html: "document.documentElement.classList.add('intro-armed')",
           }}
         />
         <SmoothScroll />

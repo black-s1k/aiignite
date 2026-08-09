@@ -211,11 +211,11 @@
      timing it from here faded the overlay out mid-clip on slow loads.
 
      HIDDEN BY DEFAULT, SHOWN ONLY WHEN ARMED. The inverted default is
-     the other half of the failsafe: `intro-armed` is added by the
-     inline script in layout.tsx, so if scripting is unavailable the
-     overlay never displays and the reader gets the hero at once —
-     rather than a poster frame held for four seconds waiting on a video
-     that has nothing to start it. */
+     the other half of the failsafe: `intro-armed` is added by the inline
+     script in layout.tsx, which is really a test that scripting is
+     available at all. With JS off the class never lands, the overlay
+     never displays, and the reader gets the hero at once — rather than a
+     poster frame with nothing able to start the video behind it. */
   .intro {
     display: none;
     position: fixed;
