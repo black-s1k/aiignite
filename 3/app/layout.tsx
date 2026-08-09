@@ -64,6 +64,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // The inline script below adds `intro-armed` to this element before
+      // React hydrates, which is the entire point of it — the class has
+      // to be on the page at first paint. React then finds a className on
+      // <html> that is not in the server HTML and reports a mismatch.
+      //
+      // The difference is intentional and correct, so it is declared
+      // rather than worked around. This is the same pattern every
+      // pre-hydration theme script uses, and it is scoped tightly: React
+      // only suppresses this ELEMENT's own attributes, not its subtree,
+      // so a genuine mismatch anywhere inside still surfaces. The one
+      // thing it hides here is the font-variable className, which comes
+      // from next/font as a static string and cannot legitimately differ.
+      //
+      // The alternative — setting the class from a mount effect instead —
+      // trades this warning for a visible flash of the hero before the
+      // overlay covers it, which is a real defect rather than a console
+      // message about an intended difference.
+      suppressHydrationWarning
       className={`${bigShoulders.variable} ${publicSans.variable} ${splineMono.variable} antialiased`}
     >
       <body>
