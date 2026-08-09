@@ -230,16 +230,31 @@ against `video.duration` at runtime.
 
 Master is `assets/do_the_second.mp4` — 1280x720, 10s, with an audio
 track. It lives outside `public/` deliberately: only `public/` is
-served, so the 2.4MB master can be versioned without any chance of a
-visitor downloading it instead of the 870KB encode. Regenerate that
-encode with:
+served, so it can be versioned without a visitor ever fetching it
+directly. Regenerate `public/intro.mp4` with:
 
-    ffmpeg -i assets/do_the_second.mp4 -an -c:v libx264 -crf 28 \
-      -preset veryslow -pix_fmt yuv420p -profile:v main \
+    ffmpeg -i assets/do_the_second.mp4 -an -c:v copy \
       -movflags +faststart public/intro.mp4
 
+**`-c:v copy`, NOT a re-encode.** This started life at `-crf 28`, which
+threw away 63% of the bitrate (1.88 Mbps down to 0.69) and measured SSIM
+0.9878 against the source — soft exactly where this clip lives, on the
+circuit board's fine detail and the flat dark gradients. Re-encoding to
+win that back is worse than pointless: at `-crf 20` the output came out
+**3.0MB, larger than the 2.3MB stream copy, and still lossy**. There is
+nothing to gain by transcoding a file that is already H.264 High/yuv420p
+at a sane bitrate.
+
 `-an` is not optional — autoplay requires muted, so the audio track can
-never play and is pure weight.
+never play and is pure weight. `-movflags +faststart` is not optional
+either: it moves the moov atom ahead of the media data so playback can
+begin before the file finishes downloading.
+
+**The remaining softness is resolution, not compression, and cannot be
+fixed here.** The master is 720p and the overlay is full-bleed: on a
+1440x900 viewport `cover` scales it to 1600x900, and on a 2x display
+that is 3200 device pixels drawn from 1280 — a 2.5x upscale. The only
+real fix is a 1080p or better master from whatever generated it.
 
 **It plays on EVERY load, including refreshes** — client's call
 (2026-08-09). It previously ran once per browser session, which is the
