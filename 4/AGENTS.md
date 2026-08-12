@@ -27,43 +27,56 @@ metaphor. Things that get hot **swell**, and a variable font can do
 exactly that — so the display type carries the idea in its own
 letterforms instead of in an effect layered over them.
 
-`components/HeatLine.tsx` drives the `wght` and `wdth` axes of every
-character from its distance to a heat source. Nothing glows. Nothing
-gradients. That restraint is the design.
+`lib/heat.ts` is a real (if small) **diffusion simulation** over the
+viewport, and `components/HeatField.tsx` runs it and drives everything
+from it. Heat you add SPREADS, COOLS, and RISES — so touching the page
+leaves a warm trail that drifts upward and fades, rather than a
+highlight that switches off the instant the pointer moves. **That
+persistence is what makes it read as a material rather than a hover
+state**, and it is the reason this is a simulation and not a set of
+transitions.
 
-Two sources, added:
+Elements opt in declaratively with `data-heat="type|rule|label|mark"`
+and one loop drives them all. Type swells (weight AND width), rules warm
+toward the flame, labels ignite, the mark flares. Nothing glows and
+nothing gradients.
 
-- **Ambient** — three waves at unrelated speeds, so the pattern never
-  resolves into a loop a reader can count.
-- **The pointer** — you are a heat source; moving across the words heats
-  the letters you pass. Squared falloff, because heat is local; a linear
-  falloff lights the whole line dimly and reads as a brightness slider.
+Heat comes from things the reader actually does: the **pointer**, the
+**scroll** (movement is friction is heat — and it is the only source a
+touch device reliably produces), and a deliberate **tap**, which is
+hotter than a passing move so that tapping feels like striking a match.
 
 ### Things that will bite you here
 
+- **Heat is AMBIENT PLUS FIELD, and the ambient half is not optional.**
+  The simulation decays to nothing within a couple of seconds of the
+  last touch — correct for a diffusion model and fatal for a page,
+  because a reader who arrives and does not move the mouse gets dead
+  type. The ambient is a standing wave computed straight from position
+  and time, so it cannot decay. Measured before the fix: idle weight sat
+  at 207–213 out of a possible 900.
+- **Inject along the pointer's path, not at its current point.** A fast
+  pointer generates far fewer events than frames, so point injection
+  leaves a dotted trail with cold gaps. Measured before the fix: a fast
+  drag across the headline moved the weight by 32 out of 700.
+- **READ ALL RECTS, THEN WRITE ALL STYLES.** Interleaving makes the
+  browser flush layout once per element instead of once per frame. This
+  is the single thing that decides whether the field is free or is the
+  most expensive thing on the page.
 - **`axes: ['wdth']` in `layout.tsx` is load-bearing.** `next/font` ships
-  the weight axis only by default to keep files small. Drop that option
-  and the width axis silently stops responding — the heat still "works"
-  but degrades from swelling to bolding, which is the whole difference.
-- **The ambient has to carry the effect on its own.** Roughly half this
-  audience is on a phone and will never fire a pointer event. An early
-  version compressed ambient into 0.12–0.46 of the range and every letter
-  came out the same mid weight; the signature effectively did not exist
-  on mobile.
-- **Spatial frequency matters as much as amplitude.** `u` runs 0..1
-  across the line, so the dominant wave needs to be near a full 2π to fit
-  a whole hot-and-cool cycle inside the words. At 3.1 the crest spent
-  most of its time off the end of the line — measured, weight never got
-  past 501 of a possible 900. At 5.6 it reaches 799.
+  the weight axis only by default. Drop it and the heat silently
+  degrades from swelling to bolding, which is the whole difference.
 - **Width range is capped at 90–116 on purpose.** Every character is an
   `inline-block`, so a wider range makes each letter shove its
-  neighbours along and the line visibly churns. That cap is the most
-  swell the line takes while still sitting still.
+  neighbours and the line visibly churns.
+- **`dt` is clamped.** A backgrounded tab returning with a two-second
+  step would blow the diffusion up rather than fast-forward it.
 - **Never put a `transition` on `.heat span`.** It fights the per-frame
   writes and turns a travelling front into mush.
-- Character centres are measured once and on resize, never per frame —
-  `getBoundingClientRect` per character per frame is a forced layout
-  each time and is the one thing that would make this expensive.
+
+Verified behaviour, weight out of 900: idle 270–606 (alive untouched),
+after a drag 275–704, 1.2s later 278–433 (cooling), after a tap
+286–900.
 
 ## The palette
 
@@ -103,8 +116,14 @@ finish.** Do not answer "this feels generic" by adding more effects.
 
 ## Where things are
 
-- `components/HeatLine.tsx` — the signature. Read the header comment
-  before changing any constant in it.
+- `lib/heat.ts` — the simulation. Framework-free on purpose: a grid of
+  numbers with a step function, so it is testable alone and its
+  per-frame cost is obvious.
+- `components/HeatField.tsx` — the one loop. Read its header before
+  changing any constant in it.
+- `components/HeatText.tsx` — splits a line into per-character spans for
+  the field to drive. Holds no state and runs no loop; adding another
+  heated headline costs nothing but characters.
 - `components/Mark.tsx` — the flame, used as a CSS mask rather than an
   `<img>` so its colour comes from the palette and can never drift.
 - `lib/content.ts` — every fact the page states, in one place.

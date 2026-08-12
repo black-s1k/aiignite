@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Newsreader } from "next/font/google";
+import { HeatField } from "@/components/HeatField";
 import { CLUB } from "@/lib/content";
 import "./globals.css";
 
@@ -56,7 +57,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${archivo.variable} ${newsreader.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* One field, one loop. Everything with a data-heat attribute
+            is driven from here — see components/HeatField.tsx. */}
+        <HeatField />
+        {children}
+      </body>
     </html>
   );
 }

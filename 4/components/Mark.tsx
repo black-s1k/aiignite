@@ -11,6 +11,7 @@ export function Mark({ className = "" }: { className?: string }) {
   return (
     <span
       aria-hidden
+      data-heat="mark"
       className={`inline-block bg-flame ${className}`}
       style={{
         WebkitMaskImage: "url(/logo-flame.png)",
