@@ -41,19 +41,14 @@ export function Nav() {
       className="nav fixed inset-x-0 top-0 z-40"
       aria-label="Primary"
     >
-      <div className="mx-auto flex w-full max-w-[86rem] items-center gap-6 px-6 py-4 sm:px-10 lg:px-16">
+      <div className="mx-auto flex w-full max-w-[86rem] items-center gap-6 px-6 py-5 sm:px-10 sm:py-7 lg:px-16">
         <a
           href="#top"
-          className="flex shrink-0 items-center gap-3"
+          className="flex shrink-0 items-center gap-3 sm:gap-4"
           aria-label={`${CLUB.name} — home`}
         >
-          <Mark className="h-6 w-4" />
-          <span
-            data-heat="label"
-            className="label !text-bone whitespace-nowrap"
-          >
-            {CLUB.name}
-          </span>
+          <Mark className="h-9 w-6 sm:h-11 sm:w-8" />
+          <span className="wordmark whitespace-nowrap">{CLUB.name}</span>
         </a>
 
         {/* Hidden on small screens rather than collapsed into a hamburger:
@@ -66,7 +61,7 @@ export function Nav() {
               <a
                 href={n.href}
                 data-heat="label"
-                className="label transition-colors duration-200 hover:!text-bone"
+                className="nav-link transition-colors duration-200 hover:!text-bone"
               >
                 {n.label}
               </a>
@@ -76,7 +71,7 @@ export function Nav() {
 
         <a
           href={process.env.NEXT_PUBLIC_SIGNUP_URL || "#join"}
-          className="ml-auto shrink-0 border border-flame px-4 py-2 font-display text-micro uppercase tracking-[0.18em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 [font-variation-settings:'wght'_650,'wdth'_112]"
+          className="ml-auto shrink-0 border border-flame px-5 py-2.5 font-display text-[0.8125rem] uppercase tracking-[0.14em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3 [font-variation-settings:'wght'_680,'wdth'_112]"
         >
           Sign up
         </a>

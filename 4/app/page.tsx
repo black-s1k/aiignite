@@ -84,7 +84,7 @@ export default function Home() {
         </section>
 
         {/* ---- What it is -------------------------------------------- */}
-        <section id="about" className={`${SHELL} scroll-mt-24 py-[12vh]`}>
+        <section id="about" className={`${SHELL} scroll-mt-32 py-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
               What it is
@@ -128,7 +128,7 @@ export default function Home() {
         </section>
 
         {/* ---- Two tracks -------------------------------------------- */}
-        <section id="tracks" className={`${SHELL} scroll-mt-24 pb-[12vh]`}>
+        <section id="tracks" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
               Who it is for
@@ -192,7 +192,7 @@ export default function Home() {
         </section>
 
         {/* ---- What a session is ------------------------------------- */}
-        <section id="session" className={`${SHELL} scroll-mt-24 pb-[12vh]`}>
+        <section id="session" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
               A session
@@ -249,7 +249,7 @@ export default function Home() {
             Native <details>, not a JS accordion. It works before
             hydration, it is keyboard-operable for free, and the browser
             will find text inside a closed one on Ctrl+F. */}
-        <section id="faq" className={`${SHELL} scroll-mt-24 pb-[12vh]`}>
+        <section id="faq" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
               Before you ask
@@ -278,7 +278,7 @@ export default function Home() {
           appears exactly once, at the only moment the reader is asked to
           do something — spend it anywhere else and it stops meaning
           anything here. */}
-      <section id="join" className="scroll-mt-24 bg-flame py-[12vh] text-void">
+      <section id="join" className="scroll-mt-32 bg-flame py-[12vh] text-void">
         <div className={SHELL}>
           <div className={GUTTER}>
             <p className="label !text-void/60 lg:pt-3">Join</p>

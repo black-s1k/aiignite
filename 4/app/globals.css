@@ -175,6 +175,38 @@
 }
 
 @layer components {
+  /* Wordmark. Not `.label` — that is 11px at 0.18em, which is correct
+     for a gutter tag and far too loose once the type is big enough to
+     read as a logotype. Tracking comes down as the size goes up, which
+     is the normal relationship and the reason this is its own rule. */
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 720, "wdth" 112;
+    color: var(--color-bone);
+    line-height: 1;
+  }
+
+  @media (min-width: 640px) {
+    .wordmark {
+      font-size: 1.25rem;
+    }
+  }
+
+  /* Nav links sit between the wordmark and the gutter labels: bigger
+     than a tag because they are targets, smaller than the wordmark
+     because they are not the name. */
+  .nav-link {
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 600, "wdth" 112;
+    color: var(--color-ash);
+  }
+
   /* Nav. Transparent over the hero so the headline is uninterrupted,
      and solid once the reader has left the top — set from JS in
      Nav.tsx. No blur panel and no shadow: those are the house style of
@@ -186,8 +218,13 @@
     border-bottom: 1px solid transparent;
   }
 
+  /* Fully opaque once stuck, not 88%. There is no backdrop blur here on
+     purpose — it is the house style of every generated header — and
+     without one a translucent bar just lets the copy underneath ghost
+     through it as the page scrolls. Solid stock plus a hairline rule is
+     the honest version of the same separation. */
   .nav[data-stuck="true"] {
-    background-color: color-mix(in oklab, var(--color-void) 88%, transparent);
+    background-color: var(--color-void);
     border-bottom-color: var(--color-edge);
   }
 
