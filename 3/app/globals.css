@@ -18,7 +18,7 @@
    makes black stock the literal reading of it:
 
        the flame     = Spark  (the track for everyone else)
-       an ice blue   = Forge  (the track for students who code)
+       white         = Forge  (the track for students who code)
        their overlap = the flame's white-hot core = the club
 
    Nothing here is a "brand colour" picked for mood. Every value is
@@ -61,24 +61,35 @@
      flame looks like on this stock. */
   --color-spark: #bee449;
 
-  /* Forge is the cold counterpart. On black the two inks are both
-     bright, so the pair is separated by TEMPERATURE rather than by
-     weight: the flame is warm, this is not. Bright enough to set body
-     copy in at 8.9 : 1, which the ink it replaces never was on light
-     stock. */
-  --color-forge: #7ea8ff;
+  /* Forge is white, at the client's direction (2026-08-09). It was an
+     ice blue; the flame plus white is what the club's logo actually is,
+     so this is the palette finally being only what the mark is.
+
+     IT IS THE SAME VALUE AS --color-chalk BELOW, AND THAT IS THE POINT,
+     not an oversight. On a two-colour screenprint there is one white
+     ink, and it prints the type and it prints this track. Kept as a
+     separate token because the two mean different things — chalk is the
+     white ink as type, forge is the white ink as a track — so either can
+     move without dragging the other.
+
+     Not #ffffff. Pure white on black halates and closes the counters of
+     a condensed face, and this sets display type. At dot size in the
+     press the difference is invisible; at 6rem it is not. */
+  --color-forge: #e8e6f0;
 
   /* Forge screened with Spark, channel-wise 255-(255-a)(255-b)/255:
-     (126,168,255) + (190,228,73) = (222,246,255).
-     The white-hot core, arrived at rather than specified — this is the
-     dual of the dark overprint the light stock produced, and it is the
-     same discipline: computed, not picked. Recompute if either ink
-     changes. */
-  --color-overprint: #def6ff;
+     (232,230,240) + (190,228,73) = (249,252,244).
+     Still computed rather than picked, but be aware what changed: white
+     screens with anything to give white, so this is no longer a third
+     COLOUR the way it was — it is a third VALUE, brighter than either
+     ink, and it reads as the hot core rather than as a mixture. That is
+     the cost of one ink being white, and it is unavoidable arithmetic
+     rather than a tuning choice. */
+  --color-overprint: #f9fcf4;
 
   /* Screenprint white, which is what type on black stock actually is —
-     an ink, not an absence. Bone rather than #ffffff: pure white on a
-     black field halates and the counters of a condensed face close up. */
+     an ink, not an absence. Bone rather than #ffffff, for the halation
+     reason given above. */
   --color-chalk: #e8e6f0;
   /* Secondary text. Lighter than it looks like it needs to be, for the
      same reason it was darker than it needed to be on light stock:
@@ -90,10 +101,10 @@
 
   /* ---- Contrast, measured against the stock --------------------
 
-       overprint on paper   18.7 : 1
+       overprint on paper   19.7 : 1
        chalk     on paper   17.0 : 1
+       forge     on paper   17.0 : 1   same ink as chalk, see above
        spark     on paper   14.4 : 1
-       forge     on paper    8.9 : 1   body text OK
        muted     on paper    7.6 : 1   body text OK
 
      Note what inverted. On light stock Spark was the one colour that
@@ -102,10 +113,11 @@
      page. The rule it forced is gone, and type that sits on a Spark
      fill is now the stock itself (14.4 : 1), not a dark grey.
 
-     The other inversion is dot area: on light stock Spark needed far
-     MORE coverage than Forge to weigh the same, and here it needs
-     less, because it is now the brighter ink. See the note on the ink
-     columns in `chapters.ts`. */
+     Dot area follows the same rule it always did — the dimmer ink gets
+     the area — but the answer flipped again when Forge went white. It
+     used to be the dimmer of the two at 8.9; at 17.0 it is now the
+     brighter, so its coverage came down accordingly. See the note on
+     the ink columns in `chapters.ts`. */
 
   /* ---- Type ----------------------------------------------------
      Big Shoulders is a condensed grotesque drawn for Chicago civic

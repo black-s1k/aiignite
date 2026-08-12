@@ -24,7 +24,7 @@ makes scrolling feel like dragging, and it hides most of a clip's motion
 in a fraction of its length.
 
 There IS a video now, added 2026-08-08, but it is the opposite
-arrangement: a 4.5s title sequence that plays once at its own speed and
+arrangement: a 10s title sequence that plays once at its own speed and
 then gets out of the way. See "The title sequence" below.
 
 The palette question is subtler, because this build now *is* on black —
@@ -38,8 +38,8 @@ The page is a two-ink print, simulated live in WebGL, and the inks carry
 the argument:
 
 - **Flame Green `#bee449` = Spark**, the track for everyone else
-- **Ice Blue `#7ea8ff` = Forge**, the track for students who code
-- **their overlap `#def6ff` = the club**
+- **White `#e8e6f0` = Forge**, the track for students who code
+- **their overlap `#f9fcf4` = the club**
 
 The stock is matte black `#000000`, so the process is a **screenprint,
 not a risograph**, and that inverts the arithmetic. Translucent ink on
@@ -49,12 +49,22 @@ inks SCREEN and overlaps go hot. `--color-overprint` is the screen blend
 of the two inks, not a picked value; recompute it if either ink changes.
 
 The palette comes from the club's logo, read the way a printer reads a
-job. The logo is one green flame on a black field. **Spark is measured**
-— the median of the logo's green pixels, quoted unchanged, because the
-logo is already artwork on black. **Forge is the cold counterpart**: on
-black both inks are bright, so the pair separates by temperature rather
-than by weight. **The overlap is the flame's white-hot core** — the dual
-of the dark overprint a light stock produces, and the same discipline.
+job. The logo is a green flame and white type on a black field, and as
+of 2026-08-09 that is now all the palette is — Forge was an ice blue I
+introduced, and the client's call was to make it white. **Spark is
+measured**: the median of the logo's green pixels, quoted unchanged,
+because the logo is already artwork on black.
+
+**`--color-forge` and `--color-chalk` hold the same value on purpose.**
+A two-colour screenprint has one white ink; it prints the type and it
+prints this track. They stay separate tokens because they mean different
+things and either may move without the other.
+
+**One consequence to know:** white screens with anything to give white,
+so `--color-overprint` is no longer a third COLOUR — it is a third
+VALUE, brighter than either ink. That is unavoidable arithmetic, not a
+tuning choice, and it is why the overprint now reads as a hot core
+rather than as a mixture.
 
 ## On being on black
 
@@ -96,14 +106,14 @@ system is which one is active:
   struck from the real logo artwork (`public/logo-flame.png`) by both
   drums on one centre, and burning.
 
-  The two inks are separated by a **spread**, not an offset: the cold
+  The two inks are separated by a **spread**, not an offset: the white
   plate is struck ~5% larger (`GATHERED.trap`), which is what a press
   does so no hairline of stock shows at a colour boundary. Offsetting
   the drums instead — which is what this did first — puts the entire
   fringe on one side and reads as a drop shadow. The rim a spread
   produces grows with distance from the centre, so it is finest where
   the artwork is dense and widest at the tips, which is also how it
-  behaves on press. Only the cold drum is spread; spreading both just
+  behaves on press. Only the white drum is spread; spreading both just
   makes one larger flame with no rim at all.
 
   It used to be an abstract mass wobbling like set jelly. Right motion,
@@ -325,7 +335,7 @@ motion displays nothing and fetches nothing.
   `ShaderMaterial` is the one material three.js does not append the
   output-colour-space chunk to, so linear values reach the sRGB
   framebuffer unconverted and every ink prints several stops dark (the
-  ice blue lands on navy). The palette was also derived as an sRGB screen
+  whites land on mid grey). The palette was also derived as an sRGB screen
   blend, so the shader has to blend in the same space.
 - **Nothing may be opaque except type.** An opaque background on any
   element punches a card-shaped hole through the ink behind it. Use
@@ -374,9 +384,9 @@ motion displays nothing and fetches nothing.
 - Institutional lockups. `Colophon.tsx` has placeholder boxes for the
   York and Lassonde marks. Get the **one-colour** versions from the
   brand kits and render them in chalk — a real two-ink job would not fire
-  a third drum for a logo, and York red between an ice blue and an acid
-  green is a genuine clash. On black stock the **white/reversed** version
-  is the one to ask for, not the mono-dark one.
+  a third drum for a logo, and York red between white and an acid green
+  is a genuine clash. On black stock the **white/reversed** version is
+  the one to ask for, not the mono-dark one.
 - `NEXT_PUBLIC_SIGNUP_URL` is unset, so the sign-up button falls back to
   `#`. It is inlined at build time, so it must be set before building.
 - Social links in `Colophon.tsx` point at `#`.

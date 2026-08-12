@@ -37,7 +37,7 @@ import { FRAG, VERT } from "@/lib/press/shader";
  * output-colour-space chunk to — whatever the fragment shader writes
  * goes to the sRGB framebuffer untouched. Converting these to linear
  * first therefore never gets converted back, and every ink prints
- * several stops too dark (the indigo lands on near-black).
+ * several stops too dark (the whites land on mid grey).
  *
  * Working in sRGB is also right on the merits: the overprint value in
  * globals.css was derived as an sRGB channel screen blend, so the
@@ -48,7 +48,7 @@ const rgb = (hex: string) => new THREE.Color().setStyle(hex, THREE.NoColorSpace)
 
 const INK = {
   paper: rgb("#000000"),
-  forge: rgb("#7ea8ff"),
+  forge: rgb("#e8e6f0"),
   spark: rgb("#bee449"),
 };
 

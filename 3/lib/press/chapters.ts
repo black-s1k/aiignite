@@ -17,13 +17,19 @@
  * Forge, hard right through Spark, settle, then both at maximum with
  * the screens converged at the one place the reader is asked to act.
  *
- * SPARK LEADS EVERYWHERE EXCEPT ITS OWN SECTION'S OPPOSITE. On light
- * stock the ratio between the two columns was compensation — the pale
- * ink needed more area to weigh the same. Here the two inks are close
- * enough in weight (14.4:1 and 8.9:1 on black) that compensation barely
- * applies, so the ratio is doing something else: the flame is the
- * club's colour and the sheet should read green-forward, with the cold
- * ink as counterpoint rather than as an equal.
+ * SPARK LEADS EVERYWHERE EXCEPT ITS OWN SECTION'S OPPOSITE, and the
+ * gap between the columns got wider when Forge went white (2026-08-09).
+ * Part of that is compensation and part is hierarchy, and they point the
+ * same way now: white reads at 17.0:1 against black where the flame
+ * reads 14.4:1, so Forge is the BRIGHTER ink and needs the smaller share
+ * of the sheet — its whole column came down by about a third. And the
+ * flame is the club's colour, so the sheet should read green-forward
+ * with white as counterpoint rather than as an equal.
+ *
+ * Whichever ink is dimmer gets the area. That rule has now pointed in
+ * three different directions across this file's life — pale pink on
+ * light stock, ice blue on black, white on black — so work it out from
+ * the current two values rather than copying any past arrangement.
  *
  * That matters more on black than it did on paper because of how the
  * inks composite. Screening two bright inks together drives the result
@@ -40,7 +46,7 @@
 export type Chapter = {
   /**
    * Coverage multiplier per drum. Never near zero — see above. The
-   * usable floors differ because the inks do: Forge stays above ~0.22,
+   * usable floors differ because the inks do: Forge stays above ~0.10,
    * Spark above ~0.17, and both are still clearly on the sheet there.
    */
   forgeInk: number;
@@ -72,9 +78,10 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* The landing page, where the ink is still gathered into the flame.
 
      The widest coverage gap on the page apart from the mark, and for
-     the same reason: both drums strike the same artwork almost in
-     register, so balanced drums would bleach it. Held apart, the cold
-     ink reads as a fringe along one edge of a green flame.
+     the same reason: both drums strike the same artwork on one centre,
+     so balanced drums would bleach it to white. Held far apart, the
+     white drum reads as a rim around a green flame — which is the
+     trap doing its job rather than a second colour competing.
 
      Finer ruling than it used to run, and the screens pulled back from
      full convergence. Both were tuned for an abstract mass, where a
@@ -82,7 +89,7 @@ export const CHAPTERS: Record<string, Chapter> = {
      flame has its own structure — narrow licks and the gaps between
      them — and a coarse screen eats it. */
   hero: {
-    forgeInk: 0.2,
+    forgeInk: 0.13,
     sparkInk: 0.62,
     band: 0.09,
     waveAmp: 0.028,
@@ -93,7 +100,7 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* The one section that is only an argument. Narrowest bands and the
      calmest wave — it gets out of the way of the sentence. */
   problem: {
-    forgeInk: 0.2,
+    forgeInk: 0.13,
     sparkInk: 0.28,
     band: 0.06,
     waveAmp: 0.022,
@@ -115,11 +122,11 @@ export const CHAPTERS: Record<string, Chapter> = {
      The widest gap between the two drums anywhere on the page, and it
      is not emphasis — it is the only thing keeping the logo green. Both
      drums strike the plate, and screening two bright inks at equal
-     coverage bleaches the result to white; at 0.22 the cold drum lands
-     as a sparse offset ghost against the flame instead, which is also
+     coverage bleaches the result to white; at 0.14 the white drum lands
+     as a sparse rim against the flame instead, which is also
      what a second plate does on a real two-colour print. */
   mark: {
-    forgeInk: 0.22,
+    forgeInk: 0.14,
     sparkInk: 0.8,
     band: 0.07,
     waveAmp: 0.024,
@@ -131,7 +138,7 @@ export const CHAPTERS: Record<string, Chapter> = {
      two tracks are most clearly two separate things, one down each
      edge, in the same order as the columns between them. */
   tracks: {
-    forgeInk: 0.32,
+    forgeInk: 0.2,
     sparkInk: 0.44,
     band: 0.085,
     waveAmp: 0.03,
@@ -143,7 +150,7 @@ export const CHAPTERS: Record<string, Chapter> = {
      is a fixed sequence, so its ink should look like it knows where it
      is going. Spark drops but stays on the sheet. */
   forge: {
-    forgeInk: 0.48,
+    forgeInk: 0.3,
     sparkInk: 0.22,
     band: 0.082,
     waveAmp: 0.026,
@@ -161,7 +168,7 @@ export const CHAPTERS: Record<string, Chapter> = {
      as a scatter; here it arrives as ink, and it was landing on the
      tools labels. */
   spark: {
-    forgeInk: 0.2,
+    forgeInk: 0.13,
     sparkInk: 0.56,
     band: 0.068,
     waveAmp: 0.034,
@@ -172,7 +179,7 @@ export const CHAPTERS: Record<string, Chapter> = {
   /* Dates and facts. Thin bands and the finest screen on the page — a
      fine halftone reads as a document, a coarse one as a poster. */
   schedule: {
-    forgeInk: 0.19,
+    forgeInk: 0.12,
     sparkInk: 0.26,
     band: 0.055,
     waveAmp: 0.02,
@@ -188,7 +195,7 @@ export const CHAPTERS: Record<string, Chapter> = {
      stays where it dispersed to, which is the rule for the whole page
      below the fold. */
   signup: {
-    forgeInk: 0.42,
+    forgeInk: 0.26,
     sparkInk: 0.56,
     band: 0.088,
     waveAmp: 0.03,
@@ -198,7 +205,7 @@ export const CHAPTERS: Record<string, Chapter> = {
 
   /* Colophon. The drums ease off, but they do not come off. */
   colophon: {
-    forgeInk: 0.17,
+    forgeInk: 0.11,
     sparkInk: 0.24,
     band: 0.052,
     waveAmp: 0.018,
@@ -238,7 +245,7 @@ export const GATHERED = {
    * what turns the second ink into an even rim around the whole flame
    * rather than a shadow along one edge.
    *
-   * It is applied to the cold drum only — spreading both would just
+   * It is applied to the white drum only — spreading both would just
    * make one larger flame with no rim at all — and the rim it produces
    * grows with distance from the centre, so it is finest where the
    * artwork is dense and widest at the tips. That is how a spread
@@ -246,7 +253,7 @@ export const GATHERED = {
    *
    * Sharing one centre is also why the hero runs its drums so far apart
    * in coverage. Screening two bright inks bleaches toward white, and
-   * these now overlap everywhere; the cold drum is held right down so
+   * these now overlap everywhere; the white drum is held right down so
    * the flame stays green with an edge instead of going pale.
    */
   trap: 0.05,

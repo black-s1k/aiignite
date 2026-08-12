@@ -27,7 +27,7 @@ export function Hero() {
 
       <div className="py-14">
         {/* Three lines, three inks, in the order the page introduces
-            them: the stock's white, the flame, the cold counterpart.
+            them: the stock's white, the flame, and the white ink again.
             On light stock the second line took the overprint, because
             there the overprint was the darkest thing available. On black
             it is the near-white hot core, which would have made two

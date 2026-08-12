@@ -82,7 +82,7 @@ export function Colophon() {
       </div>
 
       <p className="tag mt-16 border-t border-chalk/25 pt-5">
-        Screenprinted in two inks · Flame Green and Ice Blue
+        Screenprinted in two inks · Flame Green and White
       </p>
     </footer>
   );

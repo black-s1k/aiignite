@@ -426,7 +426,7 @@ export const FRAG = /* glsl */ `
     float leaving  = 1.0 - smoothstep(0.74, 1.0, uDisperse);
     float arriving = smoothstep(0.58, 0.98, uDisperse);
 
-    // Only the cold drum carries the trap. Spreading both would just
+    // Only the white drum carries the trap. Spreading both would just
     // make one bigger flame with no rim at all.
     float covF = max(
       gathered(p, aspect, narrow, -1.0, uTrap, 0.0) * leaving,
