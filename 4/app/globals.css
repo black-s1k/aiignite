@@ -13,7 +13,7 @@
    font can do exactly that — so the display type carries the idea in
    its own letterforms rather than in an effect layered over them.
    Weight and width are driven by distance from a heat source. Nothing
-   glows. Nothing gradients. See components/HeatLine.tsx.
+   glows. Nothing gradients. See lib/heat.ts and components/HeatField.tsx.
 
    ---- What this build is reacting against ----
    The previous build was a near-black page with a single acid accent,
@@ -138,7 +138,7 @@
   }
 
   /* The heat line. Per-character spans, written to directly by
-     HeatLine.tsx on every frame — so this rule sets only what does not
+     HeatField.tsx on every frame — so this rule sets only what does not
      change, and never a transition: a transition here would fight the
      per-frame writes and turn a travelling front into mush. */
   .heat {
@@ -146,25 +146,65 @@
     display: block;
   }
 
-  .heat span {
+  /* Each WORD is an atomic inline-block. Characters have to be
+     inline-block for the width axis to move them, and an inline-block is
+     a break opportunity — so without this the browser wraps in the
+     middle of a word. It rendered "What actually happe / ns". The real
+     space sits outside this wrapper, so between words is the only place
+     a line can break. */
+  .heat-word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .heat span[data-heat="type"] {
     display: inline-block;
     font-variation-settings: "wght" 400, "wdth" 100;
     will-change: font-variation-settings;
-  }
-
-  /* Preserves the space between words when every character is its own
-     inline-block. */
-  .heat span[data-space] {
-    width: 0.26em;
   }
 }
 
 /* The heat is the whole design, so it does not simply stop under
    reduced motion — it holds at a fixed, fully-formed state instead, and
-   HeatLine.tsx stops its loop. Reading the page must never require
+   HeatField.tsx stops simulating. Reading the page must never require
    watching it move. */
 @media (prefers-reduced-motion: reduce) {
-  .heat span {
+  .heat span[data-heat="type"] {
     font-variation-settings: "wght" 620, "wdth" 108;
+  }
+}
+
+@layer components {
+  /* Nav. Transparent over the hero so the headline is uninterrupted,
+     and solid once the reader has left the top — set from JS in
+     Nav.tsx. No blur panel and no shadow: those are the house style of
+     every generated header and they would undo the rest of the page. */
+  .nav {
+    transition:
+      background-color 240ms var(--ease-heat),
+      border-color 240ms var(--ease-heat);
+    border-bottom: 1px solid transparent;
+  }
+
+  .nav[data-stuck="true"] {
+    background-color: color-mix(in oklab, var(--color-void) 88%, transparent);
+    border-bottom-color: var(--color-edge);
+  }
+
+  /* FAQ. Native <details>, so it works before hydration, is
+     keyboard-operable for free, and Ctrl+F finds text inside a closed
+     one. The only thing styled is the marker. */
+  .faq summary::-webkit-details-marker,
+  .faq summary::marker {
+    display: none;
+    content: "";
+  }
+
+  .faq .faq-sign {
+    transition: transform 220ms var(--ease-heat);
+  }
+
+  .faq[open] .faq-sign {
+    transform: rotate(45deg);
   }
 }

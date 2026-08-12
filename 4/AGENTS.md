@@ -73,6 +73,15 @@ hotter than a passing move so that tapping feels like striking a match.
   step would blow the diffusion up rather than fast-forward it.
 - **Never put a `transition` on `.heat span`.** It fights the per-frame
   writes and turns a travelling front into mush.
+- **Words must be wrapped, not just characters.** Characters have to be
+  `inline-block` for the width axis to move them, and an inline-block is
+  a break opportunity — so a plain per-character split lets the browser
+  wrap MID-WORD. It rendered "What actually happe / ns". Each word is its
+  own `nowrap` wrapper now.
+- **The space goes BETWEEN those wrappers, never inside one.** An
+  inline-block trims its own trailing whitespace, so a space placed
+  within a word silently disappears and the words run together — it
+  rendered "Whatactually happens".
 
 Verified behaviour, weight out of 900: idle 270–606 (alive untouched),
 after a drag 275–704, 1.2s later 278–433 (cooling), after a tap
@@ -103,6 +112,28 @@ a reading serif with an optical-size axis so it stays open at small sizes
 on a dark field. **A serif body under a grotesque display is the pairing
 doing the most work here** — it is the fastest way to stop this reading
 as a product landing page.
+
+## What this page owes to industrynightinitiative.ca
+
+The client offered that site as a quality reference — explicitly for how
+completely it explains itself, NOT for its look. Taken: a persistent nav
+with a CTA, logistics in the first screen, the audience named out loud
+rather than implied, a description of what actually happens, and a FAQ.
+The page previously had no navigation at all and roughly five sections
+that stated facts and stopped.
+
+**Deliberately not taken:** its cream stock, navy palette, Playfair
+display serif, diagonal split hero and skyline illustration. That is its
+identity, and borrowing it would make this a knock-off of a sibling
+club's site at the same faculty — the one place a resemblance would
+actually be noticed.
+
+One thing it does that this page CANNOT: it earns trust with three years
+of history and a row of partner logos. This club launches in September
+2026 and has none of that. `lib/content.ts` therefore has a hard rule —
+nothing claimed that is not true — and the credibility gap is filled
+with what is real instead: who backs it, who runs it, and a minute-by
+-minute description of a session.
 
 ## Why the previous build was replaced
 
