@@ -1,0 +1,499 @@
+@import "tailwindcss";
+
+/* ===================================================================
+   AI Ignite — heat
+
+   Fourth build, 2026-08-11. `../2` and the tagged `press-build-v3` are
+   the previous two. This one starts from nothing on purpose: the brief
+   was ordinary content, extraordinary design.
+
+   ---- The idea ----
+   The club is called Ignite, so heat is not a metaphor here, it is the
+   mechanism. Things that get hot SWELL and BRIGHTEN, and a variable
+   font can do exactly that — so the display type carries the idea in
+   its own letterforms rather than in an effect layered over them.
+   Weight and width are driven by distance from a heat source. Nothing
+   glows. Nothing gradients. See lib/heat.ts and components/HeatField.tsx.
+
+   ---- What this build is reacting against ----
+   The previous build was a near-black page with a single acid accent,
+   which is one of the three most recognisable generated-design
+   defaults. It had real craft in it — computed ink maths, live
+   halftones — but craft applied to a generic silhouette still reads as
+   generic. The lesson carried forward is that distinctiveness has to
+   come from STRUCTURE, not finish.
+
+   So the rules here:
+     - the accent colour never appears as a glow, a gradient, or a
+       border on a card. It is ink: rules, marks, fills, type.
+     - no cards. Nothing floats. Structure is made of rules and space.
+     - one signature (the heat), executed properly, and restraint
+       everywhere else.
+   =================================================================== */
+
+@theme {
+  /* ---- Field ----------------------------------------------------
+     Black, carried from the previous build at the client's direction.
+     Nothing can go under it, so recession has to be done with weight
+     and colour, never with a darker background. */
+  --color-void: #000000;
+
+  /* ---- The flame ------------------------------------------------
+     Measured, not chosen: the median of every green pixel in the
+     club's logo. This is the one saturated colour on the page and it
+     is spent sparingly — the more places it appears, the less any of
+     them mean. */
+  --color-flame: #bee449;
+
+  /* Type. Bone rather than #ffffff: pure white on black halates and
+     closes the counters of a condensed or heavy face, and the display
+     type here runs up to 900 weight. */
+  --color-bone: #ece9e4;
+
+  /* Secondary text. 7.9:1 on black — deliberately well past the 4.5
+     minimum, because this sets long-form copy at small sizes on a dark
+     field, which is the hardest reading condition on the page. */
+  --color-ash: #9d9a94;
+
+  /* Rules and dividers. Never a border colour on a filled box — there
+     are no boxes. */
+  --color-edge: #2a2a28;
+
+  /* ---- Type -----------------------------------------------------
+     Archivo for display, and the point of choosing it is the axes: it
+     carries weight 100-900 AND width 62-125, which is what makes the
+     heat legible as a physical change rather than a colour trick. An
+     expanded grotesque is also simply less worn than the condensed
+     poster faces every club site reaches for.
+
+     Newsreader for body — a proper reading serif, with an optical-size
+     axis so it stays open at small sizes on a dark field. A serif body
+     under a grotesque display is the pairing doing the most work here:
+     it says the copy is meant to be read, not skimmed, and it is the
+     single fastest way to stop this looking like a product landing
+     page. */
+  --font-display: var(--font-archivo), "Helvetica Neue", sans-serif;
+  --font-body: var(--font-newsreader), Georgia, serif;
+
+  /* A deliberately wide gap between the loud and quiet ends. Mid sizes
+     are where pages go soft. */
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.2;
+  --text-micro--letter-spacing: 0.18em;
+
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.65;
+  --text-read: 1.125rem;
+  --text-read--line-height: 1.7;
+  --text-lead: clamp(1.375rem, 1.1rem + 1.1vw, 1.875rem);
+  --text-lead--line-height: 1.45;
+
+  --text-title: clamp(2.5rem, 1.2rem + 5.4vw, 5rem);
+  --text-title--line-height: 0.95;
+  --text-title--letter-spacing: -0.02em;
+
+  --text-vast: clamp(3.25rem, 0.5rem + 11vw, 9.5rem);
+  --text-vast--line-height: 0.88;
+  --text-vast--letter-spacing: -0.035em;
+
+  --ease-heat: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@layer base {
+  html {
+    background-color: var(--color-void);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    font-size: var(--text-read);
+    color: var(--color-bone);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-flame);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-flame);
+    outline-offset: 4px;
+  }
+}
+
+@layer components {
+  /* Small caps label. Archivo at its widest, which is the one place the
+     width axis is used statically rather than by the heat — it makes a
+     11px label read as a deliberate object instead of small text. */
+  .label {
+    font-family: var(--font-display);
+    font-size: var(--text-micro);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 600, "wdth" 115;
+    color: var(--color-ash);
+  }
+
+  /* The heat line. Per-character spans, written to directly by
+     HeatField.tsx on every frame — so this rule sets only what does not
+     change, and never a transition: a transition here would fight the
+     per-frame writes and turn a travelling front into mush. */
+  .heat {
+    font-family: var(--font-display);
+    display: block;
+  }
+
+  /* Each WORD is an atomic inline-block. Characters have to be
+     inline-block for the width axis to move them, and an inline-block is
+     a break opportunity — so without this the browser wraps in the
+     middle of a word. It rendered "What actually happe / ns". The real
+     space sits outside this wrapper, so between words is the only place
+     a line can break. */
+  .heat-word {
+    display: inline-block;
+    white-space: nowrap;
+  }
+
+  .heat span[data-heat="type"] {
+    display: inline-block;
+    font-variation-settings: "wght" 400, "wdth" 100;
+    will-change: font-variation-settings;
+  }
+}
+
+/* The heat is the whole design, so it does not simply stop under
+   reduced motion — it holds at a fixed, fully-formed state instead, and
+   HeatField.tsx stops simulating. Reading the page must never require
+   watching it move. */
+@media (prefers-reduced-motion: reduce) {
+  .heat span[data-heat="type"] {
+    font-variation-settings: "wght" 620, "wdth" 108;
+  }
+}
+
+@layer components {
+  /* Wordmark. Not `.label` — that is 11px at 0.18em, which is correct
+     for a gutter tag and far too loose once the type is big enough to
+     read as a logotype. Tracking comes down as the size goes up, which
+     is the normal relationship and the reason this is its own rule. */
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 720, "wdth" 112;
+    color: var(--color-bone);
+    line-height: 1;
+  }
+
+  @media (min-width: 640px) {
+    .wordmark {
+      font-size: 1.25rem;
+    }
+  }
+
+  /* Nav links sit between the wordmark and the gutter labels: bigger
+     than a tag because they are targets, smaller than the wordmark
+     because they are not the name. */
+  .nav-link {
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 600, "wdth" 112;
+    color: var(--color-ash);
+  }
+
+  /* Nav. Transparent over the hero so the headline is uninterrupted,
+     and solid once the reader has left the top — set from JS in
+     Nav.tsx. No blur panel and no shadow: those are the house style of
+     every generated header and they would undo the rest of the page. */
+  .nav {
+    transition:
+      background-color 240ms var(--ease-heat),
+      border-color 240ms var(--ease-heat);
+    border-bottom: 1px solid transparent;
+  }
+
+  /* Fully opaque once stuck, not 88%. There is no backdrop blur here on
+     purpose — it is the house style of every generated header — and
+     without one a translucent bar just lets the copy underneath ghost
+     through it as the page scrolls. Solid stock plus a hairline rule is
+     the honest version of the same separation. */
+  .nav[data-stuck="true"] {
+    background-color: var(--color-void);
+    border-bottom-color: var(--color-edge);
+  }
+
+  /* FAQ. Native <details>, so it works before hydration, is
+     keyboard-operable for free, and Ctrl+F finds text inside a closed
+     one. The only thing styled is the marker. */
+  .faq summary::-webkit-details-marker,
+  .faq summary::marker {
+    display: none;
+    content: "";
+  }
+
+  .faq .faq-sign {
+    transition: transform 220ms var(--ease-heat);
+  }
+
+  .faq[open] .faq-sign {
+    transform: rotate(45deg);
+  }
+}
+
+/* ---- The opening sequence -------------------------------------------
+   Timeline order lives in components/Intro.tsx; how each move looks
+   lives here, next to what it animates.
+
+   Nothing in here changes layout. The clip stays in flow after it has
+   burned off and the lockup flies on a transform, so the wordmark never
+   shifts under its own sequence — the only thing that moves is what is
+   painted. */
+@layer components {
+  html[data-intro] {
+    overflow: hidden;
+  }
+
+  /* Hidden, not absent: the nav lockup keeps its box the whole time, so
+     the flame has something to measure and land on. */
+
+  /* The mark stays hidden until the very end, because the flame flying
+     across the screen IS this element's stand-in — showing both would
+     read as two marks. */
+  html[data-intro] [data-lockup="nav-mark"] {
+    opacity: 0;
+  }
+
+  /* The name does not travel. It goes out where it stands and arrives
+     here instead, so this is the second of its two positions rather than
+     the end of a journey. The delay is what keeps the two from being
+     legible at once. */
+  html[data-intro] [data-lockup="nav-word"] {
+    opacity: 0;
+  }
+
+  html[data-intro="fly"] [data-lockup="nav-word"],
+  html[data-intro="land"] [data-lockup="nav-word"] {
+    opacity: 1;
+    transition: opacity 380ms var(--ease-heat) 220ms;
+  }
+
+  /* The landing, and the reason there is a phase for it at all. The
+     flight used to end on the exact millisecond the overlay unmounted,
+     so any jitter showed a frame with no mark in it at all. Now the nav's
+     mark fades UP underneath the flame that just landed on it, and the
+     flame fades out over the same 220ms — they are in the same place, so
+     the crossfade is invisible and there is no moment without a logo. */
+  html[data-intro="land"] [data-lockup="nav-mark"] {
+    opacity: 1;
+    transition: opacity 220ms var(--ease-heat);
+  }
+
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    background-color: var(--color-void);
+    cursor: pointer;
+    transition: background-color 700ms var(--ease-heat);
+  }
+
+  /* The clip's frame. Position context for the flame, which has to sit
+     in the middle of the drawing rather than in the column below it. */
+  .intro-frame {
+    position: relative;
+    display: flex;
+  }
+
+  .intro-flame-slot {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  /* Outer span: the flight. Origin at its own corner so the solve is a
+     plain offset and scale. */
+  .intro-flame {
+    transform-origin: 0 0;
+    transition: transform 750ms var(--ease-heat);
+  }
+
+  /* Inner span: the ignition. It swells past its resting size and settles
+     back, which is what the display type does under heat. */
+  /* Struck, not faded in. It arrives a split second after the drawing has
+     collapsed, from almost nothing, overshooting hard and flashing bright
+     before settling — the three things that separate something catching
+     alight from something appearing. Opacity is much faster than scale on
+     purpose: it is already there at full strength while it is still
+     swelling. */
+  .intro-flame-in {
+    display: block;
+    opacity: 0;
+    transform: scale(0.12);
+    filter: brightness(2.4);
+    transition:
+      opacity 160ms linear,
+      filter 420ms var(--ease-heat),
+      transform 520ms cubic-bezier(0.16, 1.44, 0.32, 1);
+  }
+
+  .intro[data-phase="mark"] .intro-flame-in,
+  .intro[data-phase="fly"] .intro-flame-in,
+  .intro[data-phase="land"] .intro-flame-in {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  /* Out as the nav's own mark comes up underneath it. Transform is left
+     alone here on purpose — it has to hold its landed size. */
+  .intro[data-phase="land"] .intro-flame-in {
+    opacity: 0;
+    transition: opacity 220ms var(--ease-heat);
+  }
+
+  /* Sized against the window rather than the clip, so it holds its
+     presence on a laptop and does not become a stamp on a large screen.
+     The flight scales from whatever this renders at — it reads the box
+     back off the DOM — so this can be changed freely without touching
+     the landing. */
+  .intro-flame-mark {
+    /* Proportional to the CLIP, not to the viewport. Sized in vh it kept
+       its size while the clip shrank, so on a phone it came out at 93% of
+       the drawing's height against 34% on a desktop — the same number,
+       a completely different composition.
+
+       Derived from --clip-w rather than written as a percentage: a
+       percentage height needs a containing block with a definite height,
+       and every ancestor here is auto, so `34%` silently computed to
+       ZERO and the flame did not render at all. 0.193 is 34% of the
+       clip's height, since the clip is 1.7615 times as wide as it is
+       tall. */
+    height: calc(var(--clip-w) * 0.193);
+    aspect-ratio: 2 / 3;
+    width: auto;
+  }
+
+  .intro-stage {
+    /* One source of truth for the clip's size. Everything in the sequence
+       that has to stay in proportion with the drawing is derived from
+       this, so there is one number to change and nothing to keep in sync.
+
+       The third governor is the height limit expressed through the aspect
+       ratio (109vh ÷ 1.7615 ≈ 62vh tall). Capping height directly while
+       the width stayed put would either squash the clip or letterbox it
+       inside its own box; capping the width cannot do either. It only
+       bites when the window is short — a phone in landscape was
+       overflowing badly, 471px of stage in a 390px viewport — so a normal
+       desktop is untouched. */
+    --clip-w: min(86vw, 58rem, 109vh);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(2rem, 5vh, 4.5rem);
+  }
+
+  .intro-video {
+    width: var(--clip-w);
+    height: auto;
+    /* Declared so the box is its final size before a single byte of the
+       clip has loaded. Without it the element resizes when metadata
+       arrives, which shifts the stage under the lockup — and the flight
+       is solved against the stage's position, so a late reflow lands it
+       in the wrong place. */
+    aspect-ratio: 1920 / 1090;
+    /* The clip is flame on pure black. Screened over the void, the black
+       ground and every compression artefact in it drop out, and only the
+       ink is left on the page. */
+    mix-blend-mode: screen;
+    transition:
+      transform 300ms cubic-bezier(0.55, 0, 1, 0.45),
+      opacity 300ms cubic-bezier(0.7, 0, 1, 0.5);
+  }
+
+  /* The drawing does not dissolve — it COLLAPSES, inward to the point the
+     flame is about to appear at, and fast. A gradual dissolve was the
+     wrong instinct: ignition is not gradual, and anything that fades
+     reads as a video ending. The curve is an ease-IN so it accelerates
+     as it goes, which is what makes it look pulled in rather than shrunk.
+
+     Both properties here are transform and opacity, so this runs on the
+     compositor. The dissolve it replaces was an animated mask, which
+     could not — that was the jank. */
+  .intro[data-phase="burn"] .intro-video,
+  .intro[data-phase="mark"] .intro-video,
+  .intro[data-phase="fly"] .intro-video,
+  .intro[data-phase="land"] .intro-video {
+    transform: scale(0.04);
+    opacity: 0;
+  }
+
+  /* The scale itself is set from Intro.tsx, which fits it to the
+     viewport — a breakpoint cannot know how wide this line renders. */
+  .intro-lockup {
+    transform-origin: center;
+  }
+
+  /* Written, not faded in — the clip that precedes it is a hand drawing,
+     so the name arrives the same way the drawing did. */
+  .intro-name {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 850ms var(--ease-heat);
+  }
+
+  .intro[data-phase="name"] .intro-name,
+  .intro[data-phase="burn"] .intro-name,
+  .intro[data-phase="mark"] .intro-name,
+  .intro[data-phase="fly"] .intro-name {
+    clip-path: inset(0 0 0 0);
+  }
+
+  /* The mark ignites: it swells past its resting size and settles back,
+     which is the same thing the display type does under heat. */
+  /* Out where it stands, and quickly — it has to be gone before the
+     same words reappear in the nav, or the eye sees two of them. */
+  .intro[data-phase="fly"] .intro-lockup,
+  .intro[data-phase="land"] .intro-lockup {
+    opacity: 0;
+    transition: opacity 320ms var(--ease-heat);
+  }
+
+  /* The stock goes last, under the flight, so the page is already there
+     when the lockup arrives. */
+  .intro[data-phase="fly"],
+  .intro[data-phase="land"] {
+    background-color: transparent;
+  }
+
+  .intro[data-phase="out"] {
+    opacity: 0;
+    transition: opacity 260ms var(--ease-heat);
+  }
+
+  .intro-skip {
+    position: absolute;
+    right: clamp(1.5rem, 4vw, 4rem);
+    bottom: clamp(1.5rem, 4vh, 3rem);
+    color: var(--color-ash);
+    transition: color 200ms var(--ease-heat);
+  }
+
+  .intro-skip:hover {
+    color: var(--color-bone);
+  }
+
+  .intro[data-phase="fly"] .intro-skip,
+  .intro[data-phase="land"] .intro-skip,
+  .intro[data-phase="out"] .intro-skip {
+    opacity: 0;
+  }
+}
