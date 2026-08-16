@@ -1,22 +1,41 @@
+import Link from "next/link";
 import { HeatText } from "@/components/HeatText";
 import { Intro } from "@/components/Intro";
 import { Mark } from "@/components/Mark";
 import { Nav } from "@/components/Nav";
-import { ABOUT, CLUB, FAQ, LOGISTICS, SESSION, TRACKS } from "@/lib/content";
+import {
+  ABOUT,
+  CLUB,
+  FAQ,
+  GLANCE,
+  LOGISTICS,
+  PURPOSE,
+  TEAM,
+  TRACKS,
+  WHY,
+} from "@/lib/content";
+import { SIGNUP } from "@/lib/signup";
 
 /**
- * One page that explains itself completely, in the order a student
- * actually asks: what is this, is it for me, what happens when I turn
- * up, what will I make, what if I am unsure, how do I join.
+ * The page explains itself completely, in the order a student actually
+ * asks: what is this, why does it exist, is it for me, what will I
+ * build, who runs it, what if I am unsure, how do I join.
  *
  * The layout idea is a single asymmetric column that never centres.
  * Everything hangs off one left axis and the measure changes per
  * section, so the page has a spine but not a template. Structure is made
- * of rules and space — there are no cards and nothing floats.
+ * of rules and space. There are no cards and nothing floats.
  *
  * The section labels in the left gutter are load-bearing rather than
  * decorative: they are what lets someone landing mid-page know where
  * they are without a heading shouting it.
+ *
+ * The two tracks get their own pages rather than being unrolled here.
+ * Between them they carry ten sessions, four tool stacks and two
+ * detailed formats, and pouring that into the landing page would bury
+ * the five facts a first-time reader came for. What stays here is the
+ * choice between them; the syllabus is one click away for the people who
+ * want it.
  */
 
 const SHELL = "mx-auto w-full max-w-[86rem] px-6 sm:px-10 lg:px-16";
@@ -26,7 +45,7 @@ export default function Home() {
   return (
     <>
       <a
-        href="#about"
+        href="#why"
         className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-50 focus:bg-flame focus:px-4 focus:py-2 focus:text-void"
       >
         Skip to content
@@ -40,23 +59,43 @@ export default function Home() {
         {/* ---- The line ---------------------------------------------- */}
         <section className={`${SHELL} pt-[22vh] pb-[8vh] sm:pt-[26vh]`}>
           <p data-heat="label" className="label mb-8">
-            {CLUB.faculty} · {CLUB.term}
+            {CLUB.faculty} · Launching {CLUB.term}
           </p>
 
           <h1 className="text-vast">
             <HeatText as="span" className="text-bone">
-              Ignite
+              AI Ignite
             </HeatText>
             <HeatText as="span" className="text-flame">
-              the spark
+              at York
             </HeatText>
           </h1>
 
-          <p className="mt-12 max-w-[34rem] text-lead text-bone sm:mt-14 sm:ml-[8%] lg:ml-[22%]">
-            A student club at {CLUB.university}, running weekly through{" "}
-            {CLUB.term}. We build things with AI tools — we do not sit around
-            talking about them.
-          </p>
+          <div className="mt-12 max-w-[36rem] sm:mt-14 sm:ml-[8%] lg:ml-[22%]">
+            <p className="font-display text-lead text-bone [font-variation-settings:'wght'_640,'wdth'_110]">
+              {CLUB.tagline}
+            </p>
+            <p className="mt-5 text-read text-ash">
+              A hands-on AI club at {CLUB.university} where students from every
+              faculty build real AI tools instead of only learning that they
+              exist.
+            </p>
+
+            <div className="mt-10 flex flex-wrap items-center gap-4">
+              <a
+                href={SIGNUP.href}
+                className="bg-flame px-7 py-3.5 font-display text-read text-void transition-colors duration-200 hover:bg-bone [font-variation-settings:'wght'_700,'wdth'_112]"
+              >
+                Join the club
+              </a>
+              <a
+                href="#tracks"
+                className="border border-edge px-7 py-3.5 font-display text-read text-bone transition-colors duration-200 hover:border-flame hover:text-flame [font-variation-settings:'wght'_620,'wdth'_112]"
+              >
+                Explore tracks
+              </a>
+            </div>
+          </div>
         </section>
 
         {/* ---- Logistics, before anyone has to scroll for them --------
@@ -86,165 +125,185 @@ export default function Home() {
           </dl>
         </section>
 
-        {/* ---- What it is -------------------------------------------- */}
-        <section id="about" className={`${SHELL} scroll-mt-32 py-[12vh]`}>
+        {/* ---- Why ---------------------------------------------------
+            The problem before the pitch. A club page that opens by
+            describing itself is asking for trust it has not earned; one
+            that opens by naming something the reader already feels is
+            making an argument. */}
+        <section id="why" className={`${SHELL} scroll-mt-32 py-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
-              What it is
+              {WHY.label}
             </p>
-            <div className="max-w-[42rem]">
+            <div className="max-w-[40rem]">
+              <h2 className="font-display text-title text-bone [font-variation-settings:'wght'_760,'wdth'_114]">
+                {WHY.heading}
+              </h2>
+              {WHY.body.map((p) => (
+                <p key={p} className="mt-6 text-lead text-ash">
+                  {p}
+                </p>
+              ))}
               {ABOUT.map((p) => (
-                <p key={p} className="mb-6 text-lead text-bone last:mb-0">
+                <p key={p} className="mt-6 text-read text-ash">
                   {p}
                 </p>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* Who backs it. The reference earns trust with a row of
-              partner logos and three years of history; this club has
-              neither yet, so it uses what is actually true instead of
-              manufacturing a track record. */}
-          <div className={`${GUTTER} mt-16`}>
+        {/* ---- Mission and vision ------------------------------------ */}
+        <section className={`${SHELL} pb-[12vh]`}>
+          <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
-              Who runs it
+              What we are for
             </p>
-            <dl className="max-w-[42rem] grid gap-8 sm:grid-cols-2">
-              <div>
-                <dt data-heat="label" className="label">
-                  Faculty advisor
-                </dt>
-                <dd className="mt-2 text-read text-bone">
-                  {CLUB.advisor.name}
-                </dd>
-                <dd className="text-small text-ash">{CLUB.advisor.dept}</dd>
-              </div>
-              <div>
-                <dt data-heat="label" className="label">
-                  Home
-                </dt>
-                <dd className="mt-2 text-read text-bone">{CLUB.faculty}</dd>
-                <dd className="text-small text-ash">{CLUB.university}</dd>
-              </div>
+            <dl className="grid max-w-[52rem] gap-px sm:grid-cols-2">
+              {PURPOSE.map((p) => (
+                <div key={p.k} data-heat="rule" className="border-t border-edge pt-6 sm:pr-10">
+                  <dt className="font-display text-read text-flame [font-variation-settings:'wght'_700,'wdth'_112]">
+                    {p.k}
+                  </dt>
+                  <dd className="mt-4 text-read text-ash">{p.v}</dd>
+                </div>
+              ))}
             </dl>
           </div>
         </section>
 
-        {/* ---- Two tracks -------------------------------------------- */}
+        {/* ---- Two tracks --------------------------------------------
+            The one real decision the page asks a reader to make, so it
+            gets the most space and the plainest language. Each side is
+            described by what you leave with, because that is the actual
+            question. */}
         <section id="tracks" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
-              Who it is for
+              Two tracks, one club
             </p>
-            <div className="max-w-[42rem]">
-              <p className="text-lead text-bone">
-                Two tracks, split by one question: have you written code
-                before. Pick the one that fits — you can switch, and you can
-                come to both.
+            <div>
+              <h2 className="max-w-[30rem] font-display text-title text-bone [font-variation-settings:'wght'_760,'wdth'_114]">
+                Pick the one that fits where you are starting
+              </h2>
+              <p className="mt-6 max-w-[38rem] text-read text-ash">
+                Both run in parallel, share community events, and finish the
+                term with a joint showcase. You can switch, and you can come to
+                both.
               </p>
-            </div>
-          </div>
 
-          <div
-            data-heat="rule"
-            className="mt-14 grid gap-px border-t border-edge bg-edge lg:grid-cols-2"
-          >
-            {TRACKS.map((t) => (
-              <article key={t.key} className="bg-void pt-10 lg:px-1">
-                {/* The audience is named before the track is, because
-                    "Forge" means nothing to someone who has just arrived
-                    and "if you already code" means everything. */}
-                <p data-heat="label" className="label !text-bone">
-                  {t.audience}
-                </p>
-                <h2 className="mt-3 text-title">
-                  <HeatText
-                    as="span"
-                    className={t.key === "spark" ? "text-flame" : "text-bone"}
+              <div className="mt-14 grid gap-px lg:grid-cols-2">
+                {TRACKS.map((t) => (
+                  <article
+                    key={t.key}
+                    data-heat="rule"
+                    className="track border-t border-edge pt-8 lg:[&:last-child]:pl-12"
                   >
-                    {t.name}
-                  </HeatText>
-                </h2>
-                <p className="mt-6 max-w-[32rem] text-read text-ash">
-                  {t.blurb}
-                </p>
+                    <p data-heat="label" className="label">
+                      {t.audience}
+                    </p>
+                    <h3 className="mt-5 font-display text-[clamp(2.6rem,6vw,4rem)] leading-[0.94] text-bone [font-variation-settings:'wght'_800,'wdth'_116]">
+                      {t.name}
+                    </h3>
+                    <p className="mt-4 text-small text-flame">
+                      {t.shape}
+                    </p>
+                    <p className="mt-6 max-w-[30rem] text-read text-ash">
+                      {t.blurb}
+                    </p>
 
-                <p data-heat="label" className="label mt-10 !text-bone">
-                  {t.shape}
-                </p>
-                <ol className="mt-4 max-w-[32rem]">
-                  {t.sessions.map((s, i) => (
-                    <li
-                      key={s}
-                      data-heat="rule"
-                      className="flex gap-5 border-b border-edge py-3 text-read text-bone last:border-b-0"
-                    >
-                      <span
-                        data-heat="label"
-                        className="label w-6 shrink-0 pt-1.5"
+                    <p className="mt-7 max-w-[30rem] border-l border-flame pl-5 text-read text-bone">
+                      {t.outcome}
+                    </p>
+
+                    <p className="mt-6 text-small text-ash">{t.cadence}</p>
+
+                    <p className="mt-8">
+                      <Link
+                        href={t.href}
+                        className="group inline-flex items-center gap-3 font-display text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-5 [font-variation-settings:'wght'_680,'wdth'_112]"
                       >
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ol>
-              </article>
-            ))}
+                        See the {t.name} sessions
+                        <span aria-hidden>&rarr;</span>
+                      </Link>
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ---- What a session is ------------------------------------- */}
-        <section id="session" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
+        {/* ---- At a glance ------------------------------------------- */}
+        <section className={`${SHELL} pb-[12vh]`}>
           <div className={GUTTER}>
             <p data-heat="label" className="label lg:pt-3">
-              A session
+              At a glance
             </p>
-            <div className="max-w-[42rem]">
-              <h2 className="text-title">
-                <HeatText as="span" className="text-bone">
-                  What actually happens
-                </HeatText>
-              </h2>
-              <p className="mt-6 text-lead text-ash">
-                {SESSION.length}. Nobody is going to lecture at you for an
-                hour.
-              </p>
-            </div>
-          </div>
-
-          <ol data-heat="rule" className="mt-14 border-t border-edge">
-            {SESSION.steps.map((s) => (
-              <li
-                key={s.at}
-                data-heat="rule"
-                className="grid gap-3 border-b border-edge py-7 lg:grid-cols-[14rem_16rem_minmax(0,1fr)] lg:gap-16"
-              >
-                <span data-heat="label" className="label lg:pt-2">
-                  {s.at}
-                </span>
-                <h3 className="font-display text-lead text-bone [font-variation-settings:'wght'_640,'wdth'_110]">
-                  {s.title}
-                </h3>
-                <p className="max-w-[34rem] text-read text-ash">{s.body}</p>
-              </li>
-            ))}
-          </ol>
-
-          <div className={`${GUTTER} mt-12`}>
-            <p data-heat="label" className="label lg:pt-3">
-              What to bring
-            </p>
-            <ul className="flex max-w-[42rem] flex-wrap gap-x-8 gap-y-3">
-              {SESSION.bring.map((b) => (
-                <li key={b} className="text-read text-bone">
-                  <span aria-hidden className="mr-3 text-flame">
-                    /
-                  </span>
-                  {b}
-                </li>
+            <dl className="max-w-[46rem]">
+              {GLANCE.map((g) => (
+                <div
+                  key={g.k}
+                  data-heat="rule"
+                  className="grid gap-1 border-b border-edge py-4 sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-8"
+                >
+                  <dt className="text-small text-ash">{g.k}</dt>
+                  <dd className="text-read text-bone">{g.v}</dd>
+                </div>
               ))}
-            </ul>
+            </dl>
+          </div>
+        </section>
+
+        {/* ---- Who runs it -------------------------------------------
+            Fifteen real names. A club launching with no history has
+            exactly one form of credibility available to it, which is
+            people willing to attach their names to the thing, so this
+            section is set as type rather than as a grid of avatars. */}
+        <section id="team" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
+          <div className={GUTTER}>
+            <p data-heat="label" className="label lg:pt-3">
+              Who runs it
+            </p>
+            <div className="max-w-[52rem]">
+              <div className="grid gap-10 sm:grid-cols-2">
+                {TEAM.lead.map((p) => (
+                  <div key={p.name} data-heat="rule" className="border-t border-edge pt-6">
+                    <p className="font-display text-lead text-bone [font-variation-settings:'wght'_700,'wdth'_112]">
+                      {p.name}
+                    </p>
+                    <p className="mt-1 text-small text-flame">{p.role}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-14 grid gap-x-12 gap-y-10 sm:grid-cols-2">
+                {TEAM.groups.map((g) => (
+                  <div key={g.k}>
+                    <p data-heat="label" className="label">
+                      {g.k}
+                    </p>
+                    <ul className="mt-4 grid gap-1.5">
+                      {g.people.map((n) => (
+                        <li key={n} className="text-read text-bone">
+                          {n}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div data-heat="rule" className="mt-14 border-t border-edge pt-6">
+                <p data-heat="label" className="label">
+                  Faculty advisor
+                </p>
+                <p className="mt-3 font-display text-lead text-bone [font-variation-settings:'wght'_620,'wdth'_112]">
+                  {CLUB.advisor.name}
+                </p>
+                <p className="mt-1 text-small text-ash">{CLUB.advisor.dept}</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -279,7 +338,7 @@ export default function Home() {
       {/* ---- Join ----------------------------------------------------
           The one full-bleed flame block on the page. The loudest colour
           appears exactly once, at the only moment the reader is asked to
-          do something — spend it anywhere else and it stops meaning
+          do something. Spend it anywhere else and it stops meaning
           anything here. */}
       <section id="join" className="scroll-mt-32 bg-flame py-[12vh] text-void">
         <div className={SHELL}>
@@ -295,15 +354,13 @@ export default function Home() {
                 minute and you can change your mind later.
               </p>
               <a
-                href={process.env.NEXT_PUBLIC_SIGNUP_URL || "#"}
+                href={SIGNUP.href}
                 className="group mt-10 inline-flex items-center gap-4 bg-void px-8 py-4 font-display text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-7 [font-variation-settings:'wght'_700,'wdth'_112]"
               >
                 Sign up for {CLUB.name}
                 <span aria-hidden>&rarr;</span>
               </a>
-              <p className="mt-5 text-small text-void/60">
-                Opens a form · no York login needed
-              </p>
+              <p className="mt-5 text-small text-void/60">{SIGNUP.note}</p>
             </div>
           </div>
         </div>
@@ -315,7 +372,7 @@ export default function Home() {
           <div>
             <Mark className="h-8 w-6" />
             <p className="mt-4 font-display text-read text-bone [font-variation-settings:'wght'_700,'wdth'_112]">
-              {CLUB.name}
+              {CLUB.fullName}
             </p>
             <p className="mt-1 text-small text-ash">{CLUB.tagline}</p>
           </div>
@@ -331,9 +388,7 @@ export default function Home() {
                 {CLUB.contact}
               </a>
             </p>
-          </div>
-          <div>
-            <p data-heat="label" className="label">
+            <p data-heat="label" className="label mt-6">
               Sponsor a session
             </p>
             <p className="mt-2 text-small">
@@ -347,10 +402,44 @@ export default function Home() {
           </div>
           <div>
             <p data-heat="label" className="label">
+              Tracks
+            </p>
+            <p className="mt-2 text-small">
+              <Link className="text-bone underline underline-offset-4" href="/spark">
+                The Spark Track
+              </Link>
+            </p>
+            <p className="mt-2 text-small">
+              <Link className="text-bone underline underline-offset-4" href="/forge">
+                The Forge Track
+              </Link>
+            </p>
+          </div>
+          <div>
+            <p data-heat="label" className="label">
               Home
             </p>
             <p className="mt-2 text-small text-bone">{CLUB.faculty}</p>
             <p className="text-small text-ash">{CLUB.university}</p>
+            {/* Both are real pages describing what this site and this
+                club actually do, not boilerplate. See app/privacy and
+                app/terms. If the site's behaviour changes, they are
+                wrong until they change too. */}
+            <p className="mt-4 text-small">
+              <Link
+                className="text-ash underline underline-offset-4"
+                href="/privacy"
+              >
+                Privacy
+              </Link>
+              <span className="px-2 text-edge">·</span>
+              <Link
+                className="text-ash underline underline-offset-4"
+                href="/terms"
+              >
+                Terms
+              </Link>
+            </p>
           </div>
         </div>
       </footer>

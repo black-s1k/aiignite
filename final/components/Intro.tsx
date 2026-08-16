@@ -35,30 +35,30 @@ import { CLUB } from "@/lib/content";
  *  it rather than by hunting through CSS. Durations of the moves
  *  themselves live in globals.css next to what they animate. */
 const CUE = {
-  /** The clip runs 3.93s: 2.50s drawing, a 0.75s resolve that opens the
-   *  space underneath at ~3.03s, then a hold on the finished drawing. The
+  /** The clip runs 3.68s: 2.25s drawing, a 0.75s resolve that opens the
+   *  space underneath at ~2.78s, then a hold on the finished drawing. The
    *  name is written into that gap during the hold, never on top of the
    *  drawing — so if the clip is ever recut, this is the number to move
-   *  first. */
-  name: 3100,
+   *  first, and every cue below it shifts by the same amount. */
+  name: 2850,
 
   /** The drawing collapses inward. 300ms, and it should feel abrupt. */
-  burn: 3750,
+  burn: 3500,
 
   /** The split second. 110ms after the collapse lands there is nothing on
    *  screen but the name — and then the flame is simply there. That empty
    *  beat is doing the work: without it the two moves overlap and read as
    *  a crossfade between a drawing and a logo, which is the thing this is
    *  meant not to be. */
-  mark: 4160,
+  mark: 3910,
 
-  fly: 4980,
+  fly: 4730,
 
   /** The flight is 750ms, so this is +780: it must not fire until the
    *  flame has actually arrived. Landing and unmounting on the same
    *  millisecond is what put a frame with no logo on the screen. */
-  land: 5760,
-  done: 5990,
+  land: 5510,
+  done: 5740,
 } as const;
 
 /** How long to wait for the clip to actually start before giving up on

@@ -38,12 +38,12 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://aiignite.ca"),
-  title: `${CLUB.name} — ${CLUB.university}`,
+  title: `${CLUB.fullName} · ${CLUB.university}`,
   description: DESCRIPTION,
   openGraph: {
     type: "website",
     siteName: CLUB.name,
-    title: `${CLUB.name} — ${CLUB.university}`,
+    title: `${CLUB.fullName} · ${CLUB.university}`,
     description: DESCRIPTION,
     url: "/",
     locale: "en_CA",

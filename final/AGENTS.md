@@ -160,17 +160,52 @@ finish.** Do not answer "this feels generic" by adding more effects.
   heated headline costs nothing but characters.
 - `components/Mark.tsx` — the flame, used as a CSS mask rather than an
   `<img>` so its colour comes from the palette and can never drift.
-- `lib/content.ts` — every fact the page states, in one place.
+- `lib/content.ts` — every fact the site states, in one place, including
+  the two track curriculums. Read the header before adding to it: the
+  no-unearned-claims rule is why sponsors are not named.
+- `lib/signup.ts` — where the CTA points and what the microcopy promises,
+  decided together so they cannot disagree.
+- `app/spark` and `app/forge` — the two track pages. The landing page
+  carries the CHOICE between tracks; these carry the syllabus. Ten
+  sessions, two tool stacks and two formats would bury the five facts a
+  first-time reader came for.
+- `components/PipelineRail.tsx` — the Forge track's structure made
+  visible. It observes `[data-workshop]` on the workshop list and lights
+  a layer per workshop as you read past it. NOT a reveal animation: it
+  is a position indicator that happens to be the diagram of the thing
+  being described.
 - `app/page.tsx` — one asymmetric column that never centres. Everything
   hangs off one left axis; the measure changes per section, so the page
   has a spine but not a template.
 
+## The slop audit
+
+Checked against a 20-point list of generated-site tells on 2026-08-16.
+The ones that cost real work, so they do not get undone by accident:
+
+- **The sign-up button must always go somewhere.** See `lib/signup.ts`.
+  A dead `href="#"` under microcopy promising a form is the single most
+  recognisable tell there is, because it proves nobody ever used the
+  page.
+- **`app/privacy` and `app/terms` are written from what the code does**,
+  not from a template. The site sets no cookies, stores nothing, runs no
+  analytics and makes no third-party request, and the privacy page says
+  exactly that. Add any of those things and both pages become false
+  statements rather than missing ones.
+- **No em dashes in user-visible copy.** `lib/content.ts` and
+  `app/page.tsx` were rewritten to restructure the sentences rather than
+  swap the character. Code comments still use them; they do not ship.
+- No emoji, no gradients, no stock photography, no invented numbers, no
+  testimonials, no scroll-triggered reveals, no builder badge. Each of
+  those is a choice, not an oversight.
+
 ## Still to do
 
-- `NEXT_PUBLIC_SIGNUP_URL` is unset, so the sign-up link falls back to
-  `#`. It is inlined at build time and must be set before building.
-- No favicon — `/favicon.ico` 404s. The flame plate is the obvious
-  source.
+- `NEXT_PUBLIC_SIGNUP_URL` is still unset, but the sign-up button is no
+  longer broken by that: `lib/signup.ts` falls back to a prefilled
+  mailto and derives the microcopy from the same branch, so the button
+  and the line under it can never disagree. Set the env var and rebuild
+  once the form exists; it is inlined at build time.
 - Institutional lockups for York and Lassonde are named in the footer as
   text only. Get the one-colour/reversed versions from the brand kits.
 - `assets/do_the_second.mp4` is the generated title-sequence clip from

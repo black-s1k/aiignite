@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Mark } from "@/components/Mark";
 import { CLUB, NAV } from "@/lib/content";
+import { SIGNUP } from "@/lib/signup";
 
 /**
  * The page had no navigation at all, which is the single biggest thing
@@ -54,7 +55,7 @@ export function Nav() {
           href="#top"
           data-lockup="nav"
           className="flex shrink-0 items-center gap-3 sm:gap-4"
-          aria-label={`${CLUB.name} — home`}
+          aria-label={`${CLUB.name}, home`}
         >
           {/* The intro's flame and name fly onto these two boxes
               separately, so each needs its own handle. The wrapper is
@@ -88,7 +89,7 @@ export function Nav() {
         </ul>
 
         <a
-          href={process.env.NEXT_PUBLIC_SIGNUP_URL || "#join"}
+          href={SIGNUP.href}
           className="ml-auto shrink-0 border border-flame px-5 py-2.5 font-display text-[0.8125rem] uppercase tracking-[0.14em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3 [font-variation-settings:'wght'_680,'wdth'_112]"
         >
           Sign up

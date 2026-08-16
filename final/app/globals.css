@@ -92,6 +92,14 @@
   --text-title--line-height: 0.95;
   --text-title--letter-spacing: -0.02em;
 
+  /* Between lead and title. The track pages carry ten session headings
+     that are subordinate to a page title but still need to out-rank body
+     copy, and without this step they were being set at --text-lead and
+     reading as emphasised prose rather than as headings. */
+  --text-sub: clamp(1.5rem, 1.15rem + 1.3vw, 2.125rem);
+  --text-sub--line-height: 1.15;
+  --text-sub--letter-spacing: -0.01em;
+
   --text-vast: clamp(3.25rem, 0.5rem + 11vw, 9.5rem);
   --text-vast--line-height: 0.88;
   --text-vast--letter-spacing: -0.035em;
@@ -103,6 +111,21 @@
   html {
     background-color: var(--color-void);
     -webkit-text-size-adjust: 100%;
+
+    /* Every link in the nav is an anchor into this one page, so a jump
+       cut is a jump cut in the reading, not just in the scroll. Native
+       smooth scrolling rather than a scroll-hijacking library: this only
+       animates the jumps the reader ASKED for, and leaves the wheel and
+       the trackpad exactly as the OS delivers them. A library that
+       animates ordinary scrolling would also fight the heat field, which
+       reads scroll movement as a source of heat every frame. */
+    scroll-behavior: smooth;
+
+    /* No scroll-padding-top here on purpose. Clearing the fixed nav is
+       already handled per-section by `scroll-mt-32` in page.tsx, and
+       adding a scrollport padding on top of that does not override it —
+       the two ADD, landing every anchor 120px below where it should be.
+       If the nav's height ever changes, change that utility, not this. */
   }
 
   body {
@@ -171,6 +194,14 @@
 @media (prefers-reduced-motion: reduce) {
   .heat span[data-heat="type"] {
     font-variation-settings: "wght" 620, "wdth" 108;
+  }
+
+  /* Anchors land instantly. Smooth scrolling is a long, large-area
+     movement, which is exactly the kind this setting is asking us not
+     to make — and it is the one animation on the page a reader cannot
+     opt out of by simply not touching anything. */
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -495,5 +526,172 @@
   .intro[data-phase="land"] .intro-skip,
   .intro[data-phase="out"] .intro-skip {
     opacity: 0;
+  }
+}
+
+/* ---- Legal pages ----------------------------------------------------
+   The one place on this site set as a plain reading column. Everything
+   here is running prose, so it is styled once rather than per element:
+   a policy nobody can read is the same as no policy. */
+@layer components {
+  .legal p {
+    max-width: 38rem;
+    color: var(--color-bone);
+    line-height: 1.72;
+  }
+
+  .legal p + p {
+    margin-top: 1.35em;
+  }
+
+  .legal h2 {
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    letter-spacing: 0.02em;
+    font-variation-settings: "wght" 700, "wdth" 112;
+    color: var(--color-bone);
+    margin-top: 3.25rem;
+    margin-bottom: 1.1rem;
+  }
+
+  /* A rule above each heading, because this page has no other structure
+     to hang off. Same hairline the landing page uses for its sections. */
+  .legal h2 {
+    border-top: 1px solid var(--color-edge);
+    padding-top: 1.6rem;
+  }
+
+  .legal ul {
+    margin-top: 1.35em;
+    max-width: 38rem;
+    display: grid;
+    gap: 0.85em;
+  }
+
+  /* Flame markers, sized and positioned by hand rather than left as the
+     browser's bullet: list-style markers cannot be coloured separately
+     from their text in every engine, and a grey bullet under bone type
+     is the detail that makes a page look unfinished. */
+  .legal li {
+    position: relative;
+    padding-left: 1.5rem;
+    color: var(--color-bone);
+    line-height: 1.72;
+  }
+
+  .legal li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.45rem;
+    height: 1px;
+    background-color: var(--color-flame);
+  }
+}
+
+/* ---- Track pages ----------------------------------------------------
+   The two tracks carry ten sessions between them, which is more list
+   than the landing page has anywhere. These are the two patterns that
+   repeat often enough to be worth naming. */
+@layer components {
+  /* A flame dash instead of a bullet. Browsers still will not let a
+     list marker be coloured independently of its text in every engine,
+     and a grey disc under bone type is the detail that makes a page look
+     unfinished. Same construction as the legal pages use. */
+  .marker-line {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+
+  .marker-line::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 0.45rem;
+    height: 1px;
+    background-color: var(--color-flame);
+  }
+
+  /* ---- The Forge pipeline rail ------------------------------------
+     Driven from components/PipelineRail.tsx, which sets data-built on
+     each step as you read past the matching workshop. Only colour and
+     opacity change, so a step lighting up costs nothing to paint and
+     cannot fight the heat field's own per-frame writes. */
+  .rail-step {
+    --rail: var(--color-edge);
+    --rail-ink: var(--color-ash);
+  }
+
+  .rail-step[data-built="true"] {
+    --rail: var(--color-flame);
+    --rail-ink: var(--color-bone);
+  }
+
+  .rail-gutter {
+    display: grid;
+    justify-items: center;
+    gap: 0.4rem;
+  }
+
+  .rail-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: 0.42em;
+    border: 1px solid var(--rail);
+    background-color: transparent;
+    transition:
+      background-color 420ms var(--ease-heat),
+      border-color 420ms var(--ease-heat);
+  }
+
+  /* Filled once built, hollow until then: the difference between a layer
+     that exists and one that is still coming has to survive being seen
+     at a glance, and a colour change alone does not. */
+  .rail-step[data-built="true"] .rail-dot {
+    background-color: var(--color-flame);
+  }
+
+  .rail-line {
+    width: 1px;
+    flex: 1;
+    min-height: 2.1rem;
+    background-color: var(--rail);
+    transition: background-color 420ms var(--ease-heat);
+  }
+
+  .rail-k {
+    color: var(--rail-ink);
+    transition: color 420ms var(--ease-heat);
+  }
+
+  .rail-v {
+    color: var(--color-ash);
+    opacity: 0.55;
+    transition: opacity 420ms var(--ease-heat);
+  }
+
+  .rail-step[data-built="true"] .rail-v {
+    opacity: 1;
+  }
+
+  /* Horizontal on narrow screens, where a sticky column has nowhere to
+     stick and the four layers read better as a strip above the reading
+     rather than beside it. */
+  @media (max-width: 1023px) {
+    .rail ol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem 1.5rem;
+    }
+
+    .rail-step {
+      padding-bottom: 0;
+    }
+
+    .rail-line {
+      display: none;
+    }
   }
 }
