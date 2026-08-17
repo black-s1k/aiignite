@@ -38,6 +38,35 @@ import { SIGNUP } from "@/lib/signup";
  * want it.
  */
 
+/**
+ * A person's name, linked to their LinkedIn when they have given us one
+ * and set as plain type when they have not.
+ *
+ * The fallback is the point. Four of the fifteen have not shared a
+ * profile yet, and the alternatives are both worse than plain text: a
+ * dead link punishes the reader for clicking, and a guessed URL sends
+ * them to a stranger. Neither is worth the visual consistency.
+ *
+ * `rel="noopener"` because the link opens a new tab and the opened page
+ * should not get a handle on this one; `noreferrer` because this site
+ * does not tell other sites where its traffic came from, which is the
+ * same position the privacy page takes.
+ */
+function Person({ name, linkedin }: { name: string; linkedin?: string }) {
+  if (!linkedin) return <span className="text-bone">{name}</span>;
+  return (
+    <a
+      href={linkedin}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${name} on LinkedIn`}
+      className="person text-bone underline decoration-edge underline-offset-4 transition-colors duration-200 hover:decoration-flame hover:text-flame"
+    >
+      {name}
+    </a>
+  );
+}
+
 const SHELL = "mx-auto w-full max-w-[86rem] px-6 sm:px-10 lg:px-16";
 const GUTTER = "grid gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16";
 
@@ -269,8 +298,8 @@ export default function Home() {
               <div className="grid gap-10 sm:grid-cols-2">
                 {TEAM.lead.map((p) => (
                   <div key={p.name} data-heat="rule" className="border-t border-edge pt-6">
-                    <p className="font-display text-lead text-bone [font-variation-settings:'wght'_700,'wdth'_112]">
-                      {p.name}
+                    <p className="font-display text-lead [font-variation-settings:'wght'_700,'wdth'_112]">
+                      <Person name={p.name} linkedin={p.linkedin} />
                     </p>
                     <p className="mt-1 text-small text-flame">{p.role}</p>
                   </div>
@@ -285,8 +314,11 @@ export default function Home() {
                     </p>
                     <ul className="mt-4 grid gap-1.5">
                       {g.people.map((n) => (
-                        <li key={n} className="text-read text-bone">
-                          {n}
+                        <li key={n.name} className="text-read">
+                          <Person
+                            name={n.name}
+                            linkedin={"linkedin" in n ? n.linkedin : undefined}
+                          />
                         </li>
                       ))}
                     </ul>
@@ -386,6 +418,19 @@ export default function Home() {
                 href={`mailto:${CLUB.contact}`}
               >
                 {CLUB.contact}
+              </a>
+            </p>
+            <p data-heat="label" className="label mt-6">
+              Follow
+            </p>
+            <p className="mt-2 text-small">
+              <a
+                className="text-bone underline underline-offset-4"
+                href={CLUB.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {CLUB.fullName} on LinkedIn
               </a>
             </p>
             <p data-heat="label" className="label mt-6">

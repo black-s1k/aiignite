@@ -40,6 +40,7 @@ export const CLUB = {
   contact: "hello@aiignite.ca",
   sponsors: "sponsors@aiignite.ca",
   site: "aiignite.ca",
+  linkedin: "https://www.linkedin.com/company/ai-ignite-at-york",
 } as const;
 
 /** The nav. Kept short on purpose, since five is already too many. */
@@ -336,35 +337,97 @@ export const GLANCE = [
    than ranked, apart from the two who founded it. */
 
 export const TEAM = {
+  /** LinkedIn URLs are the ones each person posted themselves in the
+   *  club chat. Tracking parameters have been stripped: several were
+   *  shared from the mobile app with a utm_source trailing on the end,
+   *  and forwarding those would quietly tell LinkedIn which page the
+   *  click came from, which is not something this site does anywhere
+   *  else.
+   *
+   *  `linkedin` is optional on purpose. Four people have not shared one
+   *  yet, and a name without a link renders as plain type rather than as
+   *  a dead or guessed link. Never invent one from a name. */
   lead: [
-    { name: "Sagarpreet Hooda", role: "Founder and President" },
-    { name: "Nrup Patel", role: "Executive Vice President" },
+    {
+      name: "Sagarpreet Hooda",
+      role: "Founder and President",
+      linkedin: "https://www.linkedin.com/in/sagarhooda9868702902",
+    },
+    {
+      name: "Nrup Patel",
+      role: "Executive Vice President",
+      linkedin: "https://www.linkedin.com/in/nruppatel16",
+    },
   ],
   groups: [
     {
       k: "Technical leads, Forge",
-      people: ["Nurjahan Ahmed Shiah", "Mehwish Saiyed"],
+      people: [
+        {
+          name: "Nurjahan Ahmed Shiah",
+          linkedin: "https://www.linkedin.com/in/nurjahan-shiah-5a9a291a1",
+        },
+        {
+          name: "Mehwish Saiyed",
+          linkedin: "https://www.linkedin.com/in/mehwish-saiyed",
+        },
+      ],
     },
     {
       k: "Technical leads, Spark",
-      people: ["Devyansh Raj", "Angad Ahluwalia"],
+      people: [
+        {
+          name: "Devyansh Raj",
+          linkedin: "https://www.linkedin.com/in/devyansh-raj-",
+        },
+        { name: "Angad Ahluwalia" },
+      ],
     },
     {
       k: "Finance",
       people: [
-        "Tatiana Dzyubenko",
-        "Sebastien Ming Huang Mach",
-        "Vianka Maria Fung Lu",
-        "Frances Chikezie",
+        {
+          name: "Tatiana Dzyubenko",
+          linkedin: "https://www.linkedin.com/in/tadzyu",
+        },
+        {
+          name: "Sebastien Ming Huang Mach",
+          linkedin: "https://www.linkedin.com/in/sebastien-mach-0997b3238",
+        },
+        {
+          name: "Vianka Maria Fung Lu",
+          linkedin: "https://www.linkedin.com/in/viankafunglu",
+        },
+        { name: "Frances Chikezie" },
       ],
     },
     {
       k: "Marketing",
-      people: ["Arushi Bisht", "Ghalib Hassan", "Saharra Dhamrait"],
+      people: [
+        {
+          name: "Arushi Bisht",
+          linkedin: "https://www.linkedin.com/in/arushi-b-44787a224",
+        },
+        {
+          name: "Ghalib Hassan",
+          linkedin: "https://www.linkedin.com/in/ghalibhassan",
+        },
+        {
+          name: "Saharra Dhamrait",
+          linkedin: "https://www.linkedin.com/in/saharrad",
+        },
+      ],
     },
     {
       k: "Support management",
-      people: ["Andrei Outkin Perez", "Manpreet Singh", "Saharra Dhamrait"],
+      people: [
+        { name: "Andrei Outkin Perez" },
+        { name: "Manpreet Singh" },
+        {
+          name: "Saharra Dhamrait",
+          linkedin: "https://www.linkedin.com/in/saharrad",
+        },
+      ],
     },
   ],
 } as const;
