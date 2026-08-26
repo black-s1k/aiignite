@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Newsreader } from "next/font/google";
 import { HeatField } from "@/components/HeatField";
+import { ScrollReveal } from "@/components/ScrollReveal";
 import { CLUB } from "@/lib/content";
 import "./globals.css";
 
@@ -61,6 +62,10 @@ export default function RootLayout({
         {/* One field, one loop. Everything with a data-heat attribute
             is driven from here — see components/HeatField.tsx. */}
         <HeatField />
+        {/* Reveals content as it comes into view, every page. One
+            observer, no loop — see the header for why it is shaped the
+            way it is. */}
+        <ScrollReveal />
         {children}
       </body>
     </html>

@@ -39,10 +39,11 @@ persistence is what makes it read as a material rather than a hover
 state**, and it is the reason this is a simulation and not a set of
 transitions.
 
-Elements opt in declaratively with `data-heat="type|rule|label|mark"`
-and one loop drives them all. Type swells (weight AND width), rules warm
-toward the flame, labels ignite, the mark flares. Nothing glows and
-nothing gradients.
+Elements opt in declaratively with
+`data-heat="type|rule|label|mark|draw"` and one loop drives them all.
+Type swells (weight AND width), rules warm toward the flame, labels
+ignite, the mark flares, and the freehand marks warm AND thicken.
+Nothing glows and nothing gradients.
 
 Heat comes from things the reader actually does: the **pointer**, the
 **scroll** (movement is friction is heat — and it is the only source a
@@ -89,6 +90,594 @@ hotter than a passing move so that tapping feels like striking a match.
 Verified behaviour, weight out of 900: idle 270–606 (alive untouched),
 after a drag 275–704, 1.2s later 278–433 (cooling), after a tap
 286–900.
+
+## The mark burns
+
+`components/Mark.tsx` is an inline SVG traced from `public/logo-flame.png`,
+not the PNG mask it used to be. The artwork is five disjoint shapes — a
+body, three detached tongues, and a rounded core — and the nav's instance
+animates four of them continuously, because a fire mark that holds still
+is a drawing of a fire. `alive` turns that on; only the nav passes it.
+
+The intro's instance passes `alive` AND `face`. `face` cuts an angry glare
+into the core with an SVG `<mask>` — each eye an ellipse with its top
+sliced flat and rotated so the brow falls toward the nose. The eyes open on
+the ignition and shut on the landing, so what flies across the screen is a
+mascot and what arrives in the nav is the logo. The core blob was already
+head-shaped; nothing was drawn on top of the mark to achieve this, which is
+the rule.
+
+The intro is the drawing, then a mascot clip, then the nav — 4.8s door
+to door, and no type at all. The wordmark used to be written out under
+the drawing and held to be read; it was removed at the client's
+direction, along with the viewport-fitting maths that existed only to
+size it. Nothing in `CUE` moved when it went, because every cue is pinned
+to a clip rather than to the name.
+
+**Both clips are played at 2.25x rather than cut.** 3.68s of drawing runs
+in 1.67s, 4.46s of mascot in 2.04s, and nothing is missing from either.
+The masters are in `assets/` (`draw-master-3.68s.mp4`,
+`mascot-master.mov`); the files in `public/` are always derived, never
+edited. Change the rate and every cue in `CUE` moves with it, plus
+`HOMING`, which is measured off the encode rather than assumed.
+
+**The reveal is SEQUENTIAL, not simultaneous.** The clip fades out over
+200ms and only then, after a matching 200ms delay, does the stock clear
+over 360ms. They used to start together, and the clip's last frame still
+carries five or six lit embers behind the parked flame — so the page was
+fading up through live animation, which read as an overlay clearing off
+something already there rather than as a handover. Change the mascot's
+fade and the delay on `.intro[data-phase="land"]` has to move with it.
+
+**The clip's trail is masked out IN THE ENCODE, and that is what lets the
+flame reach the corner without stopping first.** The element is what
+flies, so anything still painted in it flies too — and the clip's ember
+trail reaches ~1000px behind the flame, which slid into the corner with
+it. Waiting for the clip to end fixes that but leaves the flame sitting
+still mid-screen for a beat, which reads as it stopping in the wrong
+place. Neither is acceptable, so the trail is removed from the video: a
+circle centred on the flame's own path that SHRINKS across five frames,
+baked in with `geq`. Progressive, because cutting it in one step pops.
+
+Measured on the shipped encode: trail reach goes 1007 -> 882 -> 629 ->
+458 -> 243 -> 63px while the flame's pixel count stays identical to the
+unmasked version, so nothing of the flame was eaten. `CLEAN_FROM` in
+Intro.tsx is the moment it is flame-only, and the move starts there —
+while the flame is still travelling, so there is no park.
+
+**The old approach, for contrast:** The element
+is what flies, so everything painted in it flies too — move it mid-swoop
+and the trail of embers slides and shrinks into the corner alongside the
+flame, which is very visible and plainly wrong. The clip fixes this itself
+if it is allowed to finish: measured on the shipped encode, every lit
+pixel on the final frame sits within 0.088 frame-heights of the flame's
+own centre, so the trail has burned out in place with the element
+standing still. The handler pauses the video and seeks it to `duration`
+before transforming, so a slow decode cannot leak an earlier frame that
+still has trail in it. Verified: across 46 sampled frames of the move the
+playhead is pinned at the clip's duration with `ended === true`.
+
+**The clip is what flies, and that is the whole trick.** Its flame parks
+near the top left OF ITS OWN FRAME — but that frame is a fixed-ratio box
+centred in the viewport, so its top left sits out in the middle of the
+screen, and it moves with every window size. Aiming at a corner from
+inside the clip is impossible. So over its last 670ms the whole `<video>`
+is scaled and translated until the point its flame rests on maps onto the
+nav's mark, solved at run time from the real boxes. Verified within 0.1px
+from 390x844 to 2560x1440, including landscape and short viewports.
+
+There is no separate mark flying: the clip's flame arrives at the nav's
+position and at the nav's size, and the nav's own mark comes up
+underneath it. `EXIT` in Intro.tsx is where the clip parks its flame, as
+fractions of the VIDEO frame, measured off the last frame's largest lit
+blob so stray embers do not drag the answer. Re-cut the clip and it must
+be re-measured.
+
+An earlier version instead flew a copy of the mark from mid-stage. A flame ignited
+in the drawing's place at one point, and later a generated clip of a
+mascot performed there before flying up into the nav; both were removed
+at the client's direction. `assets/flame-master.mp4` is that clip's
+source, kept only so it is not lost.
+
+**What the attempt is worth remembering for:** a sequence can only hand
+over between two DIFFERENT drawings of the same creature if they match in
+position, size AND angle at the instant they swap — and even solved to
+zero on all three, the change of shape is still findable. One drawing and
+one handover is the version with no seam to hide.
+
+`face` is currently unused — the intro's flame was the only thing that
+ever wore it. The prop, the eye geometry and the CSS that opens the eyes
+are kept because they are measured against the real artwork and would be
+tedious to derive again.
+
+### Things that will bite you here
+
+- **The heat field writes `transform` AND `filter` on the `data-heat="mark"`
+  element every frame.** The burn therefore lives on the paths INSIDE the
+  `<svg>`, never on the `<svg>` itself. Put a CSS animation on the root and
+  the field silently eats it sixty times a second.
+- **Never amplify a generated clip's glow.** Lifting gamma to brighten the
+  flame pushed the source's soft bloom from invisible into a dark oval
+  halo around the character under `screen`. It is crushed to black
+  instead - which the house rule wanted anyway, since nothing here glows.
+- **The glare's tilt sign is the whole expression.** Brow low at the INNER
+  corner is angry; low at the outer corner is sad, and the two are one
+  minus sign apart. Verify by measuring the brow's y at each end, not by
+  squinting at a thumbnail — it was got backwards twice that way.
+- **Nested transforms, one concern each.** Flight / hover / ignition are
+  three separate spans, the heat field owns the `<svg>`, and the burn owns
+  the paths inside it. Five transforms, five elements, no collisions.
+- **`transform-box: fill-box` is load-bearing.** Without it an SVG
+  `transform-origin` resolves against the viewBox, and all four moving
+  parts swing from the same far corner instead of from their own bases.
+- **An `<svg>` clips to its viewport.** The blade tip sits 7 units from the
+  top edge and the sway leaves 2.9 of headroom, so `.flame-alive` sets
+  `overflow: visible`. Raise an amplitude without it and you lop the tip.
+- **A `<mask>` resolves in the user space of the element that references
+  it.** Hang it on a transformed ancestor and the eyes slide off the head.
+- **These are the only `@keyframes` on the site.** Everything else is a
+  transition, because everything else answers something the reader did.
+  This does not, which is the point.
+- **Re-emit, never hand-edit the path data.** Trace the ANTI-ALIASED alpha
+  at level 127.5; tracing a thresholded copy costs half a pixel and follows
+  the staircase (342 vertices for the body against 145). Current data is
+  tolerance 0.5, soft IoU 0.988, and is verified only up to ~340 device px
+  tall — above that, re-emit tighter.
+
+## The page is drawn on
+
+`components/Draw.tsx` carries twenty-eight freehand marks: one over each
+section label in the left gutter, one over each of the three logistics
+facts, a larger one on each track, fifteen scattered across the hero —
+one of them HuggingFace, the single logo that had to be drawn rather than
+borrowed, see "The borrowed marks" — and `cloudnet`, the cloud-and-circuit
+mark standing over the headline.
+
+**The argument for them is continuity, not decoration.** The intro is a
+DRAWING being drawn, and `Mark.tsx` is traced from the real artwork — so
+the site opens in a hand and then abandons it, because everything after
+the first 4.8 seconds is type, hairline rules and space. These carry that
+hand into the page.
+
+**They are drawn here rather than licensed.** The brief pointed at
+Streamline's Freehand Duotone set. Those are Pro-tier, so shipping them
+needs a paid licence — and more to the point DUOTONE would spend the
+flame in a dozen new places, against the palette rule that the accent is
+the one saturated colour and means less everywhere it is repeated. These
+are strokes only, warmed by the field like every other rule.
+
+**The gutter is where they go because the gutter was already there.**
+`GUTTER` reserves a 14rem column that held one 13px label; the marks
+spend space the layout had and never used, rather than adding any.
+
+**The hero scatter is fifteen marks across the whole first screen**, each
+turned a few degrees off square, and six of them in bone rather than ash
+(`.draw-bone`) so the field has a foreground and a background instead of
+one even texture fill. Four in the corners reads as a frame; a scatter
+reads as a surface the headline is sitting on. Positions are in
+`app/page.tsx`, and the rules that keep them off the type are in the
+comment above them.
+
+**The phone gets its own layer, not a responsive version of that one.**
+The desktop scatter works by horizontal clearance — the empty margins
+left and right of a centred headline. At 390px those margins are about
+90px and the tagline and paragraph run edge to edge, so there is no
+continuous margin to run marks down. What exists instead is three BANDS
+where the centred content is narrower than the screen: beside the cloud
+mark, beside the headline, and beside the stacked buttons. Eight marks
+live there, four a side. The two compositions share nothing but the
+marks themselves, which is why they are two layers rather than one with
+breakpoints.
+
+This only became possible when the hero body was centred. While it was
+left-offset and full-bleed there was nowhere on a phone to put these,
+which is why the layer was `lg:` only until then.
+
+### Things that will bite you here
+
+- **The path data is GENERATED. Do not hand-edit it.** Each mark is
+  drafted as clean geometry and then put through a roughening pass that
+  displaces it along its own normal with smooth noise. Redraft the clean
+  shape and re-run the pass — the same rule as `Mark.tsx`'s trace. The
+  pass is `tools/marks/rough.mjs`; `tools/marks/hero-marks.mjs` holds the
+  clean geometry for the ten newest hero marks and prints them ready to
+  paste. Everything older has no clean source checked in and needs its
+  shape written there first.
+- **A flat wobble amplitude turns every mark into a POTATO.** A drawn
+  line is confident: the proportions stay accurate, the corners stay
+  corners, and only the runs between them wander. Amplitude also has to
+  scale with the feature, or it is a quarter of a 2-unit pupil's radius
+  and invisible on a 60-unit outline.
+- **A corner is a SPIKE in turn rate, not a large angle.** Judged
+  against a fixed threshold, every sample on a small circle reads as a
+  corner, its tangents get collapsed, and the circle comes out a
+  heptagon. It is measured against the path's own median curvature.
+  Rate only means anything on an EVENLY sampled line, though, and the
+  corners have to survive into the output exactly — so the pass finds
+  them on a finely subdivided copy and then lays the output samples down
+  run by run between them.
+- **A hero mark cannot be positioned as a share of the section's
+  height.** `pt-[26vh]` scales with the window and the type inside it
+  does not, so the 56px gap between the headline and the tagline wanders
+  from 58.7% to 62.9% of the section between 1024x860 and 1600x1200 —
+  a 40px swing, wider than the gap can absorb. The two marks that cross
+  the middle hang off a `relative` wrapper around the `h1` instead.
+  Everything in the margins is safe at any percentage because it clears
+  the type HORIZONTALLY.
+- **`vector-effect: non-scaling-stroke` is load-bearing.** Without it
+  `--draw-w` is in user units, so one value is a hairline on a 30px
+  logistics mark and a slab on a 158px track drawing, and the set stops
+  reading as one hand.
+- **The wrapping `<div>` is not decoration.** An `<svg>` holds no text
+  and contains no descendant `img`/`svg`, so `ScrollReveal`'s content
+  test can never match it. Drop the div and these become the only things
+  on the page that do not come up into it.
+- **`size` takes a number OR a CSS length.** A number is px and computes
+  its own height; a string sets `width` and lets `aspect-ratio` do the
+  rest. Everything except `cloudnet` is still px, laid out against those
+  numbers.
+- **`cloudnet` is sized in `em` against `--text-hero`, and the 3.77 is
+  measured.** With the headline frozen it renders at exactly 3.770x its
+  own font-size at every width (512.8px at a 136px cap, 409.4px at
+  108.6px), so `text-hero` plus `size="3.77em"` makes the mark exactly as
+  wide as "AI Ignite" and keeps it there as the type scales. The ratio is
+  a property of that STRING, in that FACE, at that WEIGHT — re-measure if
+  any of the three changes. It was 3.80 while the line still animated,
+  which was really a snapshot of a moving target.
+- **`cloudnet` is the one mark not drafted on a 64 box.** It is 128x126,
+  because it renders at headline width and the extra room goes into the
+  wiring. Its box lives in `BOXES` in `tools/marks/hero-marks.mjs`.
+- **It is roughly square, so width and height are the same decision.** At
+  headline width it is ~509px tall on a desktop, which puts the tagline
+  and both CTAs below the fold on a 940px window. That is inherent to the
+  reference art, not a layout bug — the levers are a flatter redraw
+  (shorter tentacle drop) or moving it behind the headline.
+- **`--text-hero` is the landing headline; `--text-vast` is the track
+  pages.** They were one token until the cloud mark went in over the
+  headline and the pair together pushed the tagline off a laptop screen.
+  Same line-height and tracking, one step apart in size.
+- **`hero-line` is a ScrollReveal marker, not a style.** It carries no
+  CSS at all. It is on the headline because the headline has an arrival
+  of its own, and on `cloudnet` because a mark tipping up while the words
+  under it sat still read as two objects instead of one masthead.
+- **One cloud per screen.** The scatter's small `cloud` was removed when
+  `cloudnet` went in over the headline — two clouds 300px apart read as
+  the same idea twice rather than as texture. The mark is still in the
+  registry for anywhere else that wants it.
+- **`LOGISTICS_MARK` in page.tsx is keyed by the label's own text and
+  typed against it**, so changing that copy in `lib/content.ts` without
+  choosing a mark is a build error rather than a mark that silently stops
+  rendering. The track drawings need no such map: `t.key` is already
+  `"spark" | "forge"`.
+- **The marks are `aria-hidden`.** Every one restates the label directly
+  beside it, so announcing them reads the section name twice.
+
+## The borrowed marks
+
+`components/Brand.tsx` carries six third-party tool logos — Anthropic,
+OpenAI, Perplexity, n8n, Cursor, LangChain — threaded into the hero
+scatter among the drawn ones. HuggingFace is the seventh of the set and
+is NOT here: see the silhouetting note below for why it is in Draw.tsx
+instead.
+
+**They are a separate component from `Draw.tsx` on purpose.** Every drawn
+mark goes through a roughening pass, and a roughened logo is an ALTERED
+logo, which is the one thing essentially every brand guideline forbids
+outright. A hand-redrawn OpenAI knot would also simply look like a
+knockoff. So the two sets are two components and the seam is honest
+rather than hidden.
+
+**They are used unmodified, and coloured by a CSS mask.** Same argument
+`Mark.tsx` made when it was a PNG alpha plate: the ink comes from the
+stylesheet, so it cannot drift out of step with the palette. Seven
+full-colour logos would spend the flame's saturation budget seven more
+times, against the rule that the accent is the one saturated colour here.
+Masked, they are ash like everything else and they warm with the field.
+The shape is the vendor's own file; only the ink is ours.
+
+**Six of the seven are named in `lib/content.ts` already** — Claude.ai,
+ChatGPT, n8n and Cursor in the Spark tool list, OpenAI API, HuggingFace
+and LangChain in the Forge stack. That is what keeps them clear of the
+slop audit's partner-logo ban: they state which tools the club teaches,
+which is true, rather than implying sponsorship, which would not be.
+**Perplexity is the exception and is not named anywhere in the copy.**
+Either add it to the Spark tool list or drop the mark; a logo for a tool
+no session uses is exactly the unearned claim the content rule exists to
+prevent.
+
+### Things that will bite you here
+
+- **Never fabricate or fetch a third-party logo to fill a gap** — a
+  standing decision on this project, taken the first time these same four
+  brands came up. They are sourced from each vendor's official kit.
+- **`assets/brand/` holds the masters; `public/brand/` is DERIVED.** Same
+  rule the video clips follow. Vendors ship opaque files — black on white,
+  or a lockup on a dark card — and an opaque file masks as a solid
+  rectangle. `tools/brand/mask.py` keys the ground out, optionally crops a
+  lockup to its icon, and trims to the ink. Re-run it; never hand-edit
+  what lands in `public/`.
+- **Silhouetting only works on marks whose identity is SHAPE.** Measured
+  on the first batch: the OpenAI knot, the n8n node glyph and the
+  Anthropic mark came through clean, and Cursor's gradient-shaded cube,
+  HuggingFace's yellow face and the LangChain parrot came through as
+  featureless blobs, because what makes those readable is hue, not
+  outline. No threshold recovers it — the information is not in the file.
+  The script warns when the keyed ink covers more than 75% of its own
+  box, which is what that failure looks like numerically.
+- **HuggingFace is the exception that proves where the line is.** It
+  could not be masked, so at the client's direction it is DRAWN, in
+  `tools/marks/hero-marks.mjs` like any other freehand mark — a redrawn
+  logo, knowingly, because a blob was the only alternative. It is the one
+  place the borrowed/drawn split is crossed. If Cursor or LangChain ever
+  get the same treatment, they belong there too, not in `Brand.tsx`.
+- **The phone layer is anchored by percentage of the stage,** which only
+  became possible when the stage did. The stage is exactly one screen at
+  every size, so a percentage of it is a percentage of the screen — and
+  the content is bottom-anchored and narrower than the phone at every
+  height, so these clear it HORIZONTALLY wherever they land vertically.
+  It used fixed `rem` offsets while the section owned the full height,
+  and those left the marks stranded at the top the moment the content
+  moved down to the fold.
+- **The stacked CTAs are capped at `max-w-[15rem]`, and that cap is what
+  keeps the bottom two marks clear.** At 17rem on a 360px screen the
+  buttons left 2px between their edge and the marks beside them. Widen
+  them and re-check 360 first.
+- **The logos are balanced against what RENDERS, not what is listed.**
+  Three slots a side, but a slot with no file is invisible, so an even
+  split of slots reads lopsided on the real page. Count what a reader
+  actually sees after changing any of them.
+- **The mask reads ALPHA.** A logo sitting on a white or coloured
+  rectangle masks as a solid block, because the rectangle is opaque too.
+  Use the monochrome-on-transparent variant every brand kit ships.
+- **Use the icon, not the wordmark.** `mask-size: contain` letterboxes a
+  wide wordmark to about a third of the height of the marks beside it,
+  and it is an unreadable smear at 34px anyway.
+- **A missing file renders nothing, deliberately** — not a broken box —
+  so the build never fails on a logo nobody has downloaded. The lookup
+  resolves ONCE at module load, which under `output: "export"` is build
+  time: `next dev` will not notice a file you add while it is running.
+- **They are not rotated, and the drawn marks are.** Turning a drawn mark
+  off square is the hand showing; turning a logo off square is the
+  alteration its guideline forbids. Against the tilted neighbours the
+  difference reads as deference, not as a mistake. The drawn HuggingFace
+  follows the LOGO rule here, not the drawn one: it sits level.
+
+## The hero is one screen
+
+The mark, the scatter and the headline live in a STAGE — a
+`min-h-svh flex flex-col justify-end` block at the top of the section.
+The headline sits flush with the bottom of it, so the whole composition
+grows UPWARD from the fold as the type scales rather than downward past
+it. Everything else in the section follows below and is scrolled to.
+
+### Things that will bite you here
+
+- **`svh`, never `vh`.** On a phone `100vh` is the height with the
+  browser chrome RETRACTED, so a stage sized in `vh` is taller than the
+  screen the reader actually has until they scroll — exactly the
+  overflow the stage exists to prevent. `svh` is the chrome-expanded
+  height: always safe, occasionally a little short, which is the right
+  way round.
+- **`--text-hero` carries a `vh` term, and it has to.** The mark is
+  3.71em tall and the two headline lines are 1.76em, so the stack is
+  ~5.5em. Bind that to width alone and a wide short window — a laptop at
+  1440x700, a phone in landscape — gets a block far taller than its
+  screen. It is a `min()` of the width and height terms rather than
+  another clamp stop, because whichever runs out FIRST must decide.
+- **The `- 22px` in that expression is derived, not fudged.** The stage
+  spends a fixed amount before the type gets any: the nav clearance its
+  `pt` floors at 96px, plus the 24px gap under the mark. Those do not
+  shrink with the window. Solving `5.47em <= 0.96svh - 120` gives
+  `0.1755svh - 21.9`. Without it, 15.5vh alone still overflowed at
+  1440x613, 1280x713 and 1024x681 — measured, not guessed.
+- **Verify by MEASURING, not by looking.** The check is: mark top >= 96
+  (clears the nav) and headline bottom <= innerHeight, at a spread of
+  sizes. It currently passes at 1440x900/700, 1280x800, 1024x768/600,
+  1920x1080, 820x1180, 500x844/667 and 740x420.
+- **Nothing may hang off the headline's bottom edge any more.** That edge
+  is the fold. The `chart` and `branch` marks used to be anchored to it
+  with `top-full`; they are in the scatter beside the cloud's wires now.
+- **On a very tall window there is deliberate air above the mark.** The
+  type is capped at 7rem, so past about 1200px of height the stack stops
+  growing and the space goes above it. That is the cap doing its job,
+  not a layout fault.
+
+## The tagline lives in the cloud
+
+On `lg` and up the tagline sits INSIDE `cloudnet` rather than under the
+headline. The mark was a large empty outline; this is what makes it a
+container instead of a decoration.
+
+### Things that will bite you here
+
+- **The text box is measured off the cloud's own path.** Over the band
+  y=30..58 of the 126-unit viewBox the outline never comes in past x=18
+  left or x=108 right — its narrowest points in that band, where the
+  shoulders curve in. `inset-x-[15%] top-[24%] h-[22%]` is that rectangle
+  with a little spare. Redraw the cloud and this has to be re-derived.
+- **Size it in `em` off the wrapper, never with `text-lead`.** The two
+  scale on different curves: the mark follows the headline, while
+  `text-lead` is capped from 1024 up — so at 1024 the cloud is at its
+  smallest and the type at its largest, and "Let AI do the rest." came
+  within a few pixels of the outline. In `em` it is a fixed fraction of
+  the cloud at every width.
+- **There are two tagline nodes, and that is deliberate.** One node
+  inside the cloud wrapper would sit ABOVE the headline in source order
+  on mobile, and the headline has to come first. `hidden` removes the
+  inactive one from the accessibility tree, so only one is ever
+  announced. Below `lg` the cloud is ~175px wide and its interior would
+  set the line at about 9px, which is why the phone keeps its own copy
+  under the headline.
+- **Both copies read `CLUB.tagline`,** through the `Tagline` component,
+  which splits the string on `\bAI\b` and sets that word in the flame.
+  Neither copy is a literal, so rewording the line in `lib/content.ts`
+  cannot leave a stale one behind in the markup. Word boundaries, so it
+  colours the word and never the letters inside another one; if the
+  tagline ever stops containing it the line renders whole rather than
+  breaking.
+- **The centring flex box must have exactly ONE child.** With `flex` on
+  the paragraph itself, every run of text either side of the flame-set
+  "AI" became its own flex item: the line broke into three columns and
+  the word landed in the gutter between them. A flex parent wrapping a
+  single `<p>` centres the block while the text inside stays ordinary
+  inline text. Anything else inlined into this line hits the same trap.
+
+## The air over the headline
+
+`components/Haze.tsx` refracts the masthead. The heat used to live INSIDE
+the letterforms — the weight and width axes swelled with the field, which
+is the signature this build is named for. The masthead is set solid now,
+so on that one line the heat moved from the object to the MEDIUM: the
+type holds still and the air over it distorts. Running both at once is
+mush; one after the other is the idea arriving in two stages.
+
+**Refraction, not a glow.** The obvious "heat text" effect is a blurred
+copy behind the type, lifted and faded — that is a glow with extra steps,
+against the rule that nothing here glows. Displacement moves light rather
+than adding it, and it is the one a physicist would recognise.
+
+`feTurbulence` makes a fixed noise field, `feDisplacementMap` pushes the
+text by it, and HeatField writes only `scale` — from the same simulation
+that drives everything else, so the headline warps hardest where the
+reader has just been.
+
+### Things that will bite you here
+
+- **At the obvious settings this does not shimmer, it ERODES.** Built
+  first at `baseFrequency="0.011 0.042"` with two octaves, the letter
+  edges came out crunchy and chewed, like a badly resized JPEG. High
+  frequency means neighbouring pixels displace independently, which is
+  exactly what eats an edge.
+- **The fix is two things together: much lower frequency AND a blur on
+  the displacement map.** `0.004 0.012`, one octave, `stdDeviation 2`.
+  Low frequency moves whole runs of edge together; the blur guarantees a
+  smooth field, and a smooth field cannot tear an edge. The blur costs
+  amplitude — it pulls the noise toward neutral grey — which is why the
+  tuned scale is more than twice the untuned one.
+- **`scale` is the ONLY attribute that may be animated.** Touching
+  `baseFrequency` or `seed` per frame regenerates the whole turbulence:
+  it boils rather than shimmers, and costs far more.
+- **The amplitude is a fraction of the headline's measured HEIGHT, not a
+  pixel count.** Displacement is in absolute px, so a fixed 16 is four
+  times the distortion on a 46px phone headline that it is on a 136px
+  desktop one. `n.px` is read in the read pass for this and nothing else.
+- **Writes are quantised to a quarter pixel.** A filter re-rasterises the
+  whole element on any attribute change, and the last two decimals of a
+  displacement are worth nothing visually and a full repaint each.
+- **It cannot move the layout, and that is load-bearing.** A filter is
+  paint: the headline's box is identical with it on or off, which is what
+  keeps `cloudnet`'s measured 3.77em match true. Any solution using a
+  transform or a font axis would have broken that.
+- **Off under `prefers-reduced-motion`,** in the CSS and again in the
+  field. The ambient half of the simulation is computed from time rather
+  than stepped, so it keeps moving even when nothing is being simulated —
+  a headline quietly rippling at someone who asked for no motion is
+  precisely what that setting exists to prevent.
+
+**The landing headline does not animate, and that is the point.**
+Everything else on the page swells because the reader is doing something;
+the masthead holds still because it is the thing being arrived at (the
+heat is in the air over it instead — see above). It was
+measured breathing between 485 and 643 weight before it was frozen, and
+is set solid at 640 — the top of its own range, so it reads as the heavy
+state it was reaching for rather than as a frame caught mid-cycle.
+
+It uses plain spans, not `HeatText`: with nothing to drive per character
+there is no reason to split the line into fourteen inline-blocks, and the
+`aria-label` that split made necessary goes with it. `HeatText` is still
+used by `TrackHead`, which does still animate. Holding still is also what
+makes the line's width deterministic, which is what lets `cloudnet` be
+matched to it exactly.
+
+## The nav labels roll
+
+Each label is two faces of a cube edge: the one you read, and one hinged
+below it at ninety degrees. Hovering (or focusing) turns the pair a
+quarter turn, so the word reads as printed on a drum rather than as
+having simply changed colour.
+
+- **The geometry is one number.** With `line-height: 1.2`, half the box
+  is 0.6em, so pushing each face 0.6em along its own Z after rotating
+  puts them on adjacent faces of a cube centred on the origin. Get it
+  wrong and the faces either pull apart mid-turn or clip through each
+  other.
+- **No `overflow: hidden` anywhere in it.** It is the obvious way to hide
+  the face turning away, and it flattens the 3D — a clipping container
+  forces its children back into the plane. `backface-visibility` does the
+  hiding.
+- **The second copy is a pseudo-element, not a second span.** Written
+  twice in the markup the link's text content becomes "TracksTracks",
+  which is what find-in-page matches and what a copy-paste returns.
+- **Its colour is set, not inherited**, so the heat field driving the
+  link's colour every frame cannot reach it. The arriving word is always
+  the bright one.
+
+## Coming into view
+
+`components/ScrollReveal.tsx` reveals every content block on every page —
+117 of them on the landing page, 61 on Spark, 103 on Forge. Each block is
+hinged along its own bottom edge and tipped 26 degrees away from the
+reader, so it comes UP into the page rather than sliding onto it. It does not
+work from a list of selectors, which goes stale the moment anyone adds a
+section. It walks the page and keeps every block-level element that holds
+content AND has no block-level descendant holding content: the leaves of
+the layout. That is "every component" without naming any of them, and it
+cannot double-animate, because an element and its own parent can never
+both be leaves.
+
+### Things that will bite you here
+
+- **It plays in BOTH directions**, at the client's direction, so three
+  observers are doing three different jobs and none of them can be
+  merged. `io` triggers the reveal on a root shrunk 25% at the bottom.
+  `full` reveals anything entirely on screen, which covers the trigger's
+  one bad case — a short block coming to rest inside that bottom quarter,
+  fully visible and fully invisible — and the bottom of the document,
+  where the page runs out of scroll and nothing can reach the shrunk
+  root. `rearm` resets a block, on a root EXPANDED by a fifth of the
+  screen, so it must be properly gone before it hides again. Reset on
+  either of the other two roots and content blinks out while it is being
+  read.
+- **`full` uses `threshold: 0.99`, not 1.** A ratio of exactly 1 is
+  unreliable at subpixel sizes; a block sitting at 0.9999 never fires.
+- **A negative bottom `rootMargin` is REQUIRED.**
+  Without one the reveal fires the instant a block touches the bottom
+  edge — measured at 897px of a 900px viewport — so the whole 720ms runs
+  while the block is still off screen and it has already settled by the
+  time anyone can read it. The animation ran perfectly and was invisible;
+  that is what "there is no scroll animation" turned out to mean. It is
+  `-25%` now, which fires at 75% down the screen.
+  The cost is a dead band across the bottom of the viewport: whatever
+  sits in it when the page runs out of scroll can never enter the shrunk
+  root, and that stranded the last two footer blocks at opacity 0
+  permanently. `flush` in ScrollReveal.tsx pays for it — one passive
+  scroll listener that reveals whatever is left once the document bottom
+  is reached, then removes itself. Take the margin out and the effect
+  disappears; take the flush out and content does.
+- **`threshold: 0`, never a fraction.** A block taller than the viewport
+  can never reach a percentage of ITSELF, and a fast scroll can carry a
+  short one past a band between frames.
+- **Anything folded inside a `<details>` must be excluded.** A closed
+  disclosure never renders its answer, so the observer cannot fire for
+  it — it would sit at opacity 0 forever and opening a FAQ item would
+  show an empty panel. The disclosure IS that content's reveal.
+- **Verify by scrolling every page end to end and counting the blocks
+  that NEVER reached `data-reveal="in"`.** It must be zero. Counting what
+  is still `"out"` when the pass finishes tests nothing, because the
+  reveal plays in both directions and every block well above the viewport
+  is correctly re-armed by then — that reading says 101 of 117 are
+  broken on a page where none of them are. Give the observer a good
+  second to settle at the end, or the test lies either way.
+- **Perspective is per element, not on a shared ancestor.** One ancestor
+  would put every block on the same vanishing point, so blocks at the
+  edges of a wide row would swing while the middle one barely moved.
+- **The angle and the lens have to be read together.** 14 degrees at
+  1100px was measurably rotating and visually nothing; a shallow angle
+  through a long lens flattens straight back out. 26 at 760 reads.
+- **The nav is excluded on purpose.** It is fixed, so there is nothing to
+  reveal — and its labels are two faces of a rolling cube whose geometry
+  lives in a `transform`. A reveal on those faces overwrites it and the
+  roll comes apart.
 
 ## The palette
 
@@ -160,6 +749,13 @@ finish.** Do not answer "this feels generic" by adding more effects.
   heated headline costs nothing but characters.
 - `components/Mark.tsx` — the flame, used as a CSS mask rather than an
   `<img>` so its colour comes from the palette and can never drift.
+- `components/Brand.tsx` — the seven borrowed tool logos, masked so they
+  take the page's ink. Read its header before adding one: the sourcing
+  rule and the alpha/wordmark traps are both in there.
+- `components/Draw.tsx` — the freehand marks, and the notes on the
+  roughening pass that produced their path data. Like the trace behind
+  `Mark.tsx`, the output is generated: redraft and re-run, never
+  hand-edit.
 - `lib/content.ts` — every fact the site states, in one place, including
   the two track curriculums. Read the header before adding to it: the
   no-unearned-claims rule is why sponsors are not named.
@@ -192,12 +788,32 @@ The ones that cost real work, so they do not get undone by accident:
   analytics and makes no third-party request, and the privacy page says
   exactly that. Add any of those things and both pages become false
   statements rather than missing ones.
+- **Width comes from the WIDTH AXIS, never from letter-spacing.** Micro
+  type tracked out to 0.18em is the eyebrow every generated landing page
+  opens with, and this page had it on `.label`, on `.nav-link` (0.14em)
+  and on the Sign up CTA. They are 0.04em now at `wdth` 125, so the width
+  sits in the letterforms. That is also the argument the rest of the page
+  already makes - the type carries the idea in its own shapes rather than
+  in an effect layered over it - and Archivo's axis was loaded the whole
+  time. Measured: the faculty line runs 262px at `wdth` 100 against 334px
+  at 125, so the axis really is doing the work.
+- **No "A / B" eyebrow above the headline.** Two facts joined by a middle
+  dot and floated over a huge title reads as a slot that had to be
+  filled. The hero states them as two stacked lines instead.
 - **No em dashes in user-visible copy.** `lib/content.ts` and
   `app/page.tsx` were rewritten to restructure the sentences rather than
   swap the character. Code comments still use them; they do not ship.
 - No emoji, no gradients, no stock photography, no invented numbers, no
-  testimonials, no scroll-triggered reveals, no builder badge. Each of
-  those is a choice, not an oversight.
+  testimonials, no builder badge. Each of those is a choice, not an
+  oversight.
+- **Scroll reveals were on that list and are not any more.** They were
+  banned because a reveal on everything is the cheapest way to make a
+  page feel authored when nothing about its structure is. The client
+  asked for them on every component, so the rule is now about HOW rather
+  than whether: they travel about a centimetre, they fire once and stop
+  observing, and they stagger by SIBLING so a row of three arrives as a
+  row of three. Long travel or replay-on-scroll-up would put this back
+  where it started. See `components/ScrollReveal.tsx`.
 
 ## Still to do
 

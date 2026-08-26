@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mark } from "@/components/Mark";
 import { CLUB, NAV } from "@/lib/content";
 import { SIGNUP } from "@/lib/signup";
@@ -21,6 +21,10 @@ import { SIGNUP } from "@/lib/signup";
  */
 export function Nav() {
   const ref = useRef<HTMLElement>(null);
+  /** The section currently crossing the middle of the screen, so the bar
+   *  can say where you are. Null over the hero, which is not a section
+   *  anyone navigated to. */
+  const [current, setCurrent] = useState<string | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -33,6 +37,30 @@ export function Nav() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // ---- which section you are in ---------------------------------------
+  useEffect(() => {
+    const sections = NAV.map((n) => n.href.split("#")[1])
+      .map((id) => (id ? document.getElementById(id) : null))
+      .filter((el): el is HTMLElement => !!el);
+    // The track pages carry the same nav but none of these anchors.
+    if (!sections.length) return;
+
+    // A thin band across the middle of the viewport: whichever section is
+    // crossing it is the one you are reading. Measuring against the top
+    // edge instead would flip to the next section the moment its heading
+    // appeared, while the previous one still filled the screen.
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setCurrent(e.target.id);
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
+    );
+    sections.forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 
   return (
@@ -63,7 +91,10 @@ export function Nav() {
               would add descender space under the mark and make the box
               taller than the mark it holds. */}
           <span data-lockup="nav-mark" className="flex">
-            <Mark className="h-9 w-6 sm:h-11 sm:w-8" />
+            {/* The one mark on the site that burns. Everywhere else it
+                is a logo; here it is the thing the intro just flew into
+                place, and it has to still be alive when it gets there. */}
+            <Mark className="h-9 w-6 sm:h-11 sm:w-8" alive />
           </span>
           <span data-lockup="nav-word" className="wordmark whitespace-nowrap">
             {CLUB.name}
@@ -77,12 +108,31 @@ export function Nav() {
         <ul className="ml-auto hidden items-center gap-8 md:flex">
           {NAV.map((n) => (
             <li key={n.href}>
+              {/* Two faces of a cube edge. On hover the pair rolls a
+                  quarter turn and the second face arrives in the first
+                  one's place — the label appears printed on a drum rather
+                  than to have simply swapped colour.
+
+                  The second copy is a pseudo-element rather than a second
+                  span, and that is the accessible choice here rather than
+                  a shortcut: written twice in the markup, the link's text
+                  content becomes "TracksTracks", which is what find-in-
+                  page searches and what a copy-paste returns. Decoration
+                  belongs in CSS. */}
               <a
                 href={n.href}
                 data-heat="label"
-                className="nav-link transition-colors duration-200 hover:!text-bone"
+                data-current={
+                  current && n.href.endsWith(`#${current}`) ? "" : undefined
+                }
+                aria-current={
+                  current && n.href.endsWith(`#${current}`) ? "true" : undefined
+                }
+                className="nav-link nav-roll transition-colors duration-200"
               >
-                {n.label}
+                <span className="nav-roll-in" data-label={n.label}>
+                  <span className="nav-roll-face">{n.label}</span>
+                </span>
               </a>
             </li>
           ))}
@@ -90,7 +140,7 @@ export function Nav() {
 
         <a
           href={SIGNUP.href}
-          className="ml-auto shrink-0 border border-flame px-5 py-2.5 font-display text-[0.8125rem] uppercase tracking-[0.14em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3 [font-variation-settings:'wght'_680,'wdth'_112]"
+          className="ml-auto shrink-0 border border-flame px-5 py-2.5 font-display text-[0.8125rem] uppercase tracking-[0.04em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3 [font-variation-settings:'wght'_680,'wdth'_125]"
         >
           Sign up
         </a>
