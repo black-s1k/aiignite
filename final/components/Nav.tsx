@@ -140,7 +140,7 @@ export function Nav() {
 
         <a
           href={SIGNUP.href}
-          className="ml-auto shrink-0 border border-flame px-5 py-2.5 font-display text-[0.8125rem] uppercase tracking-[0.04em] text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3 [font-variation-settings:'wght'_680,'wdth'_125]"
+          className="nav-cta ml-auto shrink-0 border border-flame px-5 py-2.5 text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3"
         >
           Sign up
         </a>

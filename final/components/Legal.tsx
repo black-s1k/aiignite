@@ -24,7 +24,7 @@ export function Legal({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-[42rem] px-6 pb-[14vh] pt-[12vh] sm:px-10">
+    <main className="mx-auto w-full max-w-read px-6 pb-[var(--space-section)] pt-[var(--space-section)] sm:px-10">
       <Link
         href="/"
         className="inline-flex items-center gap-3 no-underline"
@@ -34,7 +34,7 @@ export function Legal({
         <span className="wordmark whitespace-nowrap">{CLUB.name}</span>
       </Link>
 
-      <h1 className="mt-14 font-display text-title text-bone [font-variation-settings:'wght'_780,'wdth'_114]">
+      <h1 className="mt-14 text-title text-bone type-head">
         {title}
       </h1>
 

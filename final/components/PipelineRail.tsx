@@ -86,7 +86,7 @@ export function PipelineRail({
                 )}
               </div>
               <div>
-                <p className="rail-k font-display text-small [font-variation-settings:'wght'_680,'wdth'_112]">
+                <p className="rail-k text-small type-strong">
                   {l.k}
                 </p>
                 <p className="rail-v mt-1 text-small">{l.v}</p>

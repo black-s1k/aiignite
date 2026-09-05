@@ -2,8 +2,8 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { Draw, type DrawName } from "@/components/Draw";
-import { Haze } from "@/components/Haze";
 import { Intro } from "@/components/Intro";
+import { JoinBlock } from "@/components/JoinBlock";
 import { Mark } from "@/components/Mark";
 import { Nav } from "@/components/Nav";
 import {
@@ -18,6 +18,7 @@ import {
   WHY,
 } from "@/lib/content";
 import { SIGNUP } from "@/lib/signup";
+import { SHELL, GUTTER } from "@/lib/ui";
 
 /**
  * The page explains itself completely, in the order a student actually
@@ -102,9 +103,6 @@ function Tagline() {
   );
 }
 
-const SHELL = "mx-auto w-full max-w-[86rem] px-6 sm:px-10 lg:px-16";
-const GUTTER = "grid gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-16";
-
 /**
  * The left gutter: a drawn mark over the section's label.
  *
@@ -151,8 +149,6 @@ export default function Home() {
       >
         Skip to content
       </a>
-
-      <Haze />
 
       <Intro />
 
@@ -211,8 +207,9 @@ export default function Home() {
               The exception is the top row, in fixed px. The section
               starts at the very top of the document — the nav floats
               `fixed` over it rather than pushing it down — so a `vh`
-              share of `pt-[22vh]` would put those four UNDER the nav on a
-              short window.
+              share of the stage's top padding (now
+              `pt-[clamp(6rem,12vh,8rem)]`, once `pt-[22vh]`) would put
+              those four UNDER the nav on a short window.
 
               `lg:` because below that the body column is the full width
               of the screen and there are no margins left to scatter
@@ -336,10 +333,11 @@ export default function Home() {
 
               They have to, and the numbers are worth keeping. The gap
               between the headline and the tagline is a constant 56px,
-              but `pt-[26vh]` scales with the window while the type
-              inside it does not — so measured across 1024x860 through
-              1600x1200 the top of that gap wanders from 58.7% to 62.9%
-              of the section, a 40px swing. There is no percentage that
+              but any `vh` share of the section scales with the window
+              while the type inside it does not — measured back when the
+              stage carried `pt-[26vh]`, the top of that gap wandered
+              from 58.7% to 62.9% of the section across 1024x860 through
+              1600x1200, a 40px swing. There is no percentage that
               puts a 40px mark inside a 56px gap at all five. `top-full`
               on a wrapper around the headline is the same edge at every
               one of them.
@@ -400,7 +398,7 @@ export default function Home() {
                 exactly one child centres the block; the text inside that
                 child stays ordinary inline text and wraps like prose. */}
             <div className="hero-line absolute inset-x-[15%] top-[24%] hidden h-[22%] items-center justify-center lg:flex">
-              <p className="text-center font-display text-[0.26em] leading-[1.35] tracking-normal text-bone [font-variation-settings:'wght'_640,'wdth'_110]">
+              <p className="text-center text-[0.26em] leading-[1.35] tracking-normal text-bone type-lead">
                 <Tagline />
               </p>
             </div>
@@ -428,11 +426,11 @@ export default function Home() {
                 the headline exactly instead of to a snapshot of a moving
                 target. Change this weight or width and re-measure that
                 ratio — see the mark's comment. */}
-            <h1 data-heat="haze" className="haze text-hero hero-line text-center">
-              <span className="block font-display text-bone [font-variation-settings:'wght'_640,'wdth'_106]">
+            <h1 className="text-hero hero-line text-center">
+              <span className="block text-bone type-hero">
                 AI Ignite
               </span>
-              <span className="block font-display text-flame [font-variation-settings:'wght'_640,'wdth'_106]">
+              <span className="block text-flame type-hero">
                 at York
               </span>
             </h1>
@@ -446,7 +444,7 @@ export default function Home() {
               already centred, and with the standing label gone an
               offset body left it lopsided rather than asymmetric. Every
               section below this still hangs off the spine. */}
-          <div className="mx-auto mt-12 max-w-[36rem] text-center sm:mt-14">
+          <div className="mx-auto mt-12 max-w-tight text-center sm:mt-14">
             {/* The phone's copy of the tagline. Two nodes rather than
                 one repositioned, because a single node inside the cloud
                 wrapper would sit ABOVE the headline in source order on
@@ -454,7 +452,7 @@ export default function Home() {
                 removes the other from the accessibility tree entirely, so
                 only ever one of them is announced. Below `lg` the cloud
                 is ~175px wide and its interior would set this at 9px. */}
-            <p className="font-display text-lead text-bone [font-variation-settings:'wght'_640,'wdth'_110] lg:hidden">
+            <p className="text-lead text-bone type-lead lg:hidden">
               <Tagline />
             </p>
             <p className="mt-5 text-read text-ash">
@@ -466,13 +464,13 @@ export default function Home() {
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
               <a
                 href={SIGNUP.href}
-                className="w-full max-w-[15rem] bg-flame px-7 py-3.5 text-center font-display text-read text-void transition-colors duration-200 hover:bg-bone sm:w-auto sm:max-w-none [font-variation-settings:'wght'_700,'wdth'_112]"
+                className="w-full max-w-[15rem] bg-flame px-7 py-3.5 text-center text-read text-void transition-colors duration-200 hover:bg-bone sm:w-auto sm:max-w-none type-strong"
               >
                 Join the club
               </a>
               <a
                 href="#tracks"
-                className="w-full max-w-[15rem] border border-edge px-7 py-3.5 text-center font-display text-read text-bone transition-colors duration-200 hover:border-flame hover:text-flame sm:w-auto sm:max-w-none [font-variation-settings:'wght'_620,'wdth'_112]"
+                className="w-full max-w-[15rem] border border-edge px-7 py-3.5 text-center text-read text-bone transition-colors duration-200 hover:border-flame hover:text-flame sm:w-auto sm:max-w-none type-lead"
               >
                 Explore tracks
               </a>
@@ -499,7 +497,7 @@ export default function Home() {
                 <dt data-heat="label" className="label">
                   {l.k}
                 </dt>
-                <dd className="mt-2 font-display text-lead text-bone [font-variation-settings:'wght'_620,'wdth'_112]">
+                <dd className="mt-2 text-lead text-bone type-lead">
                   {l.v}
                 </dd>
                 <dd className="mt-1 text-small text-ash">{l.sub}</dd>
@@ -513,11 +511,11 @@ export default function Home() {
             describing itself is asking for trust it has not earned; one
             that opens by naming something the reader already feels is
             making an argument. */}
-        <section id="why" className={`${SHELL} scroll-mt-32 py-[12vh]`}>
+        <section id="why" className={`${SHELL} scroll-mt-32 py-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="gap">{WHY.label}</Gutter>
-            <div className="max-w-[40rem]">
-              <h2 className="font-display text-title text-bone [font-variation-settings:'wght'_760,'wdth'_114]">
+            <div className="max-w-read">
+              <h2 className="text-title text-bone type-head">
                 {WHY.heading}
               </h2>
               {WHY.body.map((p) => (
@@ -535,13 +533,13 @@ export default function Home() {
         </section>
 
         {/* ---- Mission and vision ------------------------------------ */}
-        <section className={`${SHELL} pb-[12vh]`}>
+        <section className={`${SHELL} pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="compass">What we are for</Gutter>
-            <dl className="grid max-w-[52rem] gap-px sm:grid-cols-2">
+            <dl className="grid gap-8 max-w-broad sm:grid-cols-2 sm:gap-x-10">
               {PURPOSE.map((p) => (
-                <div key={p.k} data-heat="rule" className="border-t border-edge pt-6 sm:pr-10">
-                  <dt className="font-display text-read text-flame [font-variation-settings:'wght'_700,'wdth'_112]">
+                <div key={p.k} data-heat="rule" className="border-t border-edge pt-6">
+                  <dt className="text-read text-flame type-strong">
                     {p.k}
                   </dt>
                   <dd className="mt-4 text-read text-ash">{p.v}</dd>
@@ -556,41 +554,41 @@ export default function Home() {
             gets the most space and the plainest language. Each side is
             described by what you leave with, because that is the actual
             question. */}
-        <section id="tracks" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
+        <section id="tracks" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="fork">Two tracks, one club</Gutter>
             <div>
-              <h2 className="max-w-[30rem] font-display text-title text-bone [font-variation-settings:'wght'_760,'wdth'_114]">
+              <h2 className="max-w-tight text-title text-bone type-head">
                 Pick the one that fits where you are starting
               </h2>
-              <p className="mt-6 max-w-[38rem] text-read text-ash">
+              <p className="mt-6 max-w-read text-read text-ash">
                 Both run in parallel, share community events, and finish the
                 term with a joint showcase. You can switch, and you can come to
                 both.
               </p>
 
-              <div className="mt-14 grid gap-px lg:grid-cols-2">
+              <div className="mt-14 grid gap-12 lg:grid-cols-2">
                 {TRACKS.map((t) => (
                   <article
                     key={t.key}
                     data-heat="rule"
-                    className="track border-t border-edge pt-8 lg:[&:last-child]:pl-12"
+                    className="track border-t border-edge pt-8"
                   >
                     <Draw name={t.key} size={158} className="mb-7" />
                     <p data-heat="label" className="label">
                       {t.audience}
                     </p>
-                    <h3 className="mt-5 font-display text-[clamp(2.6rem,6vw,4rem)] leading-[0.94] text-bone [font-variation-settings:'wght'_800,'wdth'_116]">
+                    <h3 className="mt-5 text-[clamp(2.6rem,6vw,4rem)] leading-[0.94] text-bone type-display">
                       {t.name}
                     </h3>
                     <p className="mt-4 text-small text-flame">
                       {t.shape}
                     </p>
-                    <p className="mt-6 max-w-[30rem] text-read text-ash">
+                    <p className="mt-6 max-w-tight text-read text-ash">
                       {t.blurb}
                     </p>
 
-                    <p className="mt-7 max-w-[30rem] border-l border-flame pl-5 text-read text-bone">
+                    <p className="mt-7 max-w-tight pullquote text-read">
                       {t.outcome}
                     </p>
 
@@ -599,7 +597,7 @@ export default function Home() {
                     <p className="mt-8">
                       <Link
                         href={t.href}
-                        className="group inline-flex items-center gap-3 font-display text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-5 [font-variation-settings:'wght'_680,'wdth'_112]"
+                        className="group inline-flex items-center gap-3 text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-5 type-strong"
                       >
                         See the {t.name} sessions
                         <span aria-hidden>&rarr;</span>
@@ -613,10 +611,10 @@ export default function Home() {
         </section>
 
         {/* ---- At a glance ------------------------------------------- */}
-        <section className={`${SHELL} pb-[12vh]`}>
+        <section className={`${SHELL} pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="eye">At a glance</Gutter>
-            <dl className="max-w-[46rem]">
+            <dl className="max-w-wide">
               {GLANCE.map((g) => (
                 <div
                   key={g.k}
@@ -636,14 +634,14 @@ export default function Home() {
             exactly one form of credibility available to it, which is
             people willing to attach their names to the thing, so this
             section is set as type rather than as a grid of avatars. */}
-        <section id="team" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
+        <section id="team" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="people">Who runs it</Gutter>
-            <div className="max-w-[52rem]">
+            <div className="max-w-broad">
               <div className="grid gap-10 sm:grid-cols-2">
                 {TEAM.lead.map((p) => (
                   <div key={p.name} data-heat="rule" className="border-t border-edge pt-6">
-                    <p className="font-display text-read [font-variation-settings:'wght'_700,'wdth'_112]">
+                    <p className="text-read type-strong">
                       <Person name={p.name} linkedin={p.linkedin} />
                     </p>
                     <p className="mt-1 text-small text-flame">{p.role}</p>
@@ -675,7 +673,7 @@ export default function Home() {
                 <p data-heat="label" className="label">
                   Faculty advisor
                 </p>
-                <p className="mt-3 font-display text-lead text-bone [font-variation-settings:'wght'_620,'wdth'_112]">
+                <p className="mt-3 text-lead text-bone type-lead">
                   {CLUB.advisor.name}
                 </p>
                 <p className="mt-1 text-small text-ash">{CLUB.advisor.dept}</p>
@@ -688,19 +686,19 @@ export default function Home() {
             Native <details>, not a JS accordion. It works before
             hydration, it is keyboard-operable for free, and the browser
             will find text inside a closed one on Ctrl+F. */}
-        <section id="faq" className={`${SHELL} scroll-mt-32 pb-[12vh]`}>
+        <section id="faq" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="speech">Before you ask</Gutter>
-            <div className="max-w-[46rem]">
+            <div className="max-w-wide">
               {FAQ.map((f) => (
                 <details key={f.q} data-heat="rule" className="faq border-b border-edge">
-                  <summary className="flex cursor-pointer items-start gap-5 py-5 font-display text-lead text-bone [font-variation-settings:'wght'_580,'wdth'_108]">
+                  <summary className="flex cursor-pointer items-start gap-5 py-5 text-lead text-bone type-lead">
                     <span aria-hidden className="faq-sign mt-1 shrink-0 text-flame">
                       +
                     </span>
                     {f.q}
                   </summary>
-                  <p className="max-w-[36rem] pb-6 pl-10 text-read text-ash">
+                  <p className="max-w-tight pb-6 pl-10 text-read text-ash">
                     {f.a}
                   </p>
                 </details>
@@ -715,38 +713,18 @@ export default function Home() {
           appears exactly once, at the only moment the reader is asked to
           do something. Spend it anywhere else and it stops meaning
           anything here. */}
-      <section id="join" className="scroll-mt-32 bg-flame py-[12vh] text-void">
-        <div className={SHELL}>
-          <div className={GUTTER}>
-            <p className="label !text-void/60 lg:pt-3">Join</p>
-            <div className="max-w-[42rem]">
-              <h2 className="font-display text-title text-void [font-variation-settings:'wght'_800,'wdth'_116]">
-                Come to the first one
-              </h2>
-              <p className="mt-6 text-lead text-void/75">
-                Sessions begin {CLUB.launch}. Tell us which track fits and we
-                will send the schedule before term starts. It takes about a
-                minute and you can change your mind later.
-              </p>
-              <a
-                href={SIGNUP.href}
-                className="group mt-10 inline-flex items-center gap-4 bg-void px-8 py-4 font-display text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-7 [font-variation-settings:'wght'_700,'wdth'_112]"
-              >
-                Sign up for {CLUB.name}
-                <span aria-hidden>&rarr;</span>
-              </a>
-              <p className="mt-5 text-small text-void/60">{SIGNUP.note}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <JoinBlock id="join" heading="Come to the first one">
+        Sessions begin {CLUB.launch}. Tell us which track fits and we will send
+        the schedule before term starts. It takes about a minute and you can
+        change your mind later.
+      </JoinBlock>
 
       {/* ---- Colophon ------------------------------------------------ */}
       <footer data-heat="rule" className={`${SHELL} border-t border-edge py-12`}>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Mark className="h-8 w-6" />
-            <p className="mt-4 font-display text-read text-bone [font-variation-settings:'wght'_700,'wdth'_112]">
+            <p className="mt-4 text-read text-bone type-strong">
               {CLUB.fullName}
             </p>
             <p className="mt-1 text-small text-ash">{CLUB.tagline}</p>
@@ -820,7 +798,7 @@ export default function Home() {
               >
                 Privacy
               </Link>
-              <span className="px-2 text-edge">·</span>
+              <span className="px-2 text-dim">·</span>
               <Link
                 className="text-ash underline underline-offset-4"
                 href="/terms"

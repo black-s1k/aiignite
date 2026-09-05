@@ -1,0 +1,5 @@
+# Master sources and generation scripts. The build reads neither; only the
+# derived files already committed to public/ ship. Excluding them keeps the
+# upload at ~1.5 MB instead of ~18 MB.
+assets/
+tools/

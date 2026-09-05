@@ -37,8 +37,8 @@ export const CLUB = {
     name: "Professor Enas Altarawneh",
     dept: "EECS, Lassonde School of Engineering",
   },
-  contact: "hello@aiignite.ca",
-  sponsors: "sponsors@aiignite.ca",
+  contact: "aiignite.yorku@gmail.com",
+  sponsors: "aiignite.yorku+sponsors@gmail.com",
   site: "aiignite.ca",
   linkedin: "https://www.linkedin.com/company/ai-ignite-at-york",
 } as const;

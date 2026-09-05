@@ -50,13 +50,29 @@
      type here runs up to 900 weight. */
   --color-bone: #ece9e4;
 
-  /* Secondary text. 7.9:1 on black — deliberately well past the 4.5
+  /* Secondary text. 7.48:1 on black — deliberately well past the 4.5
      minimum, because this sets long-form copy at small sizes on a dark
-     field, which is the hardest reading condition on the page. */
+     field, which is the hardest reading condition on the page.
+     (Measured, not estimated. It read "7.9:1" here for a while, which was
+     nobody's measurement of anything.) */
   --color-ash: #9d9a94;
 
+  /* The dimmest ink on the page that still clears 4.5:1 on the void —
+     4.58:1, measured. This is the floor for anything a reader has to be
+     able to READ, and it exists so that "make it quieter" has somewhere
+     to land other than an opacity that nobody checked.
+
+     Opacity is the trap it replaces. `--color-ash` at 55% looks like a
+     dimmer ash and is in fact 2.81:1, which fails AA outright — that is
+     what the Forge rail's unbuilt steps were set to. Recession on this
+     page is done with a COLOUR, chosen against the void, never with a
+     transparency chosen against a screenshot. */
+  --color-dim: #787570;
+
   /* Rules and dividers. Never a border colour on a filled box — there
-     are no boxes. */
+     are no boxes. NEVER type: at 1.46:1 this is invisible on the void,
+     which is correct for a hairline and wrong for anything with words
+     in it. Reach for --color-dim instead. */
   --color-edge: #2a2a28;
 
   /* ---- Type -----------------------------------------------------
@@ -148,6 +164,44 @@
   --text-hero--letter-spacing: -0.035em;
 
   --ease-heat: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* ---- Measure --------------------------------------------------
+     The page's idea is that the measure CHANGES per section, so it has
+     a spine but not a template. That still wants to be a scale rather
+     than a free number: it was twelve distinct widths — 30, 34, 36, 38,
+     40, 42, 44, 46, 48 and 52rem — and a 2rem step is not a decision a
+     reader can perceive. It reads as nudging, not as intent.
+
+     Four steps, far enough apart to be legible as different measures.
+     Tailwind generates `max-w-tight` and friends from these. */
+  --container-tight: 34rem;  /* pull quotes, captions, narrow asides */
+  --container-read: 40rem;   /* running body copy — the default */
+  --container-wide: 46rem;   /* lists and tables that need the room */
+  --container-broad: 52rem;  /* the widest a text block ever goes */
+  --container-shell: 86rem;  /* the page shell itself */
+
+  /* ---- Duration -------------------------------------------------
+     Was thirteen values between 180ms and 720ms. 200 against 220
+     against 240 is three separate decisions and one visible result, so
+     this is four steps with a job each.
+
+     The INTRO SEQUENCE deliberately does not use these — see the note
+     above its block. Its durations are pinned to the cue table in
+     Intro.tsx and are not free to round. */
+  --t-quick: 200ms;   /* a colour or a sign: acknowledgement */
+  --t-base: 320ms;    /* a rule drawing itself, a disclosure opening */
+  --t-slow: 460ms;    /* something with distance to travel */
+  --t-reveal: 720ms;  /* coming into view — the longest move on the page */
+
+  /* ---- Rhythm ---------------------------------------------------
+     Two section steps, and the difference is deliberate rather than
+     drift. The landing page has six sections and can afford the air;
+     the track pages carry seven each plus ten sessions between them,
+     and at the landing page's rhythm they read as a scroll with no end.
+     Naming them is what makes that a decision instead of two magic
+     numbers that happen to differ. */
+  --space-section: 12vh;
+  --space-section-dense: 10vh;
 }
 
 @layer base {
@@ -219,6 +273,110 @@
     text-transform: uppercase;
     font-variation-settings: "wght" 640, "wdth" 125;
     color: var(--color-ash);
+  }
+
+  /* ---- The display scale ------------------------------------------
+     Five settings of Archivo, named for the job rather than the number.
+
+     They replace twelve distinct `wght`/`wdth` pairs written inline as
+     arbitrary Tailwind values across seven files — 620/110 against
+     620/112 against 640/110 against 640/106, which is four decisions
+     and, at any size this page sets type, one result. The count is the
+     tell: a face with two axes invites a fresh guess at every call site,
+     and twelve guesses is what that looks like after three pages.
+
+     Each carries `font-family` too, so a call site says `type-strong`
+     and not `font-display [font-variation-settings:...]`. There is now
+     one place to retune the display voice.
+
+     The heat field does NOT drive any of these. It writes
+     `font-variation-settings` per character on `[data-heat="type"]`
+     only, which is HeatText's split spans — nothing here collides. */
+
+  /* The landing headline, and nothing else. LOCKED at 640/106: the
+     cloud mark over it is sized `3.77em` against this exact string in
+     this exact face at this exact weight, measured rather than chosen.
+     Change either number and that ratio has to be re-measured, or the
+     mark stops being as wide as the words under it. */
+  .type-hero {
+    font-family: var(--font-display);
+    font-variation-settings: "wght" 640, "wdth" 106;
+  }
+
+  /* The loudest type that is not the masthead: track names, and the
+     heading on each flame block. */
+  .type-display {
+    font-family: var(--font-display);
+    font-variation-settings: "wght" 800, "wdth" 116;
+  }
+
+  /* Section headings, and the session numbers that out-rank the copy
+     beside them. */
+  .type-head {
+    font-family: var(--font-display);
+    font-variation-settings: "wght" 760, "wdth" 114;
+  }
+
+  /* The workhorse. Names, keys, buttons, anything that has to hold its
+     own against body copy without becoming a heading. */
+  .type-strong {
+    font-family: var(--font-display);
+    font-variation-settings: "wght" 700, "wdth" 112;
+  }
+
+  /* Subtitles, standfirsts, FAQ questions, and the values in a
+     definition list — display type at a reading weight. */
+  .type-lead {
+    font-family: var(--font-display);
+    font-variation-settings: "wght" 640, "wdth" 110;
+  }
+
+  /* The nav's call to action. It is in the nav family rather than the
+     display scale — same 0.04em at `wdth` 125 as `.label` and
+     `.nav-link`, because the width belongs in the letterforms and not
+     in the gaps. It sat inline as a near-copy of `.nav-link` with one
+     digit changed, which is how a fork starts. */
+  .nav-cta {
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-variation-settings: "wght" 680, "wdth" 125;
+  }
+
+  /* ---- Two patterns that repeat across all three pages -------------
+     Both were written out longhand at every call site, which is why
+     each had drifted into two or three versions of itself. */
+
+  /* The outcome line — the one sentence in a section that says what you
+     LEAVE WITH. A flame rule down its left edge, which is the same
+     hairline vocabulary the rest of the page is built from rather than
+     a quote card.
+
+     It appeared four times with three different top margins and two
+     different measures. The margin belongs to the call site (it depends
+     what is above it); the rule, the inset and the ink belong here. */
+  .pullquote {
+    border-left: 1px solid var(--color-flame);
+    padding-left: 1.25rem;
+    color: var(--color-bone);
+  }
+
+  /* A tool name. Spark set these at px-4/py-2 in bone, Forge at
+     px-3/py-1.5 in ash — the same object, two sizes, on sibling pages.
+     Standardised on the larger, brighter one: these name the actual
+     software a member will open, which is a fact a reader is scanning
+     for, and ash inside a bordered box recedes twice.
+
+     It stays a bordered rectangle rather than becoming a pill. There is
+     no border-radius anywhere on this site and this is not the place to
+     start one. */
+  .chip {
+    border: 1px solid var(--color-edge);
+    padding: 0.5rem 1rem;
+    font-size: var(--text-small);
+    line-height: var(--text-small--line-height);
+    color: var(--color-bone);
   }
 
   /* The heat line. Per-character spans, written to directly by
@@ -356,7 +514,7 @@
     background-color: var(--color-flame);
     transform: scaleX(0);
     transform-origin: left;
-    transition: transform 340ms var(--ease-heat);
+    transition: transform var(--t-base) var(--ease-heat);
   }
 
   .nav-link[data-current]::before {
@@ -386,7 +544,7 @@
     display: block;
     position: relative;
     transform-style: preserve-3d;
-    transition: transform 460ms var(--ease-heat);
+    transition: transform var(--t-slow) var(--ease-heat);
   }
 
   .nav-roll:hover .nav-roll-in,
@@ -423,8 +581,8 @@
      every generated header and they would undo the rest of the page. */
   .nav {
     transition:
-      background-color 240ms var(--ease-heat),
-      border-color 240ms var(--ease-heat);
+      background-color var(--t-quick) var(--ease-heat),
+      border-color var(--t-quick) var(--ease-heat);
     border-bottom: 1px solid transparent;
   }
 
@@ -448,7 +606,7 @@
   }
 
   .faq .faq-sign {
-    transition: transform 220ms var(--ease-heat);
+    transition: transform var(--t-quick) var(--ease-heat);
   }
 
   /* The answer OPENS rather than appearing. A disclosure that pops is
@@ -469,8 +627,8 @@
     block-size: 0;
     overflow: hidden;
     transition:
-      block-size 400ms var(--ease-heat),
-      content-visibility 400ms allow-discrete;
+      block-size var(--t-base) var(--ease-heat),
+      content-visibility var(--t-base) allow-discrete;
   }
 
   .faq[open]::details-content {
@@ -612,8 +770,8 @@
     transform: perspective(760px) rotateX(0deg) translateY(0);
     transform-origin: 50% 100%;
     transition:
-      opacity 720ms var(--ease-heat) calc(var(--r, 0) * 85ms),
-      transform 720ms var(--ease-heat) calc(var(--r, 0) * 85ms);
+      opacity var(--t-reveal) var(--ease-heat) calc(var(--r, 0) * 85ms),
+      transform var(--t-reveal) var(--ease-heat) calc(var(--r, 0) * 85ms);
   }
 }
 
@@ -932,8 +1090,8 @@
     border: 1px solid var(--rail);
     background-color: transparent;
     transition:
-      background-color 420ms var(--ease-heat),
-      border-color 420ms var(--ease-heat);
+      background-color var(--t-slow) var(--ease-heat),
+      border-color var(--t-slow) var(--ease-heat);
   }
 
   /* Filled once built, hollow until then: the difference between a layer
@@ -948,22 +1106,32 @@
     flex: 1;
     min-height: 2.1rem;
     background-color: var(--rail);
-    transition: background-color 420ms var(--ease-heat);
+    transition: background-color var(--t-slow) var(--ease-heat);
   }
 
   .rail-k {
     color: var(--rail-ink);
-    transition: color 420ms var(--ease-heat);
+    transition: color var(--t-slow) var(--ease-heat);
   }
 
+  /* Was `--color-ash` at `opacity: 0.55`, which is 2.81:1 on the void
+     and fails AA outright at this size — the description of a pipeline
+     layer you have not read yet was the least readable text on the
+     site, which is precisely backwards.
+
+     It is a COLOUR now, not a transparency: `--color-dim` is the
+     dimmest ink that still clears 4.5:1 (4.58:1, measured), and the
+     built state goes to ash at 7.48:1. So the step still visibly
+     brightens as you read past it — the ramp survives — and both ends
+     of it are legible. Transparency was never describing the intent
+     here; "quieter, but still readable" is a colour decision. */
   .rail-v {
-    color: var(--color-ash);
-    opacity: 0.55;
-    transition: opacity 420ms var(--ease-heat);
+    color: var(--color-dim);
+    transition: color var(--t-slow) var(--ease-heat);
   }
 
   .rail-step[data-built="true"] .rail-v {
-    opacity: 1;
+    color: var(--color-ash);
   }
 
   /* Horizontal on narrow screens, where a sticky column has nowhere to
@@ -1040,25 +1208,6 @@
      stroked mark does, so it takes one of the two channels rather than
      both — which is also why these are set a size larger than the marks
      around them, to hold their own without the weight axis. */
-  /* The headline's refraction. See components/Haze.tsx for the whole
-     argument; the only thing that matters here is that a filter is PAINT
-     — the element's box is identical with it on or off, so the cloud
-     mark's measured match to the headline's width survives it.
-
-     `will-change` is deliberately absent. It would promote the headline
-     to its own layer permanently for an effect that is idle most of the
-     time, and a 136px raster held on the GPU for nothing is a worse
-     trade than the odd re-raster. */
-  .haze {
-    filter: url(#heat-haze);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .haze {
-      filter: none;
-    }
-  }
-
   .brand {
     color: var(--draw-base, var(--color-ash));
     background-color: currentColor;

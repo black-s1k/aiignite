@@ -36,11 +36,6 @@ type Node = {
   y: number;
   /** Per-character offset along its parent line, 0..1. */
   u: number;
-  /** The element's rendered height, refreshed in the read pass. Only
-   *  the haze uses it: its displacement is in absolute px, so a fixed
-   *  number is four times the distortion on a 46px phone headline that
-   *  it is on a 136px desktop one. Measured, it scales with the type. */
-  px: number;
   /** How much of the flame this element takes at full heat, 0..1. Read
    *  from `--draw-warm` ONCE per collect, never per frame — the knob
    *  lives in CSS beside the colour it modifies, and the loop just
@@ -56,12 +51,6 @@ export function HeatField() {
     const field = new Field();
     field.seed(reduced ? 0.5 : 0.3);
 
-    // The one filter primitive the haze writes to. Resolved lazily and
-    // cached: it is a single node shared by the whole page, so it does
-    // not belong in `nodes` with the per-element work.
-    let hazeAmount: Element | null = null;
-    let hazeLast = -1;
-
     let nodes: Node[] = [];
     const collect = () => {
       nodes = Array.from(
@@ -74,7 +63,6 @@ export function HeatField() {
           x: 0.5,
           y: 0.5,
           u: 0,
-          px: 0,
           warm: Number.isFinite(w) ? w : 1,
         };
       });
@@ -195,7 +183,6 @@ export function HeatField() {
         }
         n.x = (r.left + r.width / 2) / vw;
         n.y = (r.top + r.height / 2) / vh;
-        n.px = r.height;
       }
 
       // ---- write pass: every style, no reads ----------------------
@@ -253,33 +240,6 @@ export function HeatField() {
             el.style.color = `color-mix(in oklab, var(--color-flame) ${(h * 66 * n.warm).toFixed(1)}%, var(--draw-base, var(--color-ash)))`;
             el.style.setProperty("--draw-w", (1.35 + 0.95 * h).toFixed(2));
             break;
-          case "haze": {
-            // The heat that used to live in the headline's weight axis,
-            // moved into the air over it. See components/Haze.tsx.
-            //
-            // Skipped entirely under reduced motion. The ambient half of
-            // the field is computed from time rather than simulated, so
-            // it keeps moving even when nothing is being simulated — and
-            // a headline quietly rippling at someone who asked for no
-            // motion is exactly the thing that setting is for.
-            if (reduced) break;
-            // Proportional to the headline's own height, not a fixed
-            // number of pixels: 0.066 is ~16px against the 240px desktop
-            // block it was tuned on, and ~5px against the 82px phone
-            // one, which is the same warp rather than four times it.
-            //
-            // Quantised to a quarter pixel. A filter re-rasterises the
-            // whole element every time an attribute changes, and the
-            // last two decimal places of a displacement are worth
-            // nothing visually and a full repaint each.
-            const amp = Math.round(h * n.px * 0.066 * 4) / 4;
-            if (amp !== hazeLast) {
-              hazeAmount ??= document.getElementById("heat-haze-amount");
-              hazeAmount?.setAttribute("scale", amp.toFixed(2));
-              hazeLast = amp;
-            }
-            break;
-          }
           case "mark":
             // Brightness, NOT opacity. Fading the mark up from 0.55 meant
             // its resting state was rgb(105,126,40) composited over the

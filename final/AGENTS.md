@@ -522,62 +522,11 @@ container instead of a decoration.
   single `<p>` centres the block while the text inside stays ordinary
   inline text. Anything else inlined into this line hits the same trap.
 
-## The air over the headline
-
-`components/Haze.tsx` refracts the masthead. The heat used to live INSIDE
-the letterforms — the weight and width axes swelled with the field, which
-is the signature this build is named for. The masthead is set solid now,
-so on that one line the heat moved from the object to the MEDIUM: the
-type holds still and the air over it distorts. Running both at once is
-mush; one after the other is the idea arriving in two stages.
-
-**Refraction, not a glow.** The obvious "heat text" effect is a blurred
-copy behind the type, lifted and faded — that is a glow with extra steps,
-against the rule that nothing here glows. Displacement moves light rather
-than adding it, and it is the one a physicist would recognise.
-
-`feTurbulence` makes a fixed noise field, `feDisplacementMap` pushes the
-text by it, and HeatField writes only `scale` — from the same simulation
-that drives everything else, so the headline warps hardest where the
-reader has just been.
-
-### Things that will bite you here
-
-- **At the obvious settings this does not shimmer, it ERODES.** Built
-  first at `baseFrequency="0.011 0.042"` with two octaves, the letter
-  edges came out crunchy and chewed, like a badly resized JPEG. High
-  frequency means neighbouring pixels displace independently, which is
-  exactly what eats an edge.
-- **The fix is two things together: much lower frequency AND a blur on
-  the displacement map.** `0.004 0.012`, one octave, `stdDeviation 2`.
-  Low frequency moves whole runs of edge together; the blur guarantees a
-  smooth field, and a smooth field cannot tear an edge. The blur costs
-  amplitude — it pulls the noise toward neutral grey — which is why the
-  tuned scale is more than twice the untuned one.
-- **`scale` is the ONLY attribute that may be animated.** Touching
-  `baseFrequency` or `seed` per frame regenerates the whole turbulence:
-  it boils rather than shimmers, and costs far more.
-- **The amplitude is a fraction of the headline's measured HEIGHT, not a
-  pixel count.** Displacement is in absolute px, so a fixed 16 is four
-  times the distortion on a 46px phone headline that it is on a 136px
-  desktop one. `n.px` is read in the read pass for this and nothing else.
-- **Writes are quantised to a quarter pixel.** A filter re-rasterises the
-  whole element on any attribute change, and the last two decimals of a
-  displacement are worth nothing visually and a full repaint each.
-- **It cannot move the layout, and that is load-bearing.** A filter is
-  paint: the headline's box is identical with it on or off, which is what
-  keeps `cloudnet`'s measured 3.77em match true. Any solution using a
-  transform or a font axis would have broken that.
-- **Off under `prefers-reduced-motion`,** in the CSS and again in the
-  field. The ambient half of the simulation is computed from time rather
-  than stepped, so it keeps moving even when nothing is being simulated —
-  a headline quietly rippling at someone who asked for no motion is
-  precisely what that setting exists to prevent.
+## The masthead holds still
 
 **The landing headline does not animate, and that is the point.**
 Everything else on the page swells because the reader is doing something;
-the masthead holds still because it is the thing being arrived at (the
-heat is in the air over it instead — see above). It was
+the masthead holds still because it is the thing being arrived at. It was
 measured breathing between 485 and 643 weight before it was frozen, and
 is set solid at 640 — the top of its own range, so it reads as the heavy
 state it was reaching for rather than as a frame caught mid-cycle.
@@ -588,6 +537,24 @@ there is no reason to split the line into fourteen inline-blocks, and the
 used by `TrackHead`, which does still animate. Holding still is also what
 makes the line's width deterministic, which is what lets `cloudnet` be
 matched to it exactly.
+
+**There is no effect on this line at all. It is solid type on the void,
+and that is deliberate.** `components/Haze.tsx` used to sit here: an
+`feTurbulence` and `feDisplacementMap` pair that refracted the headline
+as though through hot air, on the argument that with the weight axis
+frozen the heat should move from the object to the MEDIUM. It was
+removed at the client's direction, along with its `.haze` rule, its
+`data-heat="haze"` case in the field, and the `px` measurement in the
+read pass that nothing else used.
+
+Two things are worth keeping from it if anyone is tempted again. A
+displacement filter cannot be made to look like heat by animating its
+`scale` alone — that fades a fixed pattern of bends up and down, and
+reads as bad registration rather than as moving air. And the obvious way
+to add local softness, compositing a masked blurred copy OVER the sharp
+one, produces a GLOW rather than a defocus: source-over attenuates the
+backdrop by the source's alpha, so the sharp letter survives underneath
+its own halo. Nothing on this page glows.
 
 ## The nav labels roll
 
@@ -650,10 +617,21 @@ both be leaves.
   The cost is a dead band across the bottom of the viewport: whatever
   sits in it when the page runs out of scroll can never enter the shrunk
   root, and that stranded the last two footer blocks at opacity 0
-  permanently. `flush` in ScrollReveal.tsx pays for it — one passive
-  scroll listener that reveals whatever is left once the document bottom
-  is reached, then removes itself. Take the margin out and the effect
-  disappears; take the flush out and content does.
+  permanently. **`full` is what pays for it** — anything at least 99% on
+  screen is revealed regardless of the shrunk root, which covers both the
+  bottom of the document and a short block coming to rest inside the dead
+  band. Take the margin out and the effect disappears; take `full` out and
+  content does.
+
+  This paragraph used to describe a `flush` handler — a passive scroll
+  listener that revealed whatever was left once the document bottom was
+  reached, then removed itself. **There is no such function in
+  ScrollReveal.tsx and there has not been for some time**; `full` replaced
+  it and does the same job from an observer instead of a scroll listener.
+  Left here as a marker: the residual gap is a block TALLER than the
+  viewport sitting at the document bottom, which can reach neither the
+  shrunk root nor 0.99 of itself. Nothing on the site is currently shaped
+  like that, so it has never bitten — but a long footer block would.
 - **`threshold: 0`, never a fraction.** A block taller than the viewport
   can never reach a percentage of ITSELF, and a fast scroll can carry a
   short one past a band between frames.
@@ -689,11 +667,25 @@ both be leaves.
   page.** The more places it appears the less any of them mean.
 - `--color-bone: #ece9e4` — type. Not `#ffffff`: pure white on black
   halates and closes counters, and the display face runs to 900.
-- `--color-ash`, `--color-edge` — secondary text and rules.
+- `--color-ash: #9d9a94` — secondary text. 7.48:1 on the void.
+- `--color-dim: #787570` — **the readability floor.** 4.58:1, the
+  dimmest ink on the page that still clears AA. Anything a reader has to
+  READ stops here.
+- `--color-edge: #2a2a28` — rules and dividers, and rules ONLY. At
+  1.46:1 it is invisible as type. The footer's `·` between Privacy and
+  Terms was set in it and could not be seen at all.
 
 **The accent never appears as a glow, a gradient, or a border on a card.
 It is ink.** There are no cards on this page and nothing floats;
 structure is made of rules and space.
+
+**Recession is a COLOUR, never an opacity.** `--color-ash` at
+`opacity: 0.55` looks like a dimmer ash and is in fact 2.81:1, which
+fails AA outright — that is what the Forge rail's unbuilt steps were set
+to, so the description of a layer you had not read yet was the least
+readable text on the site. `--color-dim` exists so "make it quieter" has
+somewhere to land that was checked against the void rather than against a
+screenshot. **Measure it. Do not eyeball a transparency.**
 
 ## The type
 
@@ -704,6 +696,94 @@ a reading serif with an optical-size axis so it stays open at small sizes
 on a dark field. **A serif body under a grotesque display is the pairing
 doing the most work here** — it is the fastest way to stop this reading
 as a product landing page.
+
+### The display scale
+
+**Five named settings, and no inline `font-variation-settings` anywhere
+in markup.** A face with two live axes invites a fresh guess at every
+call site, and after three pages that was twelve distinct `wght`/`wdth`
+pairs across seven files — 620/110 against 620/112 against 640/110
+against 640/106, four decisions and one visible result. The count was the
+tell, not any single value.
+
+| class | setting | job |
+|---|---|---|
+| `.type-hero` | 640 / 106 | the landing headline, and nothing else |
+| `.type-display` | 800 / 116 | track names, flame-block headings |
+| `.type-head` | 760 / 114 | section headings, session numbers |
+| `.type-strong` | 700 / 112 | the workhorse — names, keys, buttons |
+| `.type-lead` | 640 / 110 | subtitles, standfirsts, FAQ questions |
+
+Each carries `font-family` too, so a call site says `type-strong`, never
+`font-display [font-variation-settings:...]`. `.label`, `.wordmark`,
+`.nav-link` and `.nav-cta` are the nav/gutter family and stay separate —
+they are all 0.04em at `wdth` 125 for the reason in the slop audit below.
+
+- **`.type-hero` is LOCKED at 640/106.** `cloudnet` is sized `3.77em`
+  against this exact string in this face at this weight, measured. Change
+  either number and that ratio has to be re-measured or the mark stops
+  being as wide as the words under it.
+- **The heat field does not touch any of these.** It writes
+  `font-variation-settings` per character on `[data-heat="type"]` only,
+  which is HeatText's split spans. Nothing collides.
+
+### Measure, duration and rhythm
+
+The same disease in three other places, fixed the same way — a scale
+instead of a free number.
+
+- **Measure.** `--container-tight|read|wide|broad|shell` (34/40/46/52/86
+  rem), generating `max-w-tight` and friends. It was ten distinct widths
+  between 30 and 52rem, and **a 2rem step is not a decision a reader can
+  perceive** — it reads as nudging, not as intent. The page's idea is
+  still that the measure CHANGES per section; it now changes in steps
+  somebody chose. `max-w-[15rem]` on the hero CTAs is the one survivor
+  and is load-bearing — see the Draw.tsx notes.
+- **Duration.** `--t-quick|base|slow|reveal` (200/320/460/720ms). It was
+  thirteen values between 180 and 720. **The intro sequence deliberately
+  does not use these:** its durations are pinned to `CUE` in Intro.tsx
+  (`done: 4575` is `land` plus the clip's 180ms fade plus the stock's
+  320ms arrival) and are not free to round.
+- **Rhythm.** `--space-section: 12vh` and `--space-section-dense: 10vh`.
+  The two-step is deliberate — the landing page has six sections and can
+  afford the air, the track pages carry seven each plus ten sessions —
+  but it was two magic numbers that happened to differ, which is
+  indistinguishable from drift.
+
+### Shared structure
+
+- **`lib/ui.ts`** holds `SHELL` and `GUTTER`. All three pages declared
+  them identically and independently; change the gutter on one and the
+  other two silently keep the old one, with nothing failing anywhere.
+- **`components/JoinBlock.tsx`** is the flame block that closes every
+  page. It existed three times as fifteen lines of markup with a
+  byte-identical button class and only the copy different — which is why
+  the landing page's copy was on a 12vh rhythm and the tracks' on 10vh.
+- **`.pullquote`** is the outcome line — the sentence saying what you
+  leave with. Four call sites, three top margins, two measures. The
+  margin belongs to the call site; the rule and the inset do not.
+- **`.chip`** is a tool name. Spark set these at px-4/py-2 in bone and
+  Forge at px-3/py-1.5 in ash — the same object, two sizes, on sibling
+  pages. Standardised on the larger and brighter: these name software a
+  member will actually open, and ash inside a bordered box recedes twice.
+  **It stays a rectangle.** There is no `border-radius` anywhere on this
+  site and this is not the place to start one.
+
+### Things that will bite you here
+
+- **Anything hanging off the spine must use `GUTTER`, not a percentage
+  that approximates it.** TrackHead indented its intro with
+  `lg:ml-[22%]`, which equals the 14rem+4rem column at exactly one window
+  width: at the shell's full 86rem the column is 20.9%, and at a 1100px
+  container it is 288px against 22%'s 242px. A percentage cannot track a
+  fixed column.
+- **`gap-px` in a grid whose children carry `border-t` does nothing you
+  want.** It is the idiom for hairline dividers drawn by a parent
+  background, and there is no parent background here — the rules come
+  from the borders. Its real effect was to butt adjacent top rules into
+  one continuous line, so a two-column pair read as one item. The grids
+  carry real gaps now, and the `sm:pr-*`/`pl-12` that were standing in
+  for those gaps are gone with them.
 
 ## What this page owes to industrynightinitiative.ca
 
@@ -810,10 +890,21 @@ The ones that cost real work, so they do not get undone by accident:
   banned because a reveal on everything is the cheapest way to make a
   page feel authored when nothing about its structure is. The client
   asked for them on every component, so the rule is now about HOW rather
-  than whether: they travel about a centimetre, they fire once and stop
-  observing, and they stagger by SIBLING so a row of three arrives as a
-  row of three. Long travel or replay-on-scroll-up would put this back
-  where it started. See `components/ScrollReveal.tsx`.
+  than whether: they travel about a centimetre, and they stagger by
+  SIBLING so a row of three arrives as a row of three. Long travel would
+  put this back where it started. See `components/ScrollReveal.tsx`.
+
+  **This entry used to say they "fire once and stop observing", and that
+  replay-on-scroll-up would undo the fix.** Both were true when it was
+  written and neither is now: the client later asked for the reveal to
+  play in BOTH directions, which is what `rearm` does, and the
+  "Coming into view" section above describes that as the current
+  behaviour. The two paragraphs contradicted each other for a while.
+  Travel distance and sibling staggering are what the rule rests on now;
+  replay is a client decision, not a regression. **If it is ever revisited,
+  the thing to weigh is that ~120 leaf blocks on the landing page each
+  fade and tip 26°, and re-hide when scrolled away — the mitigations
+  reduce that, they do not make it invisible.**
 
 ## Still to do
 

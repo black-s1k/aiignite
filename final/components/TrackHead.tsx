@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HeatText } from "@/components/HeatText";
 import { Mark } from "@/components/Mark";
 import { CLUB } from "@/lib/content";
+import { GUTTER } from "@/lib/ui";
 
 /**
  * The masthead both track pages share.
@@ -46,18 +47,33 @@ export function TrackHead({
         </HeatText>
       </h1>
 
-      <p className="mt-8 max-w-[34rem] font-display text-lead text-bone [font-variation-settings:'wght'_620,'wdth'_110]">
+      <p className="mt-8 max-w-tight text-lead text-bone type-lead">
         {subtitle}
       </p>
 
       <p className="mt-4 text-small text-flame">{shape}</p>
 
-      <div className="mt-10 max-w-[38rem] sm:ml-[8%] lg:ml-[22%]">
-        {intro.map((p) => (
-          <p key={p} className="mt-5 text-read text-ash first:mt-0">
-            {p}
-          </p>
-        ))}
+      {/* The intro hangs off the same spine every section below it uses.
+          It was indented with `sm:ml-[8%] lg:ml-[22%]` — a percentage
+          chosen to look like the 14rem gutter, which it only equals at
+          one window width. The gutter is 14rem plus a 4rem gap, so at
+          the shell's full 86rem that is 20.9%, and every narrower window
+          drifted further off: at a 1100px container, 18rem is 288px
+          against 22%'s 242px. Half a centimetre of misalignment on the
+          one axis the whole site is built on.
+
+          Using GUTTER itself cannot drift, and the empty first cell is
+          the point — this paragraph starts where every label below it
+          starts. */}
+      <div className={`mt-10 ${GUTTER}`}>
+        <div aria-hidden />
+        <div className="max-w-read">
+          {intro.map((p) => (
+            <p key={p} className="mt-5 text-read text-ash first:mt-0">
+              {p}
+            </p>
+          ))}
+        </div>
       </div>
     </header>
   );

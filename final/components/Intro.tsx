@@ -98,6 +98,22 @@ const CUE = {
  *  pixels backwards before flying. Re-cut the clip and re-measure these. */
 const EXIT = { cx: 0.1012, cy: 0.1486, h: 0.1556 };
 
+/**
+ * The flight's own curve, and the one easing on the site that is not
+ * `--ease-heat`.
+ *
+ * It sat inline as a bare `cubic-bezier(0.32, 0.64, 0.28, 1)`, close
+ * enough to `--ease-heat` (0.22, 0.61, 0.36, 1) to read as a typo of it.
+ * It is not one: this decelerates harder at the end, which is what puts
+ * the flame down on the nav rather than drifting it in. Named so the
+ * next person can tell a decision from a slip.
+ *
+ * It cannot read the CSS variable — this is a Web Animation, and the
+ * duration beside it (HOMING) is measured off the encode, so the whole
+ * move is defined in JS or not at all.
+ */
+const EASE_FLIGHT = "cubic-bezier(0.32, 0.64, 0.28, 1)";
+
 /** The clip's native aspect, for solving where `object-fit: contain`
  *  actually put the picture inside the element's box. */
 const CLIP_AR = 1280 / 720;
@@ -271,7 +287,7 @@ export function Intro() {
           ],
           {
             duration: HOMING,
-            easing: "cubic-bezier(0.32, 0.64, 0.28, 1)",
+            easing: EASE_FLIGHT,
             fill: "forwards",
           },
         );
