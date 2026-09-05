@@ -701,6 +701,22 @@ export default function Home() {
                   <p className="max-w-tight pb-6 pl-10 text-read text-ash">
                     {f.a}
                   </p>
+                  {/* An answer may carry one outbound link. Optional, and
+                      read with `in` rather than typed onto every entry,
+                      so the six that are pure prose stay pure prose —
+                      same pattern the team's LinkedIn fallback uses. */}
+                  {"link" in f && f.link ? (
+                    <p className="pb-6 pl-10 text-small">
+                      <a
+                        className="text-flame underline underline-offset-4 transition-colors duration-200 hover:text-bone"
+                        href={f.link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {f.link.label}
+                      </a>
+                    </p>
+                  ) : null}
                 </details>
               ))}
             </div>
@@ -713,7 +729,25 @@ export default function Home() {
           appears exactly once, at the only moment the reader is asked to
           do something. Spend it anywhere else and it stops meaning
           anything here. */}
-      <JoinBlock id="join" heading="Come to the first one">
+      {/* The Discord sits under the sign-up rather than beside it. It is
+          the lower-commitment version of the same ask — somebody not
+          ready to put their name down will still open a chat — and
+          offering both as equals would make the reader choose between
+          them instead of doing either. */}
+      <JoinBlock
+        id="join"
+        heading="Come to the first one"
+        footer={
+          <a
+            className="text-void/70 underline underline-offset-4"
+            href={CLUB.discord}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Not ready to sign up? Come and ask us anything on Discord
+          </a>
+        }
+      >
         Sessions begin {CLUB.launch}. Tell us which track fits and we will send
         the schedule before term starts. It takes about a minute and you can
         change your mind later.
@@ -741,19 +775,63 @@ export default function Home() {
                 {CLUB.contact}
               </a>
             </p>
+            {/* Four channels rather than one, listed in the order a
+                student actually uses them: the Discord is where the club
+                is day to day, the two social accounts are where it is
+                announced, and YUConnect is where York says it is real.
+
+                Each is set as the platform name and nothing else. A row
+                of social ICONS would be the one place on this page that
+                borrowed someone else's shapes for decoration rather than
+                to name a tool — see the note in Brand.tsx — and at
+                footer size they would be six unlabelled glyphs. */}
             <p data-heat="label" className="label mt-6">
               Follow
             </p>
-            <p className="mt-2 text-small">
-              <a
-                className="text-bone underline underline-offset-4"
-                href={CLUB.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {CLUB.fullName} on LinkedIn
-              </a>
-            </p>
+            <ul className="mt-2 grid gap-2 text-small">
+              <li>
+                <a
+                  className="text-bone underline underline-offset-4"
+                  href={CLUB.discord}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Discord
+                </a>
+              </li>
+              <li>
+                <a
+                  className="text-bone underline underline-offset-4"
+                  href={CLUB.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Instagram
+                </a>
+              </li>
+              <li>
+                <a
+                  className="text-bone underline underline-offset-4"
+                  href={CLUB.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  LinkedIn
+                </a>
+              </li>
+              {/* Says "listed on" rather than naming a page, because an
+                  anonymous visitor is sent to Passport York first. */}
+              <li>
+                <a
+                  className="text-bone underline underline-offset-4"
+                  href={CLUB.yuconnect}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Listed on YUConnect
+                </a>
+              </li>
+            </ul>
             <p data-heat="label" className="label mt-6">
               Sponsor a session
             </p>

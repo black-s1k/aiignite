@@ -41,6 +41,44 @@ export const CLUB = {
   sponsors: "aiignite.yorku+sponsors@gmail.com",
   site: "aiignite.ca",
   linkedin: "https://www.linkedin.com/company/ai-ignite-at-york",
+  instagram: "https://www.instagram.com/aiignite.yorku/",
+
+  /**
+   * The Discord invite.
+   *
+   * !! THIS ONE EXPIRES. !! Checked against Discord's invite API on
+   * 2026-09-05: valid, but with `expires_at` 2026-09-21 — about two
+   * weeks after the club's own launch date. A link that dies while the
+   * page is still up is the single most recognisable slop tell there
+   * is, and it is worse here than a `href="#"` would be, because this
+   * one works right up until the moment it matters.
+   *
+   * Replace it with a NEVER-EXPIRING invite: Discord > Server Settings >
+   * Invites, or right-click the channel > Invite People > Edit invite
+   * link > Expire after: Never, Max uses: No limit. Then paste it here.
+   *
+   * Re-check with:
+   *   curl -s "https://discord.com/api/v10/invites/<code>" | grep expires_at
+   */
+  discord: "https://discord.gg/CFna7PqT3",
+
+  /**
+   * The club's entry in York's official student-organisation registry.
+   *
+   * The tracking parameters Instagram appends to a link-in-bio
+   * (`utm_source`, `utm_medium`, `utm_content`, `fbclid`) are stripped.
+   * They describe how someone arrived at Instagram, which is neither
+   * true nor ours to assert once the link is on our own site, and
+   * app/privacy says this site does not tell other sites where its
+   * traffic came from.
+   *
+   * Note for whoever writes the copy around it: YUConnect redirects an
+   * anonymous visitor to a Passport York login before showing the club
+   * page. That is York's behaviour, not something we can route around,
+   * so the label should not promise a public page.
+   */
+  yuconnect:
+    "https://yuconnect.yorku.ca/feeds?type=club&type_id=36128&tab=about",
 } as const;
 
 /** The nav. Kept short on purpose, since five is already too many. */
@@ -456,5 +494,26 @@ export const FAQ = [
   {
     q: "What do I actually leave with?",
     a: "Something that runs. Spark sends you home with a working tool the same evening. Forge ends with a deployed pipeline you can put in front of an interviewer.",
+  },
+  /**
+   * YorkPulse.
+   *
+   * Placed here rather than in the footer or under the sign-up because
+   * the honest version of this is an ANSWER, not a promotion: a reader
+   * deciding whether to join a new club with no history is weighing
+   * whether the people running it actually ship things, and this is
+   * evidence that they do. It earns its place by answering that.
+   *
+   * The wording is load-bearing and was checked before it was written.
+   * "Some of the same people build it" is true and is the whole claim;
+   * it is explicitly NOT a club activity, NOT a partnership, and NOT
+   * endorsed by the club, because none of those are true and the file
+   * header bans claiming what has not been given. If the relationship
+   * ever changes, this sentence has to change with it.
+   */
+  {
+    q: "Do you build things outside the club?",
+    a: "Some of us do. A few of the same people build YorkPulse, a community and safety platform for York students that verifies members by yorku.ca email. It is a separate project rather than a club activity, but you are welcome on it either way.",
+    link: { href: "https://www.yorkpulse.com/", label: "Visit YorkPulse" },
   },
 ] as const;
