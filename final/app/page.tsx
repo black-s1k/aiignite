@@ -13,6 +13,7 @@ import {
   GLANCE,
   LOGISTICS,
   PURPOSE,
+  SOCIALS,
   TEAM,
   TRACKS,
   WHY,
@@ -729,25 +730,11 @@ export default function Home() {
           appears exactly once, at the only moment the reader is asked to
           do something. Spend it anywhere else and it stops meaning
           anything here. */}
-      {/* The Discord sits under the sign-up rather than beside it. It is
-          the lower-commitment version of the same ask — somebody not
-          ready to put their name down will still open a chat — and
-          offering both as equals would make the reader choose between
-          them instead of doing either. */}
-      <JoinBlock
-        id="join"
-        heading="Come to the first one"
-        footer={
-          <a
-            className="text-void/70 underline underline-offset-4"
-            href={CLUB.discord}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Not ready to sign up? Come and ask us anything on Discord
-          </a>
-        }
-      >
+      {/* No `footer` here. It carried a single Discord link, which the
+          block's own "Find us" row now covers along with the other
+          three — the track pages still pass one, for their cross-link to
+          the opposite track. */}
+      <JoinBlock id="join" heading="Come to the first one">
         Sessions begin {CLUB.launch}. Tell us which track fits and we will send
         the schedule before term starts. It takes about a minute and you can
         change your mind later.
@@ -784,53 +771,29 @@ export default function Home() {
                 of social ICONS would be the one place on this page that
                 borrowed someone else's shapes for decoration rather than
                 to name a tool — see the note in Brand.tsx — and at
-                footer size they would be six unlabelled glyphs. */}
+                footer size they would be six unlabelled glyphs.
+
+                The list itself is SOCIALS in lib/content.ts, shared with
+                the flame block's "Find us" row so a channel cannot be
+                live in one and missing from the other. */}
             <p data-heat="label" className="label mt-6">
               Follow
             </p>
             <ul className="mt-2 grid gap-2 text-small">
-              <li>
-                <a
-                  className="text-bone underline underline-offset-4"
-                  href={CLUB.discord}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Discord
-                </a>
-              </li>
-              <li>
-                <a
-                  className="text-bone underline underline-offset-4"
-                  href={CLUB.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Instagram
-                </a>
-              </li>
-              <li>
-                <a
-                  className="text-bone underline underline-offset-4"
-                  href={CLUB.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  LinkedIn
-                </a>
-              </li>
-              {/* Says "listed on" rather than naming a page, because an
-                  anonymous visitor is sent to Passport York first. */}
-              <li>
-                <a
-                  className="text-bone underline underline-offset-4"
-                  href={CLUB.yuconnect}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Listed on YUConnect
-                </a>
-              </li>
+              {SOCIALS.map((s) => (
+                <li key={s.name}>
+                  <a
+                    className="text-bone underline underline-offset-4"
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {/* `long` where the channel needs a qualifier, which
+                        today is only YUConnect. */}
+                    {"long" in s ? s.long : s.name}
+                  </a>
+                </li>
+              ))}
             </ul>
             <p data-heat="label" className="label mt-6">
               Sponsor a session

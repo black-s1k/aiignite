@@ -92,6 +92,32 @@ export const CLUB = {
 } as const;
 
 /** The nav. Kept short on purpose, since five is already too many. */
+/**
+ * Every place the club exists, in one list.
+ *
+ * Two things render this — the colophon and the flame block that closes
+ * each page — and they were about to hold two hand-written copies of the
+ * same four links. One list, so a channel cannot be live in the footer
+ * and missing from the call to action, which is exactly the drift that
+ * put three copies of the Join block in the codebase to begin with.
+ *
+ * Order is deliberate and is not alphabetical: it runs from where the
+ * club actually talks to where it is merely listed. Discord is first
+ * because it is the only one where a reader gets a reply.
+ *
+ * `long` exists for the colophon, which has the room for a phrase and
+ * needs it in YUConnect's case: that link sends an anonymous visitor to
+ * Passport York before it shows anything, so the footer says "Listed on"
+ * rather than promising a page. The flame block is a compact row and
+ * uses the bare `name` there.
+ */
+export const SOCIALS = [
+  { name: "Discord", href: CLUB.discord },
+  { name: "Instagram", href: CLUB.instagram },
+  { name: "LinkedIn", href: CLUB.linkedin },
+  { name: "YUConnect", href: CLUB.yuconnect, long: "Listed on YUConnect" },
+] as const;
+
 export const NAV = [
   { label: "Why", href: "/#why" },
   { label: "Tracks", href: "/#tracks" },
