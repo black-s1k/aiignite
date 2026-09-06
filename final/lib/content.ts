@@ -39,6 +39,16 @@ export const CLUB = {
   },
   contact: "aiignite.yorku@gmail.com",
   sponsors: "aiignite.yorku+sponsors@gmail.com",
+  /**
+   * The domain the club INTENDS to use. It has not been bought yet, so
+   * this is a plan rather than a fact, and nothing renders it — checked.
+   *
+   * Do not put it on the page until it resolves. A site that prints its
+   * own address wrong is a worse tell than one that prints none, and the
+   * rule at the top of this file is that nothing here is claimed unless
+   * it is true. The live origin comes from SITE_URL in app/layout.tsx,
+   * which is where the switch lives when the domain is real.
+   */
   site: "aiignite.ca",
   linkedin: "https://www.linkedin.com/company/ai-ignite-at-york",
   instagram: "https://www.instagram.com/aiignite.yorku/",

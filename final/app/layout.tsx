@@ -37,8 +37,42 @@ const newsreader = Newsreader({
 const DESCRIPTION =
   "A student club at York University's Lassonde School of Engineering. Weekly sessions through Fall 2026 building things with AI tools. Two tracks: Forge for students who code, Spark for everyone else. Free, no application.";
 
+/**
+ * The absolute origin every canonical and OpenGraph URL is resolved
+ * against.
+ *
+ * It read `https://aiignite.ca` for a while, which nobody owns yet. That
+ * is not a cosmetic error: `metadataBase` is what turns the relative
+ * `url: "/"` below into the absolute `og:url` a scraper fetches, so
+ * every link shared to LinkedIn, Instagram or Discord pointed at a
+ * domain that does not resolve, and the preview card came back empty.
+ * The page looked fine to anyone who reached it and broken to everyone
+ * deciding whether to.
+ *
+ * The order below is deliberate:
+ *
+ *   1. NEXT_PUBLIC_SITE_URL, if set. This is the switch to throw the day
+ *      the real domain is bought — set it to `https://aiignite.ca`, add
+ *      the domain in Vercel, rebuild, and nothing else in the codebase
+ *      changes.
+ *   2. VERCEL_PROJECT_PRODUCTION_URL, which Vercel injects at build time
+ *      and which always names the project's real production host. It
+ *      carries no scheme, hence the template.
+ *   3. The known .vercel.app host, so a local `next build` produces the
+ *      same absolute URLs the deployed build does rather than silently
+ *      falling back to localhost.
+ *
+ * Inlined at BUILD time, like NEXT_PUBLIC_SIGNUP_URL — setting it later
+ * means rebuilding. See the note in lib/signup.ts.
+ */
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://aiignite.vercel.app");
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://aiignite.ca"),
+  metadataBase: new URL(SITE_URL),
   title: `${CLUB.fullName} · ${CLUB.university}`,
   description: DESCRIPTION,
   openGraph: {
