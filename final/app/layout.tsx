@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Newsreader } from "next/font/google";
 import { HeatField } from "@/components/HeatField";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -85,7 +85,24 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = { themeColor: "#000000" };
+/**
+ * `viewportFit: "cover"` is what makes `env(safe-area-inset-*)` report
+ * anything other than zero, and it is the switch that lets the page paint
+ * its own black into a notch or a home indicator instead of leaving the
+ * browser's letterbox there. It is only half of the decision: with cover
+ * on, every edge-anchored thing on the site has to clear those insets
+ * itself, which is why the shell, the nav and the intro's skip button all
+ * carry a `max(..., env(...))` rather than a flat padding.
+ *
+ * `colorScheme: "dark"` so the UI the page does not draw — the scrollbar,
+ * the overscroll gutter, a form control — comes back dark as well. Without
+ * it a black page ends in a white rubber-band on iOS.
+ */
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  colorScheme: "dark",
+  viewportFit: "cover",
+};
 
 export default function RootLayout({
   children,

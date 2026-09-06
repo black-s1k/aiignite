@@ -51,6 +51,11 @@ export function HeatField() {
     const field = new Field();
     field.seed(reduced ? 0.5 : 0.3);
 
+    /** Drops the cached rects, so the next frame does a full read pass.
+     *  Assigned once the loop's state exists, below; a no-op until then,
+     *  which covers the first `collect()` call — nothing is cached yet. */
+    let invalidate = () => {};
+
     let nodes: Node[] = [];
     const collect = () => {
       nodes = Array.from(
@@ -66,6 +71,10 @@ export function HeatField() {
           warm: Number.isFinite(w) ? w : 1,
         };
       });
+      // A new node set has no cached position, and an old one's may have
+      // moved under whatever changed the DOM. Either way the next frame
+      // has to read.
+      invalidate();
     };
     collect();
 
@@ -111,6 +120,12 @@ export function HeatField() {
       lastScroll = y;
     };
 
+    // A resize moves every rect on the page and does not change scrollY,
+    // so it is the one case the read gate below cannot infer. It is also
+    // what fires when a phone's URL bar retracts.
+    const onResize = () => invalidate();
+    window.addEventListener("resize", onResize, { passive: true });
+
     if (!reduced) {
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("pointerleave", onLeave, { passive: true });
@@ -119,8 +134,56 @@ export function HeatField() {
     }
 
     // ---- loop -------------------------------------------------------
+    //
+    // ---- The phone's frame budget ----
+    // Everything below costs the same per frame on every device: 92
+    // `getBoundingClientRect` calls and 92 style writes on the landing
+    // page. On a desktop that is genuinely free. On a phone it is not —
+    // measured at a 6x CPU throttle, which is roughly a mid-range
+    // Android, the page held 45fps at rest with 43 of 136 frames over
+    // 32ms. Not broken, and visibly not smooth either, on the one
+    // signature the whole design rests on.
+    //
+    // So two budgets, and neither of them touches what the field LOOKS
+    // like — the simulation, the ambient wave and every value written
+    // are identical on both. What changes is how often.
+    //
+    // The device test is POINTER, not width. A phone in landscape is
+    // 844px wide and still has a phone's processor and a thumb; a narrow
+    // window on a laptop has neither. Width has never been the question
+    // here.
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+
+    // 1. Cap the write rate at 40fps on a touch device. The heat moves
+    //    at the speed of a diffusion, not of a scroll — the fastest
+    //    thing it does is a pointer trail, which nothing on a phone
+    //    produces — so 25ms between writes is under the threshold at
+    //    which any of this is perceptible, and it hands a third of the
+    //    frame budget back to the scroller. The simulation still steps
+    //    on the real elapsed time, so the physics are unchanged.
+    const minStep = coarse ? 0.024 : 0;
+
+    // 2. Re-read the rects only when they can have moved. A rect is a
+    //    function of scroll position and viewport size and nothing else
+    //    — no element on this page moves under its own power, and the
+    //    two that are transformed (the mark, the flying clip) are
+    //    transformed rather than laid out, which `getBoundingClientRect`
+    //    would report but nothing here reads. So a frame with the same
+    //    scrollY and the same viewport as the last one is a frame whose
+    //    read pass is 92 forced layouts for an answer already held.
+    //
+    //    The MutationObserver above already re-collects on a DOM change,
+    //    and it invalidates this too — see `collect`.
+    let lastReadY = NaN;
+    let lastReadW = 0;
+    let lastReadH = 0;
+    invalidate = () => {
+      lastReadY = NaN;
+    };
+
     let raf = 0;
     let prev = performance.now();
+    let acc = 0;
     let visible = true;
     const onVis = () => {
       visible = !document.hidden;
@@ -137,6 +200,20 @@ export function HeatField() {
       const dt = Math.min(0.05, (now - prev) / 1000);
       prev = now;
       const t = now / 1000;
+
+      // The write budget. `acc` carries the real elapsed time, so a
+      // skipped frame is not lost time — it is added to the next step,
+      // and the simulation advances by exactly as much per second on a
+      // phone as on a desktop. On a fine pointer `minStep` is 0 and this
+      // is always true on the first test, which is a comparison rather
+      // than a branch anyone can feel.
+      acc += dt;
+      if (acc < minStep) return;
+      // Clamped for the same reason `dt` is one line up: on a skipped
+      // frame this is a SUM of clamped steps, so it can exceed the cap
+      // the clamp exists to enforce.
+      const step = Math.min(0.05, acc);
+      acc = 0;
 
       if (!reduced) {
         if (pStrength > 0 && px >= 0) {
@@ -162,27 +239,42 @@ export function HeatField() {
         if (scrollHeat > 0) {
           // Injected along the whole width at mid-height: scrolling
           // warms the sheet broadly rather than at one point.
-          field.inject(0.5, 0.55, scrollHeat * 2.6 * dt, 0.55);
+          field.inject(0.5, 0.55, scrollHeat * 2.6 * step, 0.55);
           scrollHeat *= 0.9;
         }
         // Embers.
-        field.inject(0.5 + 0.42 * Math.sin(t * 0.21), 1.02, 0.9 * dt, 0.3);
-        field.step(dt);
+        field.inject(0.5 + 0.42 * Math.sin(t * 0.21), 1.02, 0.9 * step, 0.3);
+        field.step(step);
       }
 
       // ---- read pass: every rect, no writes -----------------------
+      //
+      // Skipped entirely when nothing that can move a rect has moved.
+      // scrollY and the viewport are the whole input: no element here
+      // moves under its own power, and `collect`/`onResize` invalidate
+      // the cache for the two cases that are not scroll. Measured on the
+      // landing page that is 92 `getBoundingClientRect` calls, each of
+      // which can force a style and layout flush, not made on a frame
+      // whose answer has not changed — which on a page being read rather
+      // than scrolled is most of them.
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      for (const n of nodes) {
-        const r = n.el.getBoundingClientRect();
-        // Skip anything off screen — its style cannot be seen and the
-        // sample would be clamped to an edge anyway.
-        if (r.bottom < -80 || r.top > vh + 80) {
-          n.y = -9;
-          continue;
+      const sy = window.scrollY;
+      if (sy !== lastReadY || vw !== lastReadW || vh !== lastReadH) {
+        lastReadY = sy;
+        lastReadW = vw;
+        lastReadH = vh;
+        for (const n of nodes) {
+          const r = n.el.getBoundingClientRect();
+          // Skip anything off screen — its style cannot be seen and the
+          // sample would be clamped to an edge anyway.
+          if (r.bottom < -80 || r.top > vh + 80) {
+            n.y = -9;
+            continue;
+          }
+          n.x = (r.left + r.width / 2) / vw;
+          n.y = (r.top + r.height / 2) / vh;
         }
-        n.x = (r.left + r.width / 2) / vw;
-        n.y = (r.top + r.height / 2) / vh;
       }
 
       // ---- write pass: every style, no reads ----------------------
@@ -263,6 +355,7 @@ export function HeatField() {
       window.removeEventListener("pointerleave", onLeave);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 

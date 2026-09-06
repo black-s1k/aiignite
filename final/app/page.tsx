@@ -19,7 +19,7 @@ import {
   WHY,
 } from "@/lib/content";
 import { SIGNUP } from "@/lib/signup";
-import { SHELL, GUTTER } from "@/lib/ui";
+import { SHELL, GUTTER, ANCHOR } from "@/lib/ui";
 
 /**
  * The page explains itself completely, in the order a student actually
@@ -157,13 +157,121 @@ export default function Home() {
 
       <main id="top">
         {/* ---- The line ---------------------------------------------- */}
-        <section className={`${SHELL} relative pb-[8vh]`}>
-          {/* ---- The stage: exactly one screen ------------------------
-              Everything above the fold — the mark, the scatter, the
-              headline — lives in here, and the headline is flush with
-              the bottom of it. `justify-end` is what puts it there, so
-              the block grows UPWARD from the fold as the type scales
-              rather than downward past it.
+        {/* ---- One screen, on a phone as well as on a desktop -------
+            The section is the one-screen box below `lg`, and the stage
+            inside it is the one-screen box from `lg` up. That split is
+            the whole mobile fix, and it is worth stating why it is not
+            simply a smaller version of the same idea.
+
+            The desktop stage is `min-h-svh` with `justify-end`, so the
+            mark and the headline sit flush with the fold and the
+            composition grows UPWARD as the type scales. Everything
+            below — the tagline, the standfirst, the two buttons — is
+            deliberately past the fold, because at desktop sizes the
+            mark and the headline are 500 and 240 pixels tall and fill
+            the screen on their own.
+
+            On a phone they are not. `--text-hero` bottoms out at its
+            2.4rem floor, so the same two objects are about 250px of a
+            844px screen — and bottom-anchoring 250px of content in a
+            844px box does exactly what it says: it leaves 300px of
+            empty black under the nav and pushes the pitch and both
+            calls to action a full screen down. Measured before this
+            change, at 390x844 the "Join the club" button's top edge sat
+            at y=1108 with the fold at 844; at 320x640 it was at 965.
+            The first screen of the site on a phone was a headline and
+            nothing else.
+
+            So on a phone the composition that fills the screen is the
+            WHOLE hero, not the top half of it, and the section is what
+            carries `min-h-svh`.
+
+            `safe center` rather than plain `center`: a flex column that
+            centres content taller than itself overflows in BOTH
+            directions, and the half that goes off the top edge is
+            unreachable — scroll cannot go negative. `safe` falls back
+            to start-alignment exactly in that case. It is written as a
+            second declaration after `justify-start` so a browser that
+            does not know the keyword drops it and keeps the safe
+            behaviour rather than the dangerous one. Small phones (a
+            320x640 window with a five-line standfirst) genuinely cannot
+            fit the hero in one screen, and start-aligned with the CTA
+            just past the fold is the correct answer there. */}
+        <section
+          className={`${SHELL} relative flex min-h-svh flex-col justify-start [justify-content:safe_center] pb-[clamp(2rem,7vh,4rem)] pt-[clamp(5.5rem,13vh,7rem)] lg:block lg:min-h-0 lg:pb-[8vh] lg:pt-0`}
+        >
+          {/* ---- The phone's composition box ---------------------------
+              One wrapper around the WHOLE hero — mark, headline,
+              tagline, standfirst, buttons — and the only thing it is
+              here for is to give the phone's scatter something honest to
+              be a percentage of.
+
+              The layer used to be `absolute inset-0` on the stage, on
+              the argument that the stage is exactly one screen so a
+              percentage of it is a percentage of the screen. That was
+              true and it is not any more: below `lg` the stage is no
+              longer the one-screen box, the section is, and the section
+              now centres its content, so the box a mark would be
+              measuring against moves depending on how much copy is in
+              it. This wrapper is exactly the ink instead. Nothing above
+              `lg` is affected — it is a plain block there, and the
+              desktop scatter still hangs off the stage. */}
+          <div className="relative w-full">
+
+          {/* ---- The same idea, at phone width -----------------------
+              A separate layer rather than responsive tweaks on the
+              desktop one, because the two compositions have nothing in
+              common. The desktop scatter works by HORIZONTAL clearance —
+              the margins left and right of a centred headline. On a
+              390px screen the standfirst runs edge to edge and there is
+              no continuous margin to run marks down.
+
+              What there is instead is three BANDS where the centred
+              content is much narrower than the screen: beside the cloud
+              mark (~172px of 342), beside the headline, and beside the
+              stacked buttons (capped at 15rem). Eight marks live in
+              those, four a side, and every one of them is placed in a
+              band and never in the two where the copy is full width —
+              the tagline and the standfirst.
+
+              The percentages are of this wrapper rather than of the
+              section, and that is the whole reason the wrapper exists:
+              they are a share of the CONTENT, which is the thing the
+              marks have to clear, rather than a share of a box whose
+              spare height moves the content around inside it. */}
+          <div aria-hidden className="pointer-events-none absolute inset-0 lg:hidden">
+            {/* Beside the cloud. */}
+            <Draw name="chip" size={26} className="absolute left-[1%] top-[6%] rotate-[-12deg]" />
+            <Draw name="nodes" size={24} className="absolute right-[1%] top-[10%] rotate-[10deg]" />
+            <Brand name="anthropic" size={26} className="absolute left-[3%] top-[19%]" />
+            <Brand name="openai" size={26} className="absolute right-[3%] top-[22%]" />
+
+            {/* Beside the headline. */}
+            <Draw name="pulse" size={26} className="absolute left-[2%] top-[35%] rotate-[-5deg]" />
+            <Draw name="gear" size={24} className="absolute right-[2%] top-[38%] rotate-[-9deg]" />
+
+            {/* Beside the buttons, which are capped at 15rem and so
+                leave about 50px of margin a side on a 390px screen.
+
+                Gone below 375px, and that is a measurement rather than a
+                precaution: the cap is a fixed 15rem, so the margin beside
+                it is whatever the screen has left over — 50px at 390 and
+                20px at 320, which is less than the mark is wide. Measured
+                at 320x640 they overlapped the "Explore tracks" button by
+                9px. The band genuinely is not there at that width, so the
+                phone's scatter is six marks rather than eight; widening
+                the cap instead would cost the two marks beside the
+                headline as well. */}
+            <Brand name="n8n" size={26} className="absolute bottom-[7%] left-[1%] max-[374px]:hidden" />
+            <Draw name="bot" size={24} className="absolute bottom-[3%] right-[1%] rotate-[7deg] max-[374px]:hidden" />
+          </div>
+
+          {/* ---- The stage: exactly one screen, from `lg` up ----------
+              The mark, the desktop scatter and the headline live in
+              here, and the headline is flush with the bottom of it.
+              `justify-end` is what puts it there, so the block grows
+              UPWARD from the fold as the type scales rather than
+              downward past it.
 
               `svh`, not `vh`. On a phone `100vh` is the height with the
               browser chrome RETRACTED, so a stage sized in `vh` is taller
@@ -172,11 +280,17 @@ export default function Home() {
               `svh` is the chrome-expanded height: always safe, sometimes
               a little short, which is the right way round.
 
+              `lg:` on all of it. Below that the section above owns the
+              one-screen job and this is a plain stack — see the note on
+              the section for why bottom-anchoring 250px of mark and
+              headline inside a 844px box is the wrong composition on a
+              phone rather than a smaller version of the right one.
+
               `pt` only has to clear the nav. It is what stops a very
               short window pushing the mark up under it — the reason the
               headline and the cloud also carry a `vh` term in their own
               size, one section down in globals.css. */}
-          <div className="relative flex min-h-svh flex-col justify-end pb-[4vh] pt-[clamp(6rem,12vh,8rem)]">
+          <div className="relative flex flex-col justify-end lg:min-h-svh lg:pb-[4vh] lg:pt-[clamp(6rem,12vh,8rem)]">
           {/* Tech/AI marks, drawn in the same hand as everything else on
               the page rather than picked from an icon pack — see the note
               in Draw.tsx.
@@ -215,49 +329,6 @@ export default function Home() {
               `lg:` because below that the body column is the full width
               of the screen and there are no margins left to scatter
               into. */}
-          {/* ---- The same idea, at phone width -----------------------
-              A separate layer rather than responsive tweaks on the one
-              below, because the two compositions have nothing in common.
-              The desktop scatter works by HORIZONTAL clearance — the
-              margins left and right of a centred headline. On a 390px
-              screen those margins are about 90px, and the tagline and
-              paragraph run edge to edge, so there is no continuous
-              margin to run marks down.
-
-              What there is instead is three BANDS where the centred
-              content is narrower than the screen: beside the cloud mark,
-              beside the headline, and beside the stacked buttons. Eight
-              marks live in those, four a side.
-
-              This only became possible when the body column was centred.
-              While it was left-offset and full-bleed there was genuinely
-              nowhere to put these, which is why the layer below is `lg:`
-              only.
-
-              Anchoring is by PERCENTAGE of the stage, and it can be,
-              which was not true before. The stage is exactly one screen
-              at every size, so a percentage of it is a percentage of the
-              screen — and because the content is bottom-anchored and
-              narrower than the phone at every height, these clear it
-              HORIZONTALLY wherever they land vertically. That is the
-              same argument the desktop layer makes, finally available
-              here. Fixed `rem` offsets were what the old full-height
-              section needed, and they left the marks stranded at the top
-              once the content moved down to the fold. */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 lg:hidden">
-            <Draw name="chip" size={26} className="absolute left-[3%] top-[13%] rotate-[-12deg]" />
-            <Draw name="nodes" size={24} className="absolute right-[3%] top-[16%] rotate-[10deg]" />
-
-            <Brand name="anthropic" size={26} className="absolute left-[4%] top-[30%]" />
-            <Brand name="openai" size={26} className="absolute right-[4%] top-[33%]" />
-
-            <Brand name="n8n" size={28} className="absolute left-[3%] top-[52%]" />
-            <Draw name="gear" size={26} className="absolute right-[3%] top-[55%] rotate-[-9deg]" />
-
-            <Draw name="pulse" size={28} className="absolute left-[4%] top-[78%] rotate-[-5deg]" />
-            <Draw name="bot" size={24} className="absolute right-[4%] top-[80%] rotate-[7deg]" />
-          </div>
-
           <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
             {/* Above the standing label, clear of the nav. */}
             <Draw name="chip" size={50} className="absolute draw-bone left-[1%] top-32 rotate-[-14deg]" />
@@ -363,7 +434,7 @@ export default function Home() {
               arrival of its own, and a mark that tipped up while the
               words under it sat still would read as two separate objects
               rather than one masthead. */}
-          <div className="relative mx-auto mb-4 w-fit text-hero sm:mb-6">
+          <div className="relative mx-auto mb-2 w-fit text-hero sm:mb-6">
             <Draw name="cloudnet" size="3.77em" className="draw-bone hero-line" />
 
             {/* The tagline, sitting inside the cloud.
@@ -444,8 +515,23 @@ export default function Home() {
               that is a composition instead of a column — the headline was
               already centred, and with the standing label gone an
               offset body left it lopsided rather than asymmetric. Every
-              section below this still hangs off the spine. */}
-          <div className="mx-auto mt-12 max-w-tight text-center sm:mt-14">
+              section below this still hangs off the spine.
+
+              The top margin steps rather than holding at 3.5rem: below
+              `sm` this block is INSIDE the fold rather than past it, so
+              every rem here is competing with the buttons for the same
+              screen. 1.75rem on a phone, and the old 3.5rem from `sm`
+              up, where the block is scrolled to and the air is free.
+
+              Only the tier BELOW `sm` moves, here and at the gap under
+              the cloud above — deliberately, and it is the rule for
+              every spacing change in this file. `sm` and up has to
+              render the number it rendered before or the whole page
+              below the hero shifts, which is a desktop regression paid
+              for a phone. Verified by diffing the box of every heading,
+              term, definition and link at 1024, 1280, 1440 and 1920
+              against the same page before the change: zero moved. */}
+          <div className="mx-auto mt-7 max-w-tight text-center sm:mt-14">
             {/* The phone's copy of the tagline. Two nodes rather than
                 one repositioned, because a single node inside the cloud
                 wrapper would sit ABOVE the headline in source order on
@@ -453,16 +539,21 @@ export default function Home() {
                 removes the other from the accessibility tree entirely, so
                 only ever one of them is announced. Below `lg` the cloud
                 is ~175px wide and its interior would set this at 9px. */}
-            <p className="text-lead text-bone type-lead lg:hidden">
+            <p className="text-balance text-lead text-bone type-lead lg:hidden">
               <Tagline />
             </p>
-            <p className="mt-5 text-read text-ash">
+            {/* `text-pretty` rather than `text-balance`: balance
+                equalises every line, which on a phone turns four lines of
+                serif into four short ones with a ragged block shape.
+                Pretty only refuses to leave a single word on the last
+                line, which is the actual defect at this measure. */}
+            <p className="mt-4 text-pretty text-read text-ash sm:mt-5">
               A hands-on AI club at {CLUB.university} where students from every
               faculty build real AI tools instead of only learning that they
               exist.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:flex-wrap">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
               <a
                 href={SIGNUP.href}
                 className="w-full max-w-[15rem] bg-flame px-7 py-3.5 text-center text-read text-void transition-colors duration-200 hover:bg-bone sm:w-auto sm:max-w-none type-strong"
@@ -476,6 +567,7 @@ export default function Home() {
                 Explore tracks
               </a>
             </div>
+          </div>
           </div>
         </section>
 
@@ -512,7 +604,7 @@ export default function Home() {
             describing itself is asking for trust it has not earned; one
             that opens by naming something the reader already feels is
             making an argument. */}
-        <section id="why" className={`${SHELL} scroll-mt-32 py-[var(--space-section)]`}>
+        <section id="why" className={`${SHELL} ${ANCHOR} py-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="gap">{WHY.label}</Gutter>
             <div className="max-w-read">
@@ -555,7 +647,7 @@ export default function Home() {
             gets the most space and the plainest language. Each side is
             described by what you leave with, because that is the actual
             question. */}
-        <section id="tracks" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
+        <section id="tracks" className={`${SHELL} ${ANCHOR} pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="fork">Two tracks, one club</Gutter>
             <div>
@@ -595,7 +687,7 @@ export default function Home() {
 
                     <p className="mt-6 text-small text-ash">{t.cadence}</p>
 
-                    <p className="mt-8">
+                    <p className="tap-block mt-8">
                       <Link
                         href={t.href}
                         className="group inline-flex items-center gap-3 text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-5 type-strong"
@@ -635,14 +727,14 @@ export default function Home() {
             exactly one form of credibility available to it, which is
             people willing to attach their names to the thing, so this
             section is set as type rather than as a grid of avatars. */}
-        <section id="team" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
+        <section id="team" className={`${SHELL} ${ANCHOR} pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="people">Who runs it</Gutter>
             <div className="max-w-broad">
               <div className="grid gap-10 sm:grid-cols-2">
                 {TEAM.lead.map((p) => (
                   <div key={p.name} data-heat="rule" className="border-t border-edge pt-6">
-                    <p className="text-read type-strong">
+                    <p className="tap-block text-read type-strong">
                       <Person name={p.name} linkedin={p.linkedin} />
                     </p>
                     <p className="mt-1 text-small text-flame">{p.role}</p>
@@ -656,7 +748,12 @@ export default function Home() {
                     <p data-heat="label" className="label">
                       {g.k}
                     </p>
-                    <ul className="mt-4 grid gap-1.5">
+                    {/* `tap-list` floors each row at 44px on a touch
+                        screen and does nothing at all on a pointer — see
+                        the rule in globals.css. Fifteen names set at
+                        18px with 6px between them is a 24px pitch, which
+                        is a link you miss. */}
+                    <ul className="tap-list mt-4 grid gap-1.5">
                       {g.people.map((n) => (
                         <li key={n.name} className="text-read">
                           <Person
@@ -687,7 +784,7 @@ export default function Home() {
             Native <details>, not a JS accordion. It works before
             hydration, it is keyboard-operable for free, and the browser
             will find text inside a closed one on Ctrl+F. */}
-        <section id="faq" className={`${SHELL} scroll-mt-32 pb-[var(--space-section)]`}>
+        <section id="faq" className={`${SHELL} ${ANCHOR} pb-[var(--space-section)]`}>
           <div className={GUTTER}>
             <Gutter mark="speech">Before you ask</Gutter>
             <div className="max-w-wide">
@@ -707,7 +804,7 @@ export default function Home() {
                       so the six that are pure prose stay pure prose —
                       same pattern the team's LinkedIn fallback uses. */}
                   {"link" in f && f.link ? (
-                    <p className="pb-6 pl-10 text-small">
+                    <p className="tap-block pb-6 pl-10 text-small">
                       <a
                         className="text-flame underline underline-offset-4 transition-colors duration-200 hover:text-bone"
                         href={f.link.href}
@@ -754,7 +851,7 @@ export default function Home() {
             <p data-heat="label" className="label">
               General
             </p>
-            <p className="mt-2 text-small">
+            <p className="tap-block mt-2 text-small">
               <a
                 className="text-bone underline underline-offset-4"
                 href={`mailto:${CLUB.contact}`}
@@ -779,7 +876,7 @@ export default function Home() {
             <p data-heat="label" className="label mt-6">
               Follow
             </p>
-            <ul className="mt-2 grid gap-2 text-small">
+            <ul className="tap-list mt-2 grid gap-2 text-small">
               {SOCIALS.map((s) => (
                 <li key={s.name}>
                   <a
@@ -798,7 +895,7 @@ export default function Home() {
             <p data-heat="label" className="label mt-6">
               Sponsor a session
             </p>
-            <p className="mt-2 text-small">
+            <p className="tap-block mt-2 text-small">
               <a
                 className="text-bone underline underline-offset-4"
                 href={`mailto:${CLUB.sponsors}`}
@@ -811,12 +908,12 @@ export default function Home() {
             <p data-heat="label" className="label">
               Tracks
             </p>
-            <p className="mt-2 text-small">
+            <p className="tap-block mt-2 text-small">
               <Link className="text-bone underline underline-offset-4" href="/spark">
                 The Spark Track
               </Link>
             </p>
-            <p className="mt-2 text-small">
+            <p className="tap-block mt-2 text-small">
               <Link className="text-bone underline underline-offset-4" href="/forge">
                 The Forge Track
               </Link>
@@ -832,7 +929,7 @@ export default function Home() {
                 club actually do, not boilerplate. See app/privacy and
                 app/terms. If the site's behaviour changes, they are
                 wrong until they change too. */}
-            <p className="mt-4 text-small">
+            <p className="tap-block mt-4 text-small">
               <Link
                 className="text-ash underline underline-offset-4"
                 href="/privacy"

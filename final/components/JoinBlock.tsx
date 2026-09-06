@@ -1,4 +1,4 @@
-import { SHELL, GUTTER } from "@/lib/ui";
+import { SHELL, GUTTER, ANCHOR } from "@/lib/ui";
 import { CLUB, SOCIALS } from "@/lib/content";
 import { SIGNUP } from "@/lib/signup";
 
@@ -37,7 +37,7 @@ export function JoinBlock({
   return (
     <section
       id={id}
-      className={`${id ? "scroll-mt-32 " : ""}bg-flame py-[var(--space-section)] text-void`}
+      className={`${id ? `${ANCHOR} ` : ""}bg-flame py-[var(--space-section)] text-void`}
     >
       <div className={SHELL}>
         <div className={GUTTER}>
@@ -45,11 +45,18 @@ export function JoinBlock({
               this is not dimmer. */}
           <p className="label !text-void/60 lg:pt-3">Join</p>
           <div className="max-w-read">
-            <h2 className="type-display text-title text-void">{heading}</h2>
-            <p className="mt-6 text-lead text-void/75">{children}</p>
+            <h2 className="type-display text-balance text-title text-void">{heading}</h2>
+            <p className="mt-5 text-pretty text-lead text-void/75 sm:mt-6">{children}</p>
+            {/* `w-full` below `sm` so the ask is a full-width bar rather
+                than a shrink-wrapped box floating in the left third of a
+                phone screen — it is the one thing on the page a reader is
+                being asked to press. `justify-between` puts the arrow on
+                the far edge, which is where a full-width button's arrow
+                belongs; from `sm` up the button shrink-wraps again and
+                the two sit next to each other as before. */}
             <a
               href={SIGNUP.href}
-              className="group mt-10 inline-flex items-center gap-4 bg-void px-8 py-4 type-strong text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-7"
+              className="group mt-8 flex w-full items-center justify-between gap-4 bg-void px-6 py-4 type-strong text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-7 sm:mt-10 sm:inline-flex sm:w-auto sm:justify-start sm:px-8"
             >
               Sign up for {CLUB.name}
               <span aria-hidden>&rarr;</span>
@@ -79,7 +86,14 @@ export function JoinBlock({
                 block is the one place on the site where the accent is
                 the ground, so nothing in it opts into the heat. */}
             <p className="label !text-void/60 mt-9">Find us</p>
-            <ul className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-2 text-small">
+            {/* `tap-list` on a touch screen: the four channels wrap to
+                two rows on a phone, and at 23px tall with 8px between
+                them the two rows were a 54px band of near-touching
+                targets. The rule floors each row at 44px and leaves a
+                pointer untouched — see globals.css. The middle dots ride
+                the row rather than being spaced away from it, because
+                they sit inside the `li` alongside the link. */}
+            <ul className="tap-list mt-3 flex flex-wrap items-center gap-x-1 gap-y-2 text-small">
               {SOCIALS.map((s, i) => (
                 <li key={s.name} className="flex items-center">
                   <a
@@ -102,7 +116,9 @@ export function JoinBlock({
               ))}
             </ul>
 
-            {footer ? <p className="mt-8 text-small">{footer}</p> : null}
+            {footer ? (
+              <p className="tap-block mt-8 text-small">{footer}</p>
+            ) : null}
           </div>
         </div>
       </div>

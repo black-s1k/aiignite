@@ -75,14 +75,22 @@ export function Nav() {
           gutter and the CTA the right one, so the row reads as the edge
           of the page rather than a second, narrower column floating
           above it. */}
-      <div className="flex w-full items-center gap-6 px-6 py-5 sm:px-10 sm:py-7 lg:px-16">
+      {/* The inline padding is the shell's, plus the notch. `env()` only
+          reports anything because app/layout.tsx sets `viewportFit:
+          "cover"`, and this bar spans the full width, so it is the one
+          element on the site that lands under a landscape cutout if it
+          does not ask. */}
+      <div className="flex w-full items-center gap-4 px-[max(1.25rem,env(safe-area-inset-left))] py-4 pr-[max(1.25rem,env(safe-area-inset-right))] sm:gap-6 sm:px-[max(2.5rem,env(safe-area-inset-left))] sm:py-7 sm:pr-[max(2.5rem,env(safe-area-inset-right))] lg:px-[max(4rem,env(safe-area-inset-left))] lg:pr-[max(4rem,env(safe-area-inset-right))]">
         {/* data-lockup: the intro's closing frame is this same lockup,
             scaled up, and it flies onto this box to land. Renaming or
             restructuring this element will strand that flight. */}
+        {/* `tap-lockup` grows this to a 44px target on a touch screen and
+            does nothing on a pointer — see the rule in globals.css for
+            why that second half matters. */}
         <a
           href="#top"
           data-lockup="nav"
-          className="flex shrink-0 items-center gap-3 sm:gap-4"
+          className="tap-lockup flex shrink-0 items-center gap-3 sm:gap-4"
           aria-label={`${CLUB.name}, home`}
         >
           {/* The intro's flame and name fly onto these two boxes
@@ -93,18 +101,21 @@ export function Nav() {
           <span data-lockup="nav-mark" className="flex">
             {/* The one mark on the site that burns. Everywhere else it
                 is a logo; here it is the thing the intro just flew into
-                place, and it has to still be alive when it gets there. */}
-            <Mark className="h-9 w-6 sm:h-11 sm:w-8" alive />
+                place, and it has to still be alive when it gets there.
+
+                Note for the intro: `Intro.tsx` reads this element's
+                `offsetWidth`/`offsetHeight` to solve where the flying
+                clip has to land, so the flight follows any size written
+                here without being retuned. */}
+            <Mark className="h-8 w-[1.4rem] sm:h-11 sm:w-8" alive />
           </span>
           <span data-lockup="nav-word" className="wordmark whitespace-nowrap">
             {CLUB.name}
           </span>
         </a>
 
-        {/* Hidden on small screens rather than collapsed into a hamburger:
-            the page is one column of five sections, so a menu button
-            would be a control that opens a list of anchors you would
-            reach by scrolling anyway. */}
+        {/* Not collapsed into a hamburger below `md` — see the rail
+            under this row, which is where the same four anchors go. */}
         <ul className="ml-auto hidden items-center gap-8 md:flex">
           {NAV.map((n) => (
             <li key={n.href}>
@@ -138,12 +149,79 @@ export function Nav() {
           ))}
         </ul>
 
+        {/* At 320px the wordmark ended 24px from this button, which is
+            two objects sharing an edge rather than a bar with a left and
+            a right. The padding steps rather than holding at `px-5`, and
+            the row's own gap comes down with it — measured, that is 33px
+            of clearance at 320 instead of 24, without the type moving. */}
         <a
           href={SIGNUP.href}
-          className="nav-cta ml-auto shrink-0 border border-flame px-5 py-2.5 text-flame transition-colors duration-200 hover:bg-flame hover:text-void md:ml-0 sm:px-6 sm:py-3"
+          className="nav-cta ml-auto shrink-0 border border-flame px-3.5 py-2.5 text-flame transition-colors duration-200 hover:bg-flame hover:text-void sm:px-6 sm:py-3 md:ml-0"
         >
           Sign up
         </a>
+      </div>
+
+      {/* ---- The phone's way through the page -----------------------
+          The same four anchors, on their own line, below `md`.
+
+          They were simply absent, on the argument that a menu button
+          would be a control that opens a list of anchors you would reach
+          by scrolling anyway. That argument holds for a menu BUTTON and
+          not for the anchors: the landing page is 10,168px on a 390px
+          screen, about twelve screens, and "scroll until you find the
+          FAQ" is the desktop reader's problem solved and the phone
+          reader's ignored. Desktop gets four labels it can reach in one
+          movement; the phone got a sign-up button.
+
+          So it is a rail, not a menu — no button to press, no panel to
+          open, no state. It is the same row the desktop bar carries, set
+          on its own line because there is no width to share.
+
+          It appears only once the bar is STUCK, which is the same signal
+          that turns the stock solid. Over the hero the bar is
+          transparent so the composition is uninterrupted, and a row of
+          labels laid over the cloud and the scatter is exactly the
+          interruption that is being avoided — and it would be pointing
+          at sections the reader has not been given a reason to want yet.
+
+          `overflow-x-auto` because four words plus their tracking run
+          past 320px, and a rail that scrolls is honest where a rail that
+          wraps to two lines steals a fifth of a phone screen. The
+          scrollbar is hidden rather than styled: it would be the only
+          scrollbar drawn on the site.
+
+          No `nav-roll` on these. The roll is a hover affordance, and on
+          a touch screen `:hover` sticks after a tap — the label would
+          turn a quarter and stay there. The current-section rule under
+          the label is the state that matters here and it works from
+          scroll position rather than from a pointer.
+
+          The height is load-bearing elsewhere: stuck, the bar is 124px on
+          a phone against 113px without this row, and `ANCHOR` in
+          lib/ui.ts is the scroll margin that clears it. Change the height
+          here and that constant has to move with it — it is one constant
+          rather than six copies precisely so that is one edit. */}
+      <div className="nav-rail md:hidden">
+        <ul className="flex items-center gap-7 overflow-x-auto px-[max(1.25rem,env(safe-area-inset-left))] pb-1.5 pr-[max(1.25rem,env(safe-area-inset-right))] sm:gap-8 sm:px-[max(2.5rem,env(safe-area-inset-left))] sm:pb-3">
+          {NAV.map((n) => (
+            <li key={n.href} className="shrink-0">
+              <a
+                href={n.href}
+                data-heat="label"
+                data-current={
+                  current && n.href.endsWith(`#${current}`) ? "" : undefined
+                }
+                aria-current={
+                  current && n.href.endsWith(`#${current}`) ? "true" : undefined
+                }
+                className="nav-link block py-3"
+              >
+                {n.label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </nav>
   );

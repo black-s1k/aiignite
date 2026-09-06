@@ -24,17 +24,22 @@ export function Legal({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-read px-6 pb-[var(--space-section)] pt-[var(--space-section)] sm:px-10">
+    // The inline padding matches `SHELL` and carries the same notch
+    // clearance. It cannot use `SHELL` itself, which is 86rem wide and
+    // would give this column a different left edge from its own
+    // `max-w-read`. See the header of lib/ui.ts for the `env()`.
+    <main className="mx-auto w-full max-w-read px-[max(1.25rem,env(safe-area-inset-left))] pb-[var(--space-section)] pt-[var(--space-section)] sm:px-[max(2.5rem,env(safe-area-inset-left))]">
+      {/* Same padded hit area as the nav's lockup — see the note there. */}
       <Link
         href="/"
-        className="inline-flex items-center gap-3 no-underline"
+        className="tap-lockup inline-flex items-center gap-3 no-underline"
         aria-label={`${CLUB.name}, home`}
       >
         <Mark className="h-8 w-6" />
         <span className="wordmark whitespace-nowrap">{CLUB.name}</span>
       </Link>
 
-      <h1 className="mt-14 text-title text-bone type-head">
+      <h1 className="mt-10 text-balance text-title text-bone type-head sm:mt-14">
         {title}
       </h1>
 
@@ -42,9 +47,9 @@ export function Legal({
         Last updated {updated}
       </p>
 
-      <div className="legal mt-12">{children}</div>
+      <div className="legal mt-10 sm:mt-12">{children}</div>
 
-      <p className="mt-16 text-small">
+      <p className="tap-block mt-14 text-small sm:mt-16">
         <Link className="text-ash underline underline-offset-4" href="/">
           Back to {CLUB.name}
         </Link>

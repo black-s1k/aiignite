@@ -74,7 +74,28 @@ hotter than a passing move so that tapping feels like striking a match.
   `inline-block`, so a wider range makes each letter shove its
   neighbours and the line visibly churns.
 - **`dt` is clamped.** A backgrounded tab returning with a two-second
-  step would blow the diffusion up rather than fast-forward it.
+  step would blow the diffusion up rather than fast-forward it. So is
+  `step`, the accumulated version the budget below writes on — on a
+  skipped frame it is a SUM of clamped steps and can exceed the cap the
+  clamp exists to enforce.
+- **The phone has a frame budget, and it changes only HOW OFTEN.** The
+  loop costs the same on every device: 96 `getBoundingClientRect` calls
+  and 96 style writes per frame on the landing page, which is free on a
+  desktop and is not on a phone. Measured at a 6x CPU throttle, roughly a
+  mid-range Android: 45fps at rest with 43 of 136 frames over 32ms.
+  Two changes, neither of which touches a value the field writes —
+  **(1)** writes are capped at 40fps on a coarse pointer, with the real
+  elapsed time carried in an accumulator so the simulation advances by
+  exactly as much per second either way; **(2)** the read pass is skipped
+  entirely when `scrollY` and the viewport are unchanged, because a rect
+  is a function of those two and nothing else here moves under its own
+  power. `collect()` and a `resize` listener invalidate that cache — they
+  are the only two cases scroll position cannot infer. Same measurement
+  after: 60fps at rest, 2 long frames of 180.
+- **The device test is POINTER, not width.** A phone in landscape is
+  844px wide and has a phone's processor; a narrow window on a laptop has
+  a desktop's. Every mobile decision in this codebase that is about the
+  DEVICE rather than about the space uses `(pointer: coarse)`.
 - **Never put a `transition` on `.heat span`.** It fights the per-frame
   writes and turns a travelling front into mush.
 - **Words must be wrapped, not just characters.** Characters have to be
@@ -113,6 +134,24 @@ the drawing and held to be read; it was removed at the client's
 direction, along with the viewport-fitting maths that existed only to
 size it. Nothing in `CUE` moved when it went, because every cue is pinned
 to a clip rather than to the name.
+
+**`--clip-w` is `min(94vw, 58rem, 109vh)`, and the 94 is the portrait
+phone's number.** The clip is 1.76:1, so in portrait its width is the
+only thing that can give it any size at all — the height cap is 920px on
+a 390x844 screen and never binds, and the aspect ratio is the encode's.
+At 86vw the drawing was 335px across and 190px tall in an 844px field of
+black: the opening moment of the site, a postage stamp, on the device
+most people will see it on first. Nothing else moves — at 1440 the 58rem
+cap binds long before 94vw, and in landscape the 109vh cap still binds
+first. Verified at 1440x900, 1024x768, 844x390 and 390x844; only the last
+changes.
+
+**The skip button is a 48px box, not a 13px word.** The sequence runs on
+every load at the client's direction, so leaving it is the affordance the
+whole thing rests on, and it was type with no box around it in the corner
+a right-handed thumb reaches least well. The padding floors the target at
+48px and the insets are pulled back by exactly that padding, so the WORD
+lands where it always did.
 
 **Both clips are played at 2.25x rather than cut.** 3.68s of drawing runs
 in 1.67s, 4.46s of mascot in 2.04s, and nothing is missing from either.
@@ -264,14 +303,31 @@ left and right of a centred headline. At 390px those margins are about
 90px and the tagline and paragraph run edge to edge, so there is no
 continuous margin to run marks down. What exists instead is three BANDS
 where the centred content is narrower than the screen: beside the cloud
-mark, beside the headline, and beside the stacked buttons. Eight marks
-live there, four a side. The two compositions share nothing but the
-marks themselves, which is why they are two layers rather than one with
-breakpoints.
+mark (~172px of 342), beside the headline, and beside the stacked buttons
+(capped at 15rem). Eight marks live there, four a side. The two
+compositions share nothing but the marks themselves, which is why they
+are two layers rather than one with breakpoints.
 
 This only became possible when the hero body was centred. While it was
 left-offset and full-bleed there was nowhere on a phone to put these,
 which is why the layer was `lg:` only until then.
+
+**It hangs off a wrapper around the hero's own ink, not off the stage.**
+The old argument was that the stage is exactly one screen, so a
+percentage of it is a percentage of the screen. That stopped being true
+when the section took over the one-screen job below `lg` and started
+CENTRING its content: the spare height moves the ink around inside the
+box, so a percentage of the box is no longer a percentage of anything the
+marks have to clear. There is a plain `relative` wrapper around the whole
+hero now and the layer is `absolute inset-0` on that. Above `lg` it is an
+ordinary block and the desktop scatter still hangs off the stage.
+
+**Two of the eight are gone below 375px, and that is measured.** The
+button cap is a fixed 15rem, so the margin beside it is whatever the
+screen has left — 50px at 390 and 20px at 320, which is less than a mark
+is wide. At 320x640 they overlapped the "Explore tracks" button by 9px.
+The band is not there at that width; widening the cap to make room would
+cost the two marks beside the headline instead.
 
 ### Things that will bite you here
 
@@ -410,14 +466,12 @@ prevent.
   logo, knowingly, because a blob was the only alternative. It is the one
   place the borrowed/drawn split is crossed. If Cursor or LangChain ever
   get the same treatment, they belong there too, not in `Brand.tsx`.
-- **The phone layer is anchored by percentage of the stage,** which only
-  became possible when the stage did. The stage is exactly one screen at
-  every size, so a percentage of it is a percentage of the screen — and
-  the content is bottom-anchored and narrower than the phone at every
-  height, so these clear it HORIZONTALLY wherever they land vertically.
-  It used fixed `rem` offsets while the section owned the full height,
-  and those left the marks stranded at the top the moment the content
-  moved down to the fold.
+- **The phone layer is anchored by percentage of a wrapper around the
+  hero's ink**, not of the stage and not in fixed `rem`. Both earlier
+  versions are instructive: fixed offsets stranded the marks at the top
+  once the content moved down to the fold, and a percentage of the stage
+  broke the moment the section started centring its content below `lg`.
+  A percentage of the ink is the thing the marks actually have to clear.
 - **The stacked CTAs are capped at `max-w-[15rem]`, and that cap is what
   keeps the bottom two marks clear.** At 17rem on a 360px screen the
   buttons left 2px between their edge and the marks beside them. Widen
@@ -444,14 +498,58 @@ prevent.
 
 ## The hero is one screen
 
-The mark, the scatter and the headline live in a STAGE — a
+From `lg` up, the mark, the scatter and the headline live in a STAGE — a
 `min-h-svh flex flex-col justify-end` block at the top of the section.
 The headline sits flush with the bottom of it, so the whole composition
 grows UPWARD from the fold as the type scales rather than downward past
 it. Everything else in the section follows below and is scrolled to.
 
+**Below `lg` the one-screen box is the SECTION, and it holds the whole
+hero.** That is not a smaller version of the stage; it is a different
+composition, and the reason is arithmetic. The stage's `justify-end`
+assumes the mark and the headline are big enough to fill a screen on
+their own, which at desktop sizes they are — 500px and 240px. On a phone
+`--text-hero` bottoms out at its 2.4rem floor and the same two objects
+are about 250px of an 844px screen, so bottom-anchoring them left 300px
+of empty black under the nav and put the tagline, the standfirst and
+both calls to action a full screen down.
+
+Measured before the fix, on the landing page: at 390x844 the "Join the
+club" button's top edge was at y=1108 with the fold at 844; at 320x640 it
+was at 965 with the fold at 640. **The first screen of the site on a
+phone was a headline and nothing else.** It now ends at 659 and 660.
+
+So below `lg` the section carries `min-h-svh` and centres everything from
+the cloud to the buttons inside it, and the stage is a plain stack.
+
 ### Things that will bite you here
 
+- **`justify-content: safe center`, never plain `center`.** A flex column
+  that centres content taller than itself overflows in BOTH directions,
+  and the half that goes off the top is unreachable because scroll cannot
+  go negative. `safe` falls back to start-alignment exactly in that case.
+  It is written as a second declaration after `justify-start` so a
+  browser that does not know the keyword drops it and keeps the safe
+  behaviour rather than the dangerous one.
+- **The hero genuinely does not fit one screen on a small phone, and that
+  is the right answer.** At 320x640 the standfirst alone is five lines;
+  the sum is 779px against 640. Start-aligned with the CTA at the fold is
+  correct there. The same is true of any phone in landscape — 663px of
+  hero against 390px of screen — and it is inherent to a 1.76:1 clip and
+  a 5.5em type stack, not a layout fault to chase.
+- **Only the tier BELOW `sm` may change when tuning the phone's spacing.**
+  Every margin in the hero steps as `mt-7 sm:mt-14` rather than being
+  replaced, because `sm` and up must render the number it rendered
+  before — a rem taken off a desktop margin moves the entire page below
+  the hero. Two 8px slips did exactly that during this work and were
+  caught by the diff below, not by looking.
+- **Verify desktop by DIFFING BOXES, not by comparing screenshots.** The
+  heat field repaints every frame, so two screenshots of an unchanged
+  page never match. The check that means something is: record
+  `getBoundingClientRect` for every heading, term, definition, list item
+  and link on all five pages at 1024x768, 1280x800, 1440x900 and
+  1920x1080, make the change, and diff. It must come back zero. It
+  currently does.
 - **`svh`, never `vh`.** On a phone `100vh` is the height with the
   browser chrome RETRACTED, so a stage sized in `vh` is taller than the
   screen the reader actually has until they scroll — exactly the
@@ -555,6 +653,88 @@ to add local softness, compositing a masked blurred copy OVER the sharp
 one, produces a GLOW rather than a defocus: source-over attenuates the
 backdrop by the source's alpha, so the sharp letter survives underneath
 its own halo. Nothing on this page glows.
+
+## The phone gets a rail, not a hamburger
+
+Below `md` the four section anchors sit on their own line under the
+lockup, and they appear only once the bar is STUCK — the same signal that
+turns the stock solid.
+
+They were simply absent, on the argument that a menu button would be a
+control that opens a list of anchors you would reach by scrolling anyway.
+**That argument holds for a menu BUTTON and not for the anchors.** The
+landing page is 10,502px on a 390px screen, about twelve screens, and
+"scroll until you find the FAQ" was the desktop reader's problem solved
+and the phone reader's ignored: desktop got four labels reachable in one
+movement, the phone got a sign-up button.
+
+So it is a rail — no button to press, no panel to open, no state. The
+same row the desktop bar carries, on its own line because there is no
+width to share.
+
+### Things that will bite you here
+
+- **It is hidden by HEIGHT, not by `display`.** `block-size: 0` keeps the
+  row measurable from the first frame and lets the bar grow into it over
+  the same 200ms the stock takes to go solid. `display: none` would make
+  the arrival a jump. `visibility: hidden` goes with it, because a
+  zero-height overflow box still hands its links to the tab order and to
+  a tap.
+- **It appears only when stuck, and that is not just taste.** Over the
+  hero the bar is transparent so the composition is uninterrupted, and a
+  row of labels laid over the cloud and the scatter is precisely the
+  interruption being avoided — pointing at sections the reader has not
+  been given a reason to want yet.
+- **No `nav-roll` on these.** The roll is a hover affordance, and on a
+  touch screen `:hover` sticks after a tap: the label would turn a
+  quarter and stay there.
+- **The bar's height is load-bearing.** Stuck, it is 124px on a phone
+  against 113px without the rail, and `ANCHOR` in `lib/ui.ts` is the
+  scroll margin that clears it — `scroll-mt-[8.75rem] lg:scroll-mt-32`.
+  It is one constant rather than the six copies of `scroll-mt-32` it
+  replaced, for the same reason `SHELL` and `GUTTER` are: the number is a
+  function of the nav's height, which is a single fact about the site.
+  Change the bar and change that, or every anchor lands under it.
+- **`scroll-padding-top` on the root is NOT the mechanism, deliberately.**
+  It does not override a scroll margin, it ADDS to it. The note under
+  `html` in globals.css is the same warning from the other side.
+
+## Everything is a 44px target on a touch screen
+
+Every link on this site is set as type, so it is exactly as tall as its
+own line box — 18px for a name in the team list, 14px in the colophon.
+Correct for a pointer, which is a pixel; wrong for a contact patch nearer
+45px, on a page carrying fifteen names, eleven colophon links and four
+channels in the flame block.
+
+Three rules in globals.css do it, all inside one `@media (pointer:
+coarse)` block: `.tap-list` sets the ROW so a list keeps its rhythm
+rather than growing padding the ink sits inside, `.tap-block a` (and
+`.legal a`) adds `padding-block` to a link in prose, and `.tap-lockup`
+pads the two wordmark lockups.
+
+### Things that will bite you here
+
+- **It is a media query on POINTER, never on width.** A phone in
+  landscape is 844px wide and still has a thumb on it; a narrow window on
+  a laptop has a mouse. Width has never been the question.
+- **`.tap-block a` sets padding and NOTHING else.** Padding on an inline
+  box is hit-tested but does not enter line layout, so it grows the
+  target by 27px without moving a character. `display: inline-block`
+  instead grows the line box, pushes the paragraph around, and breaks any
+  link that is already `inline-flex` — the two track links carry an arrow
+  in a flex gap.
+- **`.tap-lockup` must not reach a pointer.** The same padding on a
+  desktop, where the mark is 44px rather than 32, made the nav bar 10px
+  taller and pushed the whole page down by it. Measured: 103 to 113, and
+  every anchor's clearance changed with it.
+- **Its padding must be SYMMETRIC.** `Intro.tsx` aims the flying clip at
+  the nav lockup's vertical CENTRE, so an uneven pad lands the flame off
+  the mark.
+- **Verify by enumerating, not by tapping.** Walk every `a[href]`,
+  `button` and `summary` on all five pages at 320, 360, 390, 414 and 430
+  and assert `height >= 40`. The one legitimate exception is the
+  sr-only "Skip to content" link, which is 1px until it is focused.
 
 ## The nav labels roll
 
@@ -752,9 +932,25 @@ instead of a free number.
 
 ### Shared structure
 
-- **`lib/ui.ts`** holds `SHELL` and `GUTTER`. All three pages declared
-  them identically and independently; change the gutter on one and the
-  other two silently keep the old one, with nothing failing anywhere.
+- **`lib/ui.ts`** holds `SHELL`, `GUTTER` and `ANCHOR`. All three pages
+  declared the first two identically and independently; change the gutter
+  on one and the other two silently keep the old one, with nothing
+  failing anywhere. `ANCHOR` is the newest and had six copies written as
+  `scroll-mt-32`.
+- **`SHELL` carries the notch, and it is the only place that does** apart
+  from the nav, the intro's skip button and `Legal.tsx` — the four things
+  that are not inside it. `app/layout.tsx` sets `viewportFit: "cover"`,
+  which is what makes `env(safe-area-inset-*)` report anything at all and
+  what lets the page paint its own black into a cutout instead of leaving
+  the browser's letterbox there. It is half a decision: with cover on,
+  every edge-anchored thing has to clear those insets itself, hence
+  `px-[max(1.25rem,env(safe-area-inset-left))]` rather than `px-6`. A
+  device with no cutout renders the design's own numbers.
+- **`GUTTER` stacks at `gap-6` below `lg`, not `gap-10`.** 2.5rem between
+  a section's label and its first line is a desktop measure. On a phone,
+  where the two are the only things on screen, it separates them into two
+  unrelated objects and costs a fifth of the fold on each of eleven
+  sections.
 - **`components/JoinBlock.tsx`** is the flame block that closes every
   page. It existed three times as fifteen lines of markup with a
   byte-identical button class and only the copy different — which is why

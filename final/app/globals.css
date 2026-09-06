@@ -215,6 +215,13 @@
     background-color: var(--color-void);
     -webkit-text-size-adjust: 100%;
 
+    /* The flame at low alpha rather than the platform's blue-grey box.
+       Not `transparent`: on a page with no hover states to fall back on,
+       a tap with no acknowledgement at all reads as a link that did not
+       register, and the reader taps again. This is the same colour every
+       other acknowledgement on the site is made of. */
+    -webkit-tap-highlight-color: rgb(190 228 73 / 0.16);
+
     /* Every link in the nav is an anchor into this one page, so a jump
        cut is a jump cut in the reading, not just in the scroll. Native
        smooth scrolling rather than a scroll-hijacking library: this only
@@ -225,7 +232,7 @@
     scroll-behavior: smooth;
 
     /* No scroll-padding-top here on purpose. Clearing the fixed nav is
-       already handled per-section by `scroll-mt-32` in page.tsx, and
+       already handled per-section by `ANCHOR` in lib/ui.ts, and
        adding a scrollport padding on top of that does not override it —
        the two ADD, landing every anchor 120px below where it should be.
        If the nav's height ever changes, change that utility, not this. */
@@ -453,6 +460,85 @@
 }
 
 @layer components {
+  /* ---- Touch targets ------------------------------------------------
+     Everything on this page is set as type, and a link that is set as
+     type is exactly as tall as its own line box. On a desktop that is
+     correct — a pointer is a pixel. On a phone it is a 24px-tall target
+     for a contact patch that is nearer 45px, and the site has a lot of
+     them: fifteen names in the team section, eleven links in the
+     colophon, four channels in the flame block.
+
+     `.tap-list` is for a LIST of links, and it works on the list rather
+     than on each link so the spacing stays a rhythm rather than becoming
+     padding that the ink can be seen sitting inside. The row pitch on a
+     coarse pointer comes up to at least 44px; on a fine pointer nothing
+     changes at all, because nothing needs to.
+
+     It is a media query on POINTER, not on width. A phone in landscape
+     is 844px wide and still has a thumb on it; a small window on a
+     laptop is 360px wide and still has a mouse. Width is the wrong
+     question here, and it is the reason this is not a `sm:` variant.
+
+     `> * > a` rather than `a`: it sets the row, and the row is the list
+     item, so the anchor fills what the item already reserves instead of
+     adding to it. Anything nested deeper is not what this is for. */
+  @media (pointer: coarse) {
+    .tap-list > li {
+      display: flex;
+    }
+
+    .tap-list > li > a,
+    .tap-list > li > span {
+      display: flex;
+      align-items: center;
+      min-height: 2.75rem;
+    }
+
+    /* A link that is a line of prose rather than a row in a list, and
+       the padding is deliberately the ONLY thing here — no `display`
+       change.
+
+       Padding on an inline box is hit-tested but does not enter line
+       layout, so this grows the target by 18px without moving a single
+       character on the page. Setting `display: inline-block` instead
+       would grow the line box, push the paragraph around it, and break
+       any link that is already `inline-flex` (the two track links carry
+       an arrow in a flex gap). The overlap into the line above and below
+       is the point rather than a side effect: a missed tap costs more
+       than two hit areas that touch.
+
+       `.legal a` gets the same treatment. Those are links inside running
+       prose at 18px on a 1.72 line — the smallest targets on the site
+       and the ones a reader is least likely to be aiming carefully at. */
+    /* The two lockups — the nav's and the legal pages' — are exactly as
+       tall as the mark inside them, which is 32px on a phone. The
+       padding grows the hit area to 44 and the equal negative margin
+       takes the growth back out of layout, so nothing around them moves.
+
+       It lives in here rather than as a utility on the element because
+       it MUST NOT apply on a pointer: the same padding on a desktop,
+       where the mark is 44px, made the nav bar 10px taller and pushed
+       the whole page down by it. Measured — the bar went 103 to 113 and
+       every anchor's clearance changed with it.
+
+       The symmetry is load-bearing on the nav's one: Intro.tsx aims the
+       flying clip at that box's vertical CENTRE, so an uneven pad lands
+       the flame off the mark. */
+    .tap-lockup {
+      padding-block: 0.375rem;
+      margin-block: -0.375rem;
+    }
+
+    .tap-block a,
+    .legal a {
+      /* 0.85rem, which is what it takes: the smallest of these is set at
+         `--text-small`, so 14px of line plus 27px of padding is the 41px
+         floor. Measured against every link on the site rather than
+         chosen — at 0.55rem the four `text-small` links were still 32px. */
+      padding-block: 0.85rem;
+    }
+  }
+
   /* Wordmark. Not `.label` — that is 11px at 0.18em, which is correct
      for a gutter tag and far too loose once the type is big enough to
      read as a logotype. Tracking comes down as the size goes up, which
@@ -594,6 +680,62 @@
   .nav[data-stuck="true"] {
     background-color: var(--color-void);
     border-bottom-color: var(--color-edge);
+  }
+
+  /* The phone's anchor rail. See the note at its markup in Nav.tsx for
+     why it exists and why it is a rail rather than a menu.
+
+     Hidden until the bar is stuck, and hidden by HEIGHT rather than by
+     `display`, so the row it is in is measurable from the first frame
+     and the labels inside it keep their layout. `display: none` here
+     would also make the arrival a jump; this way the bar grows into it
+     on the same 200ms the stock takes to go solid, which reads as one
+     move.
+
+     `visibility` rather than opacity alone: a zero-height overflow box
+     still hands its links to the tab order and to a tap, and a row of
+     invisible targets sitting over the hero is worse than no row. */
+  .nav-rail {
+    block-size: 0;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      block-size var(--t-quick) var(--ease-heat),
+      opacity var(--t-quick) var(--ease-heat),
+      visibility var(--t-quick);
+  }
+
+  .nav[data-stuck="true"] .nav-rail {
+    block-size: auto;
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* It scrolls because four tracked-out words run past 320px. The
+     scrollbar is hidden rather than styled — it would be the only one
+     drawn anywhere on this site — and the momentum is the platform's. */
+  .nav-rail ul {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    /* So a flick lands on a label rather than between two. */
+    scroll-snap-type: x proximity;
+  }
+
+  .nav-rail ul::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-rail li {
+    scroll-snap-align: start;
+  }
+
+  /* The current-section rule sits under the label. In the top row it
+     hangs at -0.62em, which is clear of everything; in the rail the
+     label carries its own `py-1`, so the same offset would draw the rule
+     inside that padding and touch the descenders above it. */
+  .nav-rail .nav-link::before {
+    bottom: 0;
   }
 
   /* FAQ. Native <details>, so it works before hydration, is
@@ -892,8 +1034,22 @@
        letterbox it inside its own box; capping the width cannot do
        either. It only bites when the window is short — a phone in
        landscape was overflowing badly, 471px of stage in a 390px
-       viewport — so a normal desktop is untouched. */
-    --clip-w: min(86vw, 58rem, 109vh);
+       viewport — so a normal desktop is untouched.
+
+       94vw rather than 86, and only the PORTRAIT PHONE case moves. The
+       clip is 1.76:1, so in portrait its width is the only thing that
+       can give it any size at all: 86vw on a 390x844 screen is 335px
+       across and 190px tall, which is a postage stamp adrift in a 844px
+       field of black — the opening moment of the site, unreadable, on
+       the device most people will see it on first. There is no other
+       lever. The height cap cannot help (109vh is 920px there and never
+       binds) and the aspect ratio is the encode's.
+
+       Nothing else moves: at 1440 the 58rem cap binds long before 94vw
+       does, and in landscape the 109vh cap still binds first. Verified
+       at 1440x900, 1024x768, 844x390 and 390x844 — only the last
+       changes, 335px to 366px. */
+    --clip-w: min(94vw, 58rem, 109vh);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -958,10 +1114,31 @@
     transition: opacity 260ms var(--ease-heat);
   }
 
+  /* Skip. It is the affordance the whole sequence rests on — the
+     sequence runs on every load at the client's direction, so a reader
+     who has seen it and wants the FAQ has to be able to leave — and it
+     was 13px of type with no box around it, tucked into the corner a
+     right-handed thumb reaches least well.
+
+     The padding is what turns it into a target: `min-height` and
+     `min-width` floor the box at 48px, which is the size a thumb
+     actually hits, and the insets are pulled back by the padding so the
+     WORD lands exactly where it did before. Nothing moved visually; the
+     hit area is four times the size.
+
+     `env()` because `viewportFit: "cover"` puts this corner under the
+     home indicator on a modern phone otherwise. `max()` so a device with
+     no inset gets the design's own numbers. */
   .intro-skip {
     position: absolute;
-    right: clamp(1.5rem, 4vw, 4rem);
-    bottom: clamp(1.5rem, 4vh, 3rem);
+    right: max(calc(clamp(1.5rem, 4vw, 4rem) - 1rem), env(safe-area-inset-right));
+    bottom: max(calc(clamp(1.5rem, 4vh, 3rem) - 0.85rem), env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 3rem;
+    min-height: 3rem;
+    padding: 0.85rem 1rem;
     color: var(--color-ash);
     transition: color 200ms var(--ease-heat);
   }
