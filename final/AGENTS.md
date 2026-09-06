@@ -1049,6 +1049,26 @@ finish.** Do not answer "this feels generic" by adding more effects.
 - `app/page.tsx` — one asymmetric column that never centres. Everything
   hangs off one left axis; the measure changes per section, so the page
   has a spine but not a template.
+- `lib/motion.ts` — `usePrefersReducedMotion`, on `useSyncExternalStore`
+  rather than a `useState` and an effect. Read its header before reaching
+  for the media query directly: the effect shape it replaces is a
+  setState in an effect body, which renders once with the wrong answer
+  and again with the right one, and the server snapshot is what keeps it
+  safe under `output: "export"`, where every page is prerendered at build
+  time and a lazy initialiser touching `window` throws during the build.
+- `../docs/deploy.md` — Vercel, which is the deployment path. The app is
+  in `final/`, so the project's Root Directory is `final` and that is the
+  one setting nothing detects for you. `../docs/deploy-azure.md` is the
+  full Azure/Terraform alternative, researched and never applied.
+- `vercel.json` — the security headers, and the reason it exists is that
+  `public/staticwebapp.config.json` is an Azure file that **Vercel never
+  reads**. Deploying without it would silently drop
+  `X-Content-Type-Options` and `Referrer-Policy` from every response.
+  The two files say the same thing to two hosts and nothing keeps them in
+  step but a paragraph in each.
+- `../.github/workflows/ci.yml` — typecheck, lint and build on every PR.
+  Not redundant with Vercel's build check: **Vercel does not run the
+  linter**, and will happily ship a diff that trips every rule.
 
 ## The slop audit
 
@@ -1101,6 +1121,42 @@ The ones that cost real work, so they do not get undone by accident:
   the thing to weigh is that ~120 leaf blocks on the landing page each
   fade and tip 26°, and re-hide when scrolled away — the mitigations
   reduce that, they do not make it invisible.**
+
+## Reduced motion is a policy, not a switch
+
+Four things read `prefers-reduced-motion`, and none of them simply stop.
+The heat holds at a fixed, fully-formed state and the field stops
+simulating; the mark holds at its resting shape, because a logo that is
+a fire is still a logo when it is not moving; the scroll reveal never
+marks anything; the Forge rail lights every layer and stops tracking.
+**Reading the page must never require watching it move.**
+
+They all go through `usePrefersReducedMotion` in `lib/motion.ts` now,
+except the two that read the query once inside their own effect and
+deliberately do not re-subscribe — see below.
+
+### Things that will bite you here
+
+- **Never `useState` plus an effect for this.** It is a setState called
+  synchronously in an effect body: one render with the wrong answer, then
+  another with the right one, on every mount. React's own lint rule
+  rejects it and the rule is right. Both places that did it are fixed —
+  `PipelineRail` derives its lit count during render instead of storing
+  it, and `Intro` guards on the render so the overlay is never mounted
+  for that reader at all rather than mounting, painting a black screen
+  over the page, and then unmounting itself.
+- **The server snapshot must be `false`, and it must exist.** Every page
+  here is prerendered at build time by `output: "export"`, so there is no
+  `window` when the component first renders. `false` is the value that
+  renders full motion, so hydration matches for the majority who have not
+  asked for anything.
+- **`HeatField` and `ScrollReveal` still read the query directly, once,
+  inside their effects — leave them.** Both branch on it to decide what
+  to SET UP, not what to render: the field skips its listeners and its
+  simulation, the reveal bails before it marks a single element and
+  leaves the markup untouched, which is what guarantees nothing can be
+  left hidden if it never runs. Switching them to the hook would make
+  those effects re-run on a change and buys nothing either can use.
 
 ## Still to do
 

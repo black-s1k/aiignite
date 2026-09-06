@@ -1,0 +1,67 @@
+# The gate on every pull request.
+#
+# Vercel already builds this repo on every push, so a green Vercel check
+# proves it COMPILES. That is not the same as proving it is clean: Vercel
+# does not run the linter, and it will happily ship a build that trips
+# every rule in eslint.config.mjs. This is the check that says the diff
+# is fit to merge, not merely that it survived a build.
+#
+# The three steps are separate on purpose even though `next build` runs
+# TypeScript itself. When something fails, the step name says what kind
+# of thing broke without anyone opening a log — and typecheck and lint
+# are seconds each, so the slow one goes last and is never reached on a
+# diff that was never going to pass.
+#
+# The app lives in `final/`, not at the repo root, so every step runs
+# from there. See the note at the top of AGENTS.md.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # So a red run can be re-tried from the Actions tab without an empty
+  # commit, which is the usual reason people push one.
+  workflow_dispatch:
+
+# A second push to the same PR makes the first run irrelevant. Cancel it
+# rather than paying for both and reading the stale one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: final
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # `cache: npm` needs to be pointed at the lockfile, because the
+      # lockfile is not at the repo root either.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: final/package-lock.json
+
+      # `ci`, never `install`: it installs exactly what the lockfile
+      # pins and fails if package.json and the lockfile disagree, which
+      # is the whole point of running this on someone else's machine.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # Last because it is the slow one, and because a diff that fails
+      # either check above was never going to ship anyway.
+      - name: Build
+        run: npm run build

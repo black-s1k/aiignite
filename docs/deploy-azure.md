@@ -1,5 +1,27 @@
 # Deploying AI Ignite to Azure with Terraform
 
+> **This is not the current deployment path. Vercel is — see
+> [`docs/deploy.md`](./deploy.md).**
+>
+> Nothing in this runbook has ever been applied. There is no Azure
+> subscription behind it, no Terraform state, and no `.tf` file in this
+> repository. It is kept, and kept accurate, for two reasons: the
+> research in it is real and would be tedious to redo, and it is the
+> written argument for why this site can be hosted for nothing on any
+> static host at all — which is a property worth not losing track of.
+>
+> One thing here is load-bearing TODAY, on Vercel:
+> `final/public/staticwebapp.config.json` is the Azure Static Web Apps
+> config named in section 0. It is inert on Vercel, which never reads
+> it, and it is deliberately still in the tree so this path stays
+> one command from working. Its security headers are duplicated in
+> `final/vercel.json`, which is the file that actually applies them
+> today. **Change one and change the other**, or the two hosts serve
+> different headers.
+>
+> If Azure is ever chosen, this is the document; delete `vercel.json`
+> and the Vercel project, and follow it from section 0.
+
 A hands-on runbook. You run every command; nothing here has been applied to
 your subscription. Where a step has a trap in it, the trap is written down
 next to the step rather than left for you to hit.

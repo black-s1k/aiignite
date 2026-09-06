@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePrefersReducedMotion } from "@/lib/motion";
 
 /**
  * The Forge track's structural idea, made visible while you read it.
@@ -27,21 +28,32 @@ export function PipelineRail({
 }: {
   layers: readonly { n: string; k: string; v: string }[];
 }) {
-  const [active, setActive] = useState(0);
+  /** Which workshop is being read. Only meaningful when the rail is
+   *  tracking — under reduced motion the lit count is derived instead,
+   *  which is why this is not the thing rendered directly. */
+  const [tracked, setTracked] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
+  const reduced = usePrefersReducedMotion();
+
+  // Everything lit, nothing tracking. The diagram still reads as a
+  // diagram; it just stops responding to the scroll position.
+  //
+  // DERIVED, not stored. This used to be `setActive(layers.length - 1)`
+  // in the effect below, which is a setState in an effect body — one
+  // render with the wrong answer and then another with the right one, on
+  // every mount. There is no state here: it is a function of the media
+  // query and the layer count, and both are available during render.
+  const active = reduced ? layers.length - 1 : tracked;
 
   useEffect(() => {
+    // Nothing to observe when the rail is not tracking. No setState on
+    // this path any more — the line above already has the answer.
+    if (reduced) return;
+
     const marks = Array.from(
       document.querySelectorAll<HTMLElement>("[data-workshop]"),
     );
     if (!marks.length) return;
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // Everything lit, nothing tracking. The diagram still reads as a
-      // diagram; it just stops responding to the scroll position.
-      setActive(layers.length - 1);
-      return;
-    }
 
     // Reads only what the observer already computed. No getBoundingClientRect
     // in the callback, so this never forces a layout while the heat field
@@ -51,7 +63,7 @@ export function PipelineRail({
         for (const e of entries) {
           if (!e.isIntersecting) continue;
           const i = marks.indexOf(e.target as HTMLElement);
-          if (i >= 0) setActive(i);
+          if (i >= 0) setTracked(i);
         }
       },
       // A band across the middle of the screen: a workshop counts as the
@@ -62,7 +74,7 @@ export function PipelineRail({
 
     marks.forEach((m) => io.observe(m));
     return () => io.disconnect();
-  }, [layers.length]);
+  }, [reduced]);
 
   return (
     <div ref={ref} className="rail lg:sticky lg:top-32">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePrefersReducedMotion } from "@/lib/motion";
 
 /**
  * The opening sequence. A drawing builds itself, burns off, and hands
@@ -144,6 +145,10 @@ type Phase = "draw" | "burn" | "play" | "home" | "land" | "out";
 export function Intro() {
   const [phase, setPhase] = useState<Phase>("draw");
   const [gone, setGone] = useState(false);
+  /** The one audience that never sees this. Read during render rather
+   *  than in the effect below, so the sequence is never mounted for them
+   *  at all — see the note on the effect. */
+  const reduced = usePrefersReducedMotion();
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mascotRef = useRef<HTMLVideoElement>(null);
@@ -190,10 +195,17 @@ export function Intro() {
   useEffect(() => {
     // The one audience that never sees it. Everyone else gets it on
     // every load.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      finish();
-      return;
-    }
+    //
+    // A bare return, and no `finish()`. This used to call it here, which
+    // is a setState in an effect body: the overlay mounted, painted a
+    // black screen over the page, and only then unmounted itself. The
+    // guard is on the render now — `reduced` is read during render, so
+    // for that reader the overlay is never mounted in the first place
+    // and there is nothing to tear down.
+    //
+    // The cleanup below still runs if this ever flips mid-sequence,
+    // which is what puts `data-intro` back and restores the scroll.
+    if (reduced) return;
 
     document.documentElement.setAttribute("data-intro", "draw");
 
@@ -326,9 +338,9 @@ export function Intro() {
       video?.removeEventListener("playing", start);
       document.documentElement.removeAttribute("data-intro");
     };
-  }, [finish, skip]);
+  }, [reduced, finish, skip]);
 
-  if (gone) return null;
+  if (gone || reduced) return null;
 
   return (
     <div
