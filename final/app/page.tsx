@@ -18,7 +18,6 @@ import {
   TRACKS,
   WHY,
 } from "@/lib/content";
-import { SIGNUP } from "@/lib/signup";
 import { SHELL, GUTTER, ANCHOR } from "@/lib/ui";
 
 /**
@@ -554,12 +553,19 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
-              <a
-                href={SIGNUP.href}
+              {/* Goes to /join rather than firing SIGNUP.href straight
+                  out of the page. That href is a `mailto:` today, so the
+                  loudest control on the site opened a mail client over
+                  the page with no warning and no way back — for a reader
+                  who has decided they are interested but not yet how
+                  much. /join is every way in on one screen, ordered by
+                  what each one costs, with the sign-up itself last. */}
+              <Link
+                href="/join"
                 className="w-full max-w-[15rem] bg-flame px-7 py-3.5 text-center text-read text-void transition-colors duration-200 hover:bg-bone sm:w-auto sm:max-w-none type-strong"
               >
                 Join the club
-              </a>
+              </Link>
               <a
                 href="#tracks"
                 className="w-full max-w-[15rem] border border-edge px-7 py-3.5 text-center text-read text-bone transition-colors duration-200 hover:border-flame hover:text-flame sm:w-auto sm:max-w-none type-lead"

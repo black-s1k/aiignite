@@ -110,12 +110,36 @@ export const CLUB = {
  * Passport York before it shows anything, so the footer says "Listed on"
  * rather than promising a page. The flame block is a compact row and
  * uses the bare `name` there.
+ *
+ * `what` is one line saying what a reader will actually find there, and
+ * it exists for app/join, which is a page rather than a row and has the
+ * space to answer "why would I open that one". Kept deliberately thin:
+ * the club has not run a session yet, so anything about what gets posted
+ * would be a promise rather than a description. The footer and the flame
+ * block ignore it.
  */
 export const SOCIALS = [
-  { name: "Discord", href: CLUB.discord },
-  { name: "Instagram", href: CLUB.instagram },
-  { name: "LinkedIn", href: CLUB.linkedin },
-  { name: "YUConnect", href: CLUB.yuconnect, long: "Listed on YUConnect" },
+  {
+    name: "Discord",
+    href: CLUB.discord,
+    what: "The club's chat. The quickest way to ask us something.",
+  },
+  {
+    name: "Instagram",
+    href: CLUB.instagram,
+    what: "Announcements and session notices.",
+  },
+  {
+    name: "LinkedIn",
+    href: CLUB.linkedin,
+    what: "The club's page.",
+  },
+  {
+    name: "YUConnect",
+    href: CLUB.yuconnect,
+    long: "Listed on YUConnect",
+    what: "York's official student organisation registry. Opening it asks for a Passport York login first.",
+  },
 ] as const;
 
 export const NAV = [
