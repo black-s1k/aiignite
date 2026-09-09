@@ -1,7 +1,4 @@
-import Link from "next/link";
 import { HeatText } from "@/components/HeatText";
-import { Mark } from "@/components/Mark";
-import { CLUB } from "@/lib/content";
 import { GUTTER } from "@/lib/ui";
 
 /**
@@ -12,6 +9,19 @@ import { GUTTER } from "@/lib/ui";
  * rather than landing on a different one. The mark returns to the top
  * left and doubles as the way back, which is where a reader will look
  * for it anyway.
+ *
+ * ---- The top padding carries a FLOOR ----
+ * The nav is a fixed bar of a fixed height — 103px measured from `md`
+ * up — but `14vh` alone shrinks as the window gets shorter, which is
+ * exactly backwards: the thing being cleared does not shrink with it.
+ * With the lockup gone there is nothing taking up the slack, and a
+ * 1440x760 laptop left 4px between the bar and the first line under it;
+ * 1440x900 was 24px, which is not much better.
+ *
+ * 10.5rem is 168px, so clearance is ~65px on every desktop window
+ * shorter than about 1200px and `14vh` takes over above that. Phones are
+ * unaffected — their bar is shorter and their own clamp already measured
+ * 39-69px.
  */
 export function TrackHead({
   name,
@@ -27,37 +37,25 @@ export function TrackHead({
   intro: readonly string[];
 }) {
   return (
-    <header className="pb-[8vh] pt-[clamp(6.5rem,17vh,9rem)] lg:pt-[14vh]">
-      {/* The way back, and `lg:` only — which is a mobile fix rather than
-          a preference.
+    <header className="pb-[8vh] pt-[clamp(6.5rem,17vh,9rem)] lg:pt-[clamp(10.5rem,14vh,13rem)]">
+      {/* No lockup here.
 
-          The nav is fixed and carries this exact lockup, at this exact
-          size, in this exact corner. On a desktop the two are 90px apart
-          with a nav bar's worth of empty stock between them, which reads
-          as a masthead under a chrome bar. On a phone the page starts
-          14vh down, so at 390x844 the second lockup landed 35px below the
-          first — same mark, same word, same size, twice, one under the
-          other. That does not read as structure, it reads as the page
-          having rendered its header twice.
+          The fixed nav carries this exact lockup, at this exact size, in
+          this exact corner, on every page that renders it — and this
+          page is one of them. A second copy 165px below the first is not
+          a masthead, it is the same object twice; it read that way on a
+          phone, where they were 35px apart, and it reads that way on a
+          desktop too. The nav's is already a link home and its
+          `aria-label` says the same thing this one's did, so nothing is
+          lost by removing it.
 
-          So below `lg` the nav's lockup is the only one, and it is
-          already a link home. Nothing is lost: `aria-label` on that one
-          says the same thing this one does. */}
-      <div className="hidden lg:block">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-3 no-underline"
-          aria-label={`${CLUB.name}, home`}
-        >
-          <Mark className="h-8 w-6" />
-          <span className="wordmark whitespace-nowrap">{CLUB.name}</span>
-        </Link>
-      </div>
-
-      {/* The top margin belongs to the lockup above, so it goes with it.
-          With the lockup hidden this label IS the top of the page, and the
-          header's own `pt` is what clears the nav. */}
-      <p data-heat="label" className="label lg:mt-14">
+          app/privacy and app/terms keep theirs, and must: those two
+          pages do NOT render the nav, so their lockup is the only one on
+          the page rather than the second. See components/Legal.tsx. */}
+      {/* This label is now the top of the page at every width, and the
+          header's own `pt` is what clears the nav. The `lg:mt-14` that
+          used to space it from the lockup went with the lockup. */}
+      <p data-heat="label" className="label">
         {title}
       </p>
 

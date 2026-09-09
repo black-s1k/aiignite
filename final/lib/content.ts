@@ -54,6 +54,13 @@ export const CLUB = {
   instagram: "https://www.instagram.com/aiignite.yorku/",
 
   /**
+   * Found on the club's own Linktree rather than given directly, and
+   * verified to resolve before it was put here. It was the one channel
+   * the site did not know about.
+   */
+  tiktok: "https://www.tiktok.com/@aiignite.yorku",
+
+  /**
    * The Discord invite.
    *
    * !! THIS ONE EXPIRES. !! Checked against Discord's invite API on
@@ -128,6 +135,11 @@ export const SOCIALS = [
     name: "Instagram",
     href: CLUB.instagram,
     what: "Announcements and session notices.",
+  },
+  {
+    name: "TikTok",
+    href: CLUB.tiktok,
+    what: "The same, in video.",
   },
   {
     name: "LinkedIn",

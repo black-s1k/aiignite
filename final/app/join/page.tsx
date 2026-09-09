@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mark } from "@/components/Mark";
 import { Nav } from "@/components/Nav";
 import { CLUB, SOCIALS } from "@/lib/content";
 import { SIGNUP } from "@/lib/signup";
@@ -24,11 +23,24 @@ import { SHELL, GUTTER } from "@/lib/ui";
  * There is no flame block at the bottom, deliberately. Every other page
  * closes with one because it needs to send the reader HERE — this page
  * is that destination, and a call to action on it would point at itself.
+ *
+ * ---- The top padding carries a FLOOR ----
+ * The nav is a fixed bar of a fixed height — 103px measured from `md`
+ * up — but `14vh` alone shrinks as the window gets shorter, which is
+ * exactly backwards: the thing being cleared does not shrink with it.
+ * With the lockup gone there is nothing taking up the slack, and a
+ * 1440x760 laptop left 4px between the bar and the first line under it;
+ * 1440x900 was 24px, which is not much better.
+ *
+ * 10.5rem is 168px, so clearance is ~65px on every desktop window
+ * shorter than about 1200px and `14vh` takes over above that. Phones are
+ * unaffected — their bar is shorter and their own clamp already measured
+ * 39-69px.
  */
 
 export const metadata: Metadata = {
   title: `Join · ${CLUB.name}`,
-  description: `Every way to join ${CLUB.fullName}: the Discord, Instagram, LinkedIn, the YUConnect listing, and the sign-up itself. Free, open to every York student, no application.`,
+  description: `Every way to join ${CLUB.fullName}: the Discord, Instagram, TikTok, LinkedIn, the YUConnect listing, and the sign-up itself. Free, open to every York student, no application.`,
 };
 
 export default function Page() {
@@ -39,22 +51,10 @@ export default function Page() {
       <main className={SHELL}>
         {/* Same masthead shape the track pages use, minus the animated
             name — this page is a destination rather than a chapter, and
-            it does not need a second identity. `lg:` on the lockup for
-            the reason in TrackHead: the fixed nav already carries one at
-            this size, and on a phone the two land on top of each other. */}
-        <header className="pb-[8vh] pt-[clamp(6.5rem,17vh,9rem)] lg:pt-[14vh]">
-          <div className="hidden lg:block">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 no-underline"
-              aria-label={`${CLUB.name}, home`}
-            >
-              <Mark className="h-8 w-6" />
-              <span className="wordmark whitespace-nowrap">{CLUB.name}</span>
-            </Link>
-          </div>
-
-          <p data-heat="label" className="label lg:mt-14">
+            it does not need a second identity. No lockup either, for the
+            reason in TrackHead: the fixed nav above already carries one. */}
+        <header className="pb-[8vh] pt-[clamp(6.5rem,17vh,9rem)] lg:pt-[clamp(10.5rem,14vh,13rem)]">
+          <p data-heat="label" className="label">
             Join {CLUB.name}
           </p>
 
