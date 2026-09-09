@@ -98,7 +98,6 @@ export const CLUB = {
     "https://yuconnect.yorku.ca/feeds?type=club&type_id=36128&tab=about",
 } as const;
 
-/** The nav. Kept short on purpose, since five is already too many. */
 /**
  * Every place the club exists, in one list.
  *
@@ -154,8 +153,24 @@ export const SOCIALS = [
   },
 ] as const;
 
+/**
+ * The nav. Kept short on purpose: this is one column of sections, and
+ * a bar of anchors competes with simply scrolling it.
+ *
+ * "Why" is deliberately NOT here, and the section it pointed at is
+ * untouched — it still opens the page under the hero, with its own
+ * gutter label, exactly as before. It came out of the BAR because the
+ * bar is for the things a reader arrives wanting to find, and nobody
+ * arrives looking for the argument; they read it on the way past. The
+ * other three are destinations someone lands mid-page hunting for.
+ *
+ * `#why` stays live as an anchor even though nothing in here points at
+ * it: the skip-to-content link at the top of app/page.tsx targets it, so
+ * the section keeps both its `id` and its ANCHOR scroll margin. Removing
+ * either would send a keyboard reader to the top of the document instead
+ * of past the hero, which is the one job that link has.
+ */
 export const NAV = [
-  { label: "Why", href: "/#why" },
   { label: "Tracks", href: "/#tracks" },
   { label: "Team", href: "/#team" },
   { label: "FAQ", href: "/#faq" },
