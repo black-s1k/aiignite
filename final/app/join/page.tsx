@@ -83,22 +83,53 @@ export default function Page() {
             <ul className="max-w-wide">
               {SOCIALS.map((s) => (
                 <li key={s.name} data-heat="rule" className="border-b border-edge">
+                  {/* ---- Why this is `fr` and not a fixed column -------
+                      It was `sm:grid-cols-[10rem_...]` with the arrow in
+                      a flex box beside the name. A grid column does not
+                      clip its contents, so the moment a name was wider
+                      than 10rem the name and its arrow simply ran on
+                      into the next column and sat on top of the
+                      description. "Instagram" and "YUConnect" at the top
+                      of `--text-lead`'s clamp are about 12rem with the
+                      arrow, so two of the four rows overlapped.
+
+                      Fractions cannot do that: the columns divide the
+                      width that exists, so the name gets a real share
+                      rather than a guess at one, and every row resolves
+                      to the same widths because every row is the same
+                      width. The arrow moves to its own `auto` column at
+                      the end of the row, where nothing can reach it.
+
+                      Baseline alignment rather than the default stretch,
+                      so a 30px name and an 18px line of prose sit on one
+                      line rather than on two centres. */}
                   <a
                     href={s.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group grid gap-x-8 gap-y-2 py-7 transition-colors duration-200 sm:grid-cols-[10rem_minmax(0,1fr)]"
+                    className="group grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-2 py-7 transition-colors duration-200 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)_auto] sm:gap-x-8"
                   >
-                    <span className="flex items-center gap-3 text-lead text-bone type-lead transition-colors duration-200 group-hover:text-flame">
+                    <span className="text-pretty text-lead text-bone type-lead transition-colors duration-200 group-hover:text-flame">
                       {s.name}
-                      {/* The arrow the rest of the site uses for a link
-                          that leaves the page. `aria-hidden` because the
-                          new tab is already announced by the link. */}
-                      <span aria-hidden className="text-flame">
-                        &rarr;
-                      </span>
                     </span>
-                    <span className="max-w-tight text-pretty text-read text-ash">
+                    {/* The arrow the rest of the site uses for a link
+                        that leaves the page. `aria-hidden` because the
+                        new tab is already announced by the link.
+
+                        Beside the name on a phone, where the two columns
+                        are the name and it; at the end of the row from
+                        `sm` up. Placed explicitly at both sizes so it
+                        can never be auto-flowed into the description's
+                        cell. */}
+                    <span
+                      aria-hidden
+                      className="text-flame transition-transform duration-200 group-hover:translate-x-1 sm:col-start-3 sm:row-start-1"
+                    >
+                      &rarr;
+                    </span>
+                    {/* Spans both columns under the name on a phone;
+                        takes the middle column from `sm` up. */}
+                    <span className="col-span-2 text-pretty text-read text-ash sm:col-span-1 sm:col-start-2 sm:row-start-1">
                       {s.what}
                     </span>
                   </a>
@@ -154,7 +185,13 @@ export default function Page() {
                 Still deciding? The two tracks are described in full, session
                 by session, and the FAQ answers what the pages do not.
               </p>
-              <ul className="mt-6 grid gap-3 text-read">
+              {/* `tap-list` floors each row at 44px on a touch screen —
+                  these are three prose-sized links in a list, which is
+                  exactly the case that rule exists for. It is NOT on the
+                  channel list above: those rows are already ~90px tall,
+                  and the rule sets `display: flex` on the anchor, which
+                  would flatten that list's grid. */}
+              <ul className="tap-list mt-6 grid gap-3 text-read">
                 <li className="marker-line">
                   <Link className="text-bone underline underline-offset-4 transition-colors duration-200 hover:text-flame" href="/spark">
                     The Spark track, for anyone who has never written code
