@@ -62,8 +62,8 @@ const DESCRIPTION =
  *      same absolute URLs the deployed build does rather than silently
  *      falling back to localhost.
  *
- * Inlined at BUILD time, like NEXT_PUBLIC_SIGNUP_URL — setting it later
- * means rebuilding. See the note in lib/signup.ts.
+ * Inlined at BUILD time, not read per request, so setting it later means
+ * rebuilding.
  */
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??

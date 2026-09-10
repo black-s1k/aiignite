@@ -1,6 +1,5 @@
 import { SHELL, GUTTER, ANCHOR } from "@/lib/ui";
-import { CLUB, SOCIALS } from "@/lib/content";
-import { SIGNUP } from "@/lib/signup";
+import { SOCIALS } from "@/lib/content";
 
 /**
  * The flame block that closes every page.
@@ -47,38 +46,16 @@ export function JoinBlock({
           <div className="max-w-read">
             <h2 className="type-display text-balance text-title text-void">{heading}</h2>
             <p className="mt-5 text-pretty text-lead text-void/75 sm:mt-6">{children}</p>
-            {/* `w-full` below `sm` so the ask is a full-width bar rather
-                than a shrink-wrapped box floating in the left third of a
-                phone screen — it is the one thing on the page a reader is
-                being asked to press. `justify-between` puts the arrow on
-                the far edge, which is where a full-width button's arrow
-                belongs; from `sm` up the button shrink-wraps again and
-                the two sit next to each other as before. */}
-            <a
-              href={SIGNUP.href}
-              className="group mt-8 flex w-full items-center justify-between gap-4 bg-void px-6 py-4 type-strong text-read text-flame transition-[gap] duration-300 ease-[var(--ease-heat)] hover:gap-7 sm:mt-10 sm:inline-flex sm:w-auto sm:justify-start sm:px-8"
-            >
-              Sign up for {CLUB.name}
-              <span aria-hidden>&rarr;</span>
-            </a>
-            <p className="mt-5 text-small text-void/60">{SIGNUP.note}</p>
+            {/* Every channel, and now the only thing in this block a
+                  reader can act on.
 
-            {/* Every channel, at the moment of the ask.
-
-                The sign-up is a form and a commitment; these are not.
-                Someone who is not ready to put their name down will
-                still open a Discord, and the block that asks them to
-                join is the one place where "or just come and look at us
-                first" costs nothing to offer.
-
-                Set BELOW the note and at `text-small`, so the hierarchy
-                is unambiguous: one black button is the ask, this row is
-                the alternative. A second row of equal-weight buttons
-                would make the reader choose rather than act.
-
-                Ink is solid void, not void/60 like the note above it.
-                These are targets, and 14.4:1 against the flame is the
-                point of putting them on the accent block at all. */}
+                  It used to sit under a black "Sign up" button as the
+                  quieter alternative to it. That button fired a `mailto:`
+                  and was never wired to a form, so it was removed and
+                  these inherit the job. They are set at `text-read`
+                  rather than the `text-small` they carried underneath it:
+                  a row that IS the ask cannot be typed like a footnote to
+                  one. */}
             {/* No `data-heat` here, and that is not an oversight — the
                 same reason the "Join" label above omits it. The field
                 warms a label TOWARD THE FLAME, which is a brightening on
@@ -86,14 +63,14 @@ export function JoinBlock({
                 block is the one place on the site where the accent is
                 the ground, so nothing in it opts into the heat. */}
             <p className="label !text-void/60 mt-9">Find us</p>
-            {/* `tap-list` on a touch screen: the four channels wrap to
+            {/* `tap-list` on a touch screen: the five channels wrap to
                 two rows on a phone, and at 23px tall with 8px between
                 them the two rows were a 54px band of near-touching
                 targets. The rule floors each row at 44px and leaves a
                 pointer untouched — see globals.css. The middle dots ride
                 the row rather than being spaced away from it, because
                 they sit inside the `li` alongside the link. */}
-            <ul className="tap-list mt-3 flex flex-wrap items-center gap-x-1 gap-y-2 text-small">
+            <ul className="tap-list mt-3 flex flex-wrap items-center gap-x-1 gap-y-2 text-read">
               {SOCIALS.map((s, i) => (
                 <li key={s.name} className="flex items-center">
                   <a

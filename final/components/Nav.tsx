@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Mark } from "@/components/Mark";
 import { CLUB, NAV } from "@/lib/content";
-import { SIGNUP } from "@/lib/signup";
 
 /**
  * The page had no navigation at all, which is the single biggest thing
@@ -115,7 +114,12 @@ export function Nav() {
         </a>
 
         {/* Not collapsed into a hamburger below `md` — see the rail
-            under this row, which is where the same four anchors go. */}
+            under this row, which is where the same anchors go.
+
+            `ml-auto` is what holds these to the right edge now that the
+            sign-up button has gone from beside them. Below `md` this list
+            is hidden and the row is the lockup alone, which is correct:
+            the rail underneath carries the anchors. */}
         <ul className="ml-auto hidden items-center gap-8 md:flex">
           {NAV.map((n) => (
             <li key={n.href}>
@@ -149,17 +153,6 @@ export function Nav() {
           ))}
         </ul>
 
-        {/* At 320px the wordmark ended 24px from this button, which is
-            two objects sharing an edge rather than a bar with a left and
-            a right. The padding steps rather than holding at `px-5`, and
-            the row's own gap comes down with it — measured, that is 33px
-            of clearance at 320 instead of 24, without the type moving. */}
-        <a
-          href={SIGNUP.href}
-          className="nav-cta ml-auto shrink-0 border border-flame px-3.5 py-2.5 text-flame transition-colors duration-200 hover:bg-flame hover:text-void sm:px-6 sm:py-3 md:ml-0"
-        >
-          Sign up
-        </a>
       </div>
 
       {/* ---- The phone's way through the page -----------------------
@@ -172,7 +165,7 @@ export function Nav() {
           screen, about twelve screens, and "scroll until you find the
           FAQ" is the desktop reader's problem solved and the phone
           reader's ignored. Desktop gets four labels it can reach in one
-          movement; the phone got a sign-up button.
+          movement; the phone got nothing.
 
           So it is a rail, not a menu — no button to press, no panel to
           open, no state. It is the same row the desktop bar carries, set

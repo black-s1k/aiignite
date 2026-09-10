@@ -553,13 +553,11 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:mt-10 sm:flex-row sm:flex-wrap sm:gap-4">
-              {/* Goes to /join rather than firing SIGNUP.href straight
-                  out of the page. That href is a `mailto:` today, so the
-                  loudest control on the site opened a mail client over
-                  the page with no warning and no way back — for a reader
-                  who has decided they are interested but not yet how
-                  much. /join is every way in on one screen, ordered by
-                  what each one costs, with the sign-up itself last. */}
+              {/* Goes to /join, which is every way in on one screen.
+                  It used to fire a `mailto:` straight out of the page —
+                  the loudest control on the site opening a mail client
+                  with no warning and no way back. That sign-up is gone
+                  now; the channels on /join are the whole answer. */}
               <Link
                 href="/join"
                 className="w-full max-w-[15rem] bg-flame px-7 py-3.5 text-center text-read text-void transition-colors duration-200 hover:bg-bone sm:w-auto sm:max-w-none type-strong"
@@ -838,9 +836,8 @@ export default function Home() {
           three — the track pages still pass one, for their cross-link to
           the opposite track. */}
       <JoinBlock id="join" heading="Come to the first one">
-        Sessions begin {CLUB.launch}. Tell us which track fits and we will send
-        the schedule before term starts. It takes about a minute and you can
-        change your mind later.
+        Sessions begin {CLUB.launch}. Come to one, or say hello first on any of
+        these. There is no form to fill in and nothing to sign.
       </JoinBlock>
 
       {/* ---- Colophon ------------------------------------------------ */}

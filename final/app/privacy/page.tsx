@@ -4,7 +4,7 @@ import { CLUB } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: `Privacy · ${CLUB.name}`,
-  description: `What ${CLUB.name} does with the information you give us when you sign up, and what this website collects. It sets no cookies and runs no analytics.`,
+  description: `What ${CLUB.name} does with the information you send us, and what this website collects. It sets no cookies and runs no analytics.`,
 };
 
 /**
@@ -48,25 +48,29 @@ export default function Page() {
         profiles from it or connect it to anything below.
       </p>
 
-      <h2>What we collect when you sign up</h2>
+      <h2>What we collect</h2>
       <p>
-        Signing up sends us your name, your program and year, which track
-        you want, and the email address you write from or enter. That is
-        all we ask for, and we do not ask for your student number.
+        Nothing, through this site. There is no sign-up form and no form of
+        any kind on it, so there is no field to type anything into and
+        nothing for us to receive.
       </p>
-      <p>We use it for exactly two things:</p>
-      <ul>
-        <li>Sending you the schedule and session reminders.</li>
-        <li>
-          Knowing roughly how many people to expect, so we can book a room
-          that fits.
-        </li>
-      </ul>
       <p>
-        We do not sell it, rent it, or share it with sponsors. If a session
-        is ever run with a partner organisation, they get a headcount and
-        nothing else. Every email we send has a way to stop receiving
-        them, and stopping does not remove you from the club.
+        If you email us, then we have your address and whatever you chose to
+        put in the message, sitting in our inbox in the ordinary way. We use
+        it to reply, and to know roughly how many people to expect so we can
+        book a room that fits. We do not sell it, rent it, or share it with
+        sponsors. If a session is ever run with a partner organisation, they
+        get a headcount and nothing else.
+      </p>
+      <p>
+        The places we ask you to find us are other companies&rsquo; services,
+        and what they collect there is theirs rather than ours. Joining the
+        Discord means agreeing to Discord&rsquo;s terms; following the
+        Instagram, TikTok or LinkedIn accounts means agreeing to theirs. Our
+        YUConnect listing is York&rsquo;s own system and runs under
+        York&rsquo;s privacy policy rather than this one. In each of them we
+        can see who has joined or followed, in the same way anyone running an
+        account can, and nothing beyond that.
       </p>
 
       <h2>How long we keep it</h2>
